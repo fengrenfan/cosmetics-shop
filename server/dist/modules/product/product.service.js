@@ -24,7 +24,7 @@ let ProductService = class ProductService {
         this.skuRepository = skuRepository;
     }
     async getList(query) {
-        const { page = 1, pageSize = 10, category_id, keyword, status, sort = 'sort_order', order = 'desc', min_price, max_price, is_new, is_hot, is_recommend } = query;
+        const { page = 1, pageSize = 10, category_id, keyword, status, sort = 'sort_order', order = 'desc', min_price, max_price, is_new, is_hot, is_recommend, in_stock } = query;
         const qb = this.productRepository
             .createQueryBuilder('product')
             .leftJoinAndSelect('product.category', 'category');
@@ -53,6 +53,9 @@ let ProductService = class ProductService {
         }
         if (is_recommend) {
             qb.andWhere('product.is_recommend = :is_recommend', { is_recommend: 1 });
+        }
+        if (in_stock) {
+            qb.andWhere('product.stock > :stock', { stock: 0 });
         }
         const orderMap = {
             sort_order: 'product.sort_order',

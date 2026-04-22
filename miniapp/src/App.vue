@@ -40,7 +40,11 @@ page {
 }
 
 /* Material Symbols base class */
-.material-symbols-outlined {
+.material-symbols-outlined,
+.expand_less,
+.expand_more,
+.expand_less *,
+.expand_more * {
   font-family: 'Material Symbols Outlined' !important;
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   display: inline-block;
@@ -48,6 +52,7 @@ page {
   line-height: 1;
   font-style: normal;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Filled variant */

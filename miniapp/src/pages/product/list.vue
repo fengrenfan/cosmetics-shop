@@ -3,16 +3,16 @@
     <!-- 搜索栏 -->
     <view class="search-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="search-input">
-        <text class="material-icons search-icon">search</text>
-        <input 
-          class="input" 
-          v-model="keyword" 
-          placeholder="搜索商品" 
+        <text class="iconfont search">search</text>
+        <input
+          class="input"
+          v-model="keyword"
+          placeholder="搜索商品"
           @confirm="handleSearch"
           @input="onKeywordInput"
           confirm-type="search"
         />
-        <text class="material-icons clear-icon" v-if="keyword" @click="clearKeyword">close</text>
+        <text class="iconfont close" v-if="keyword" @click="clearKeyword">close</text>
       </view>
       <text class="search-btn" @click="handleSearch">搜索</text>
     </view>
@@ -41,14 +41,17 @@
         >
           <text>价格</text>
           <view class="price-arrow">
-            <text class="iconfont expand_less" :class="{ active: sort === 'price_asc' }"></text>
-            <text class="iconfont expand_more" :class="{ active: sort === 'price_desc' }"></text>
+            <text class="iconfont expand_less" :class="{ active: sort === 'price_asc' }">expand_less</text>
+            <text class="iconfont expand_more" :class="{ active: sort === 'price_desc' }">expand_more</text>
           </view>
         </view>
       </view>
-      <view class="filter-action" @click="showFilter = true">
-        <text class="iconfont filter"></text>
+      <view class="filter-action">
+        <text class="iconfont filter">filter_list</text>
         <text>筛选</text>
+        <view class="view-mode-toggle" @click.stop="toggleViewMode">
+          <text class="iconfont">{{ viewMode === 'grid' ? 'view_list' : 'grid_view' }}</text>
+        </view>
       </view>
     </view>
 
@@ -76,7 +79,7 @@
                 <text class="original-price" v-if="item.original_price">¥{{ item.original_price }}</text>
               </view>
               <view class="add-cart" @click.stop="addToCart(item)">
-                <text class="iconfont shopping_cart"></text>
+                <text class="iconfont">shopping_cart</text>
               </view>
             </view>
           </view>
@@ -133,6 +136,29 @@
         </view>
 
         <view class="filter-body">
+          <!-- 分类筛选 -->
+          <view class="filter-section" v-if="categoryList.length > 0">
+            <text class="section-title">分类</text>
+            <view class="tag-list">
+              <view
+                class="tag-item"
+                :class="{ active: filterForm.category_id === null }"
+                @click="filterForm.category_id = null"
+              >
+                全部
+              </view>
+              <view
+                class="tag-item"
+                v-for="item in categoryList"
+                :key="item.id"
+                :class="{ active: filterForm.category_id === item.id }"
+                @click="filterForm.category_id = item.id"
+              >
+                {{ item.name }}
+              </view>
+            </view>
+          </view>
+
           <!-- 价格区间 -->
           <view class="filter-section">
             <text class="section-title">价格区间</text>
@@ -192,7 +218,6 @@ const cartStore = useCartStore();
 const statusBarHeight = ref(20);
 const keyword = ref('');
 const sort = ref('sort_order');
-const order = ref('desc');
 const categoryId = ref(null);
 const viewMode = ref('grid');
 const productList = ref([]);
@@ -201,20 +226,26 @@ const noMore = ref(false);
 const page = ref(1);
 const pageSize = 20;
 const showFilter = ref(false);
+let searchTimer = null;
 
 const filterForm = ref({
   minPrice: '',
   maxPrice: '',
   is_new: false,
   is_hot: false,
-  is_recommend: false
+  is_recommend: false,
+  category_id: null
 });
+
+const categoryList = ref([]);
 
 onLoad((options) => {
   if (options.keyword) keyword.value = options.keyword;
-  if (options.category_id) categoryId.value = options.category_id;
-  
-  // 设置页面标题
+  if (options.category_id) {
+    categoryId.value = options.category_id;
+    filterForm.value.category_id = options.category_id;
+  }
+
   if (options.title) {
     uni.setNavigationBarTitle({ title: options.title });
   }
@@ -223,9 +254,19 @@ onLoad((options) => {
 onMounted(() => {
   const systemInfo = uni.getSystemInfoSync();
   statusBarHeight.value = systemInfo.statusBarHeight || 20;
-  
+
+  loadCategories();
   loadData();
 });
+
+async function loadCategories() {
+  try {
+    const res = await request.get('/category/tree');
+    categoryList.value = res || [];
+  } catch (e) {
+    console.error('加载分类失败', e);
+  }
+}
 
 async function loadData(append = false) {
   if (loading.value) return;
@@ -236,11 +277,12 @@ async function loadData(append = false) {
       page: page.value,
       pageSize,
       sort: sort.value,
-      order: ['price_asc', 'price_desc'].includes(sort.value) ? (sort.value === 'price_asc' ? 'asc' : 'desc') : order.value
+      order: sort.value.includes('asc') ? 'asc' : 'desc'
     };
     
     if (keyword.value) params.keyword = keyword.value;
     if (categoryId.value) params.category_id = categoryId.value;
+    if (filterForm.value.category_id) params.category_id = filterForm.value.category_id;
     if (filterForm.value.minPrice) params.min_price = filterForm.value.minPrice;
     if (filterForm.value.maxPrice) params.max_price = filterForm.value.maxPrice;
     if (filterForm.value.is_new) params.is_new = 1;
@@ -289,7 +331,10 @@ function clearKeyword() {
 }
 
 function onKeywordInput(e) {
-  // H5 下 @confirm 不稳定，用 @input 配合搜索按钮
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    handleSearch();
+  }, 500);
 }
 
 function onSortChange(newSort) {
@@ -306,7 +351,8 @@ function resetFilter() {
     maxPrice: '',
     is_new: false,
     is_hot: false,
-    is_recommend: false
+    is_recommend: false,
+    category_id: null
   };
 }
 
@@ -315,6 +361,10 @@ function applyFilter() {
   page.value = 1;
   noMore.value = false;
   loadData();
+}
+
+function toggleViewMode() {
+  viewMode.value = viewMode.value === 'grid' ? 'list' : 'grid';
 }
 
 function goDetail(item) {
@@ -340,7 +390,9 @@ async function addToCart(item) {
 
 <style lang="scss" scoped>
 .page {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: #f5f5f5;
 }
 
@@ -441,27 +493,41 @@ async function addToCart(item) {
 .filter-action {
   display: flex;
   align-items: center;
-  
+
   .iconfont {
     font-size: 32rpx;
     margin-right: 8rpx;
   }
-  
+
   text:last-child {
     font-size: 26rpx;
     color: #666;
   }
 }
 
+.view-mode-toggle {
+  margin-left: 20rpx;
+  padding: 8rpx;
+  background: #f5f5f5;
+  border-radius: 8rpx;
+
+  .iconfont {
+    font-size: 32rpx;
+    color: #666;
+  }
+}
+
 .product-list {
-  height: calc(100vh - 200rpx);
-  padding: 20rpx;
+  flex: 1;
+  overflow: hidden;
 }
 
 .product-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20rpx;
+  padding: 20rpx;
+  padding-bottom: 40rpx;
 }
 
 .product-item {
@@ -533,10 +599,12 @@ async function addToCart(item) {
   justify-content: center;
   background: linear-gradient(135deg, #ff4a8d 0%, #ff6b9d 100%);
   border-radius: 50%;
-  color: #fff;
-  
+
   .iconfont {
     font-size: 24rpx;
+    color: #fff;
+    font-family: 'Material Symbols Outlined' !important;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   }
 }
 
@@ -545,6 +613,8 @@ async function addToCart(item) {
   display: flex;
   flex-direction: column;
   gap: 20rpx;
+  padding: 20rpx;
+  padding-bottom: 40rpx;
 }
 
 .product-list-item {

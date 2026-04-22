@@ -5,23 +5,23 @@
       <view class="nav-inner">
         <!-- 定位 -->
         <view class="location">
-          <text class="iconfont location_on" style="color: #bb0004;"></text>
+          <text class="material-symbols-outlined" style="color: #bb0004; font-size: 32rpx;">location_on</text>
           <text class="city-name">上海</text>
-          <text class="iconfont expand_more" style="font-size: 20rpx; color: #5d3f3b;"></text>
+          <text class="material-symbols-outlined" style="font-size: 20rpx; color: #5d3f3b;">expand_more</text>
         </view>
         <!-- 搜索栏 -->
         <view class="search-bar" @click="goSearch">
-          <text class="iconfont search"></text>
+          <text class="material-symbols-outlined" style="font-size: 32rpx;">search</text>
           <text class="placeholder">搜索高端护肤品...</text>
-          <text class="iconfont photo_camera" style="font-size: 36rpx;"></text>
+          <text class="material-symbols-outlined" style="font-size: 36rpx;">photo_camera</text>
         </view>
         <!-- 右侧图标 -->
         <view class="nav-icons">
           <view class="nav-icon-btn">
-            <text class="iconfont qr_code_scanner"></text>
+            <text class="material-symbols-outlined">qr_code_scanner</text>
           </view>
           <view class="nav-icon-btn relative">
-            <text class="iconfont notifications"></text>
+            <text class="material-symbols-outlined">notifications</text>
             <view class="red-dot"></view>
           </view>
         </view>
@@ -113,7 +113,7 @@
               <view class="product-bottom">
                 <text class="product-price">¥{{ item.price }}</text>
                 <view class="add-btn" @click.stop="addToCart(item)">
-                  <text class="iconfont add-cart"></text>
+                  <text class="material-symbols-outlined add-cart-icon">add_shopping_cart</text>
                 </view>
               </view>
               <text class="product-sales">{{ item.rating || '5.0' }} ★ 已售 {{ item.sales_count || '0' }}</text>
@@ -304,33 +304,31 @@ $radius-xl: 24rpx;
 $radius-full: 9999rpx;
 
 .page {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: $surface;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  position: relative;
 }
 
 // ── 导航栏（精确匹配 HTML 结构）──
 .nav-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  background: rgba(255, 255, 255, 0.9);
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
-  padding: 0 32rpx;
-  padding-top: env(safe-area-inset-top);
-  height: auto;
-  min-height: 112rpx;
+  padding: 0 24rpx;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .nav-inner {
   display: flex;
   align-items: center;
-  height: 112rpx;
-  gap: 20rpx;
+  height: 96rpx;
+  gap: 16rpx;
 }
 
 // 定位
@@ -346,10 +344,6 @@ $radius-full: 9999rpx;
     font-size: 28rpx;
     color: $on-surface;
   }
-
-  .iconfont {
-    font-size: 32rpx;
-  }
 }
 
 // 搜索栏
@@ -364,7 +358,7 @@ $radius-full: 9999rpx;
   gap: 12rpx;
   transition: all 0.2s;
 
-  .iconfont {
+  .material-symbols-outlined {
     color: $on-surface-variant;
     font-size: 32rpx;
     flex-shrink: 0;
@@ -401,7 +395,7 @@ $radius-full: 9999rpx;
     background: rgba(0, 0, 0, 0.05);
   }
 
-  .iconfont {
+  .material-symbols-outlined {
     font-size: 40rpx;
     color: $on-surface;
   }
@@ -420,12 +414,8 @@ $radius-full: 9999rpx;
 
 // ── 内容区域 ──
 .content {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding-top: calc(112rpx + env(safe-area-inset-top));
+  flex: 1;
+  padding: 0;
 }
 
 // ── 轮播图 ──
@@ -762,8 +752,9 @@ $radius-full: 9999rpx;
     transform: scale(0.9);
   }
 
-  .iconfont {
-    font-size: 28rpx;
+  .add-cart-icon {
+    font-size: 32rpx;
+    color: #fff;
   }
 }
 

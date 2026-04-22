@@ -54,6 +54,10 @@ export class ProductListDto {
   @IsOptional()
   @Type(() => Number)
   is_recommend?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  in_stock?: number; // 1: 只显示有库存的商品
 }
 
 export class CreateProductDto {

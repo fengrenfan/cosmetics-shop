@@ -11,6 +11,7 @@ export declare class ProductListDto {
     is_new?: number;
     is_hot?: number;
     is_recommend?: number;
+    in_stock?: number;
 }
 export declare class CreateProductDto {
     category_id: number;

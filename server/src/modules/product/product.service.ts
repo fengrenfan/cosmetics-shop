@@ -18,7 +18,7 @@ export class ProductService {
    * 商品列表
    */
   async getList(query: ProductListDto) {
-    const { page = 1, pageSize = 10, category_id, keyword, status, sort = 'sort_order', order = 'desc', min_price, max_price, is_new, is_hot, is_recommend } = query;
+    const { page = 1, pageSize = 10, category_id, keyword, status, sort = 'sort_order', order = 'desc', min_price, max_price, is_new, is_hot, is_recommend, in_stock } = query;
 
     const qb = this.productRepository
       .createQueryBuilder('product')
@@ -57,6 +57,11 @@ export class ProductService {
 
     if (is_recommend) {
       qb.andWhere('product.is_recommend = :is_recommend', { is_recommend: 1 });
+    }
+
+    // 只显示有库存的商品
+    if (in_stock) {
+      qb.andWhere('product.stock > :stock', { stock: 0 });
     }
 
     // 排序

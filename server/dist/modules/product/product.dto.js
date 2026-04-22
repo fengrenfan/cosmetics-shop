@@ -86,6 +86,11 @@ __decorate([
     (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], ProductListDto.prototype, "is_recommend", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    __metadata("design:type", Number)
+], ProductListDto.prototype, "in_stock", void 0);
 class CreateProductDto {
 }
 exports.CreateProductDto = CreateProductDto;
