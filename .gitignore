@@ -37,4 +37,8 @@ server/uploads/
 
 # Temporary files
 tmp/
-temp/
+temp/# Claude
+.claude/
+
+# Server build
+server/dist/
