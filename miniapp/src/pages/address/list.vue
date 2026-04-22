@@ -100,13 +100,22 @@
         <view class="sheet-body">
           <!-- 粘贴地址解析 -->
           <view class="form-item form-import" v-if="!formData.province">
-            <input
-              class="form-input import-input"
+            <textarea
+              class="import-textarea"
               v-model="importText"
-              placeholder="粘贴收货地址，自动解析省市区（如：广东省广州市天河区花城大道123号）"
+              placeholder="粘贴收货地址（如：广东省广州市天河区花城大道123号）"
               placeholder-class="ph-color"
-              @blur="parseImportAddress"
             />
+            <view class="btn-row">
+              <view class="import-btn" @click="pasteAndParse">
+                <text class="material-symbols-outlined">content_paste</text>
+                <text class="btn-text">粘贴</text>
+              </view>
+              <view class="parse-btn" @click="parseImportAddress" v-if="importText.trim()">
+                <text class="material-symbols-outlined">auto_awesome</text>
+                <text>智能识别</text>
+              </view>
+            </view>
           </view>
 
           <view class="form-item">
@@ -199,62 +208,186 @@ function goBack() {
   uni.navigateBack();
 }
 
-// 粘贴地址解析（自动填充省市区）
+// 粘贴并识别
+async function pasteAndParse() {
+  try {
+    const res = await uni.getClipboardData({});
+    if (res.data) {
+      importText.value = res.data;
+      parseImportAddress();
+    } else {
+      uni.showToast({ title: '剪贴板为空', icon: 'none' });
+    }
+  } catch (e) {
+    uni.showToast({ title: '读取剪贴板失败', icon: 'none' });
+  }
+}
+
+// 粘贴地址解析（自动填充省市区）- 改进版
 function parseImportAddress() {
   if (!importText.value.trim()) return;
   const text = importText.value.trim();
 
-  // 查找匹配的省份
-  let province = '', rest = text;
+  // 1. 提取手机号（11位以1开头的数字）并从文本中移除
+  const phoneMatch = text.match(/1\d{10}/);
+  if (phoneMatch) {
+    formData.value.phone = phoneMatch[0];
+  }
+  // 移除手机号后的文本（用于后续解析）
+  let textWithoutPhone = text.replace(/1\d{10}/g, '').trim();
+
+  // 2. 识别收货人姓名（先于省份解析，因为"XX收"可能出现在任意位置）
+  let name = '';
+  // 策略1：查找"XX收"格式（可能在开头或末尾，如"张三收"或"张三 收"）
+  const receiverMatch = textWithoutPhone.match(/([一-龥]{2,10})\s*收/);
+  if (receiverMatch) {
+    name = receiverMatch[1];
+    textWithoutPhone = textWithoutPhone.replace(/[一-龥]{2,10}\s*收/, '').trim();
+  }
+  // 策略2：查找开头的独立姓名（2-4个汉字，后面跟空格+地址关键词）
+  if (!name) {
+    const nameAtStart = textWithoutPhone.match(/^([一-龥]{2,4})\s+(1\d{10}|[一-龥]{2,10}(街|路|道|号|栋|楼|单元|室|村|巷))/);
+    if (nameAtStart) {
+      name = nameAtStart[1];
+      textWithoutPhone = textWithoutPhone.replace(/^[一-龥]{2,4}\s+/, '').trim();
+    }
+  }
+  // 策略3：查找手机号后面的姓名（格式：手机号 姓名）
+  if (!name && formData.value.phone) {
+    const phoneAfterName = text.match(/1\d{10}\s*([一-龥]{2,10})$/);
+    if (phoneAfterName) {
+      name = phoneAfterName[1];
+    }
+  }
+
+  // 3. 构建省份简称映射（支持模糊匹配）
+  const fullToShort = {
+    '北京市': '北京', '天津市': '天津', '上海市': '上海', '重庆市': '重庆',
+    '黑龙江省': '黑龙江', '内蒙古自治区': '内蒙古', '西藏自治区': '西藏', '新疆维吾尔自治区': '新疆',
+    '广西壮族自治区': '广西', '宁夏回族自治区': '宁夏',
+    '香港特别行政区': '香港', '澳门特别行政区': '澳门'
+  };
+
+  // 4. 从文本中查找匹配的省份（支持任意位置匹配）
+  let matchedProvince = null;
+  let restText = textWithoutPhone;
+
   for (const p of regionData) {
-    if (text.startsWith(p.label)) {
-      province = p.label;
-      rest = text.slice(p.label.length);
+    const shortName = fullToShort[p.label] || p.label.slice(0, 2);
+    const idx = textWithoutPhone.indexOf(p.label);
+    const shortIdx = shortName ? textWithoutPhone.indexOf(shortName) : -1;
+
+    // 优先匹配全称，其次匹配简称
+    if (idx !== -1) {
+      matchedProvince = p;
+      // 找到匹配位置，截取省之后的文本
+      restText = textWithoutPhone.slice(idx + p.label.length);
+      break;
+    } else if (shortIdx !== -1 && shortName.length >= 2) {
+      // 简称匹配（仅当简称长度>=2时）
+      matchedProvince = p;
+      restText = textWithoutPhone.slice(shortIdx + shortName.length);
       break;
     }
   }
-  if (!province) return;
 
-  // 查找匹配的市
-  let city = '', district = '';
-  const provinceData = regionData.find(p => p.label === province);
-  if (!provinceData) return;
+  if (!matchedProvince) {
+    uni.showToast({ title: '未识别出省份，请手动选择', icon: 'none' });
+    return;
+  }
 
-  for (const c of provinceData.children) {
-    if (rest.startsWith(c.label)) {
-      city = c.label;
-      rest = rest.slice(c.label.length);
+  formData.value.province = matchedProvince.label;
+  if (name) formData.value.name = name;
+
+  // 4. 查找匹配的市
+  let matchedCity = null;
+  const cities = matchedProvince.children || [];
+
+  for (const c of cities) {
+    const shortName = c.label.replace(/市|区|县$/, '');
+    // 检查是否以市名开头或包含市名
+    if (restText.startsWith(c.label) || restText.startsWith(shortName)) {
+      matchedCity = c;
+      restText = restText.slice(c.label.length);
+      break;
+    }
+    // 尝试在文本中查找
+    const idx = restText.indexOf(c.label);
+    if (idx !== -1) {
+      matchedCity = c;
+      restText = restText.slice(idx + c.label.length);
       break;
     }
   }
-  if (!city) return;
 
-  // 查找匹配的区县
-  const cityData = provinceData.children.find(c => c.label === city);
-  if (cityData?.children?.length > 0) {
-    for (const d of cityData.children) {
-      if (rest.startsWith(d.label)) {
-        district = d.label;
-        break;
-      }
+  // 5. 判断是否为直辖市/两级模式
+  const isTwoLevel = cities.length > 0 && cities.every(c => c.children.length === 0);
+
+  if (isTwoLevel) {
+    // 直辖市模式：city = 省份名，district = 选中的区
+    formData.value.city = matchedProvince.label;
+    if (matchedCity) {
+      formData.value.district = matchedCity.label;
     }
   } else {
-    // 两级模式（直辖市）：city 为市辖区，district 为选中的区
-    city = '市辖区';
-    district = cityData?.label || '';
+    // 三级模式：查找区县
+    if (matchedCity) {
+      formData.value.city = matchedCity.label;
+      const districts = matchedCity.children || [];
+      for (const d of districts) {
+        const shortName = d.label.replace(/市|区|县$/, '');
+        if (restText.startsWith(d.label) || restText.startsWith(shortName)) {
+          formData.value.district = d.label;
+          break;
+        }
+        const idx = restText.indexOf(d.label);
+        if (idx !== -1) {
+          formData.value.district = d.label;
+          break;
+        }
+      }
+    } else {
+      // 没找到市，尝试直接找区县
+      for (const c of cities) {
+        if (c.children?.length > 0) {
+          for (const d of c.children) {
+            const shortName = d.label.replace(/市|区|县$/, '');
+            if (restText.startsWith(d.label) || restText.startsWith(shortName)) {
+              formData.value.city = c.label;
+              formData.value.district = d.label;
+              break;
+            }
+          }
+          if (formData.value.district) break;
+        }
+      }
+    }
   }
-  if (!district) return;
 
-  formData.value.province = province;
-  formData.value.city = city;
-  formData.value.district = district;
-  importText.value = '';
+  // 6. 清理详细地址（去除可能残留的省市区名称）
+  let detailAddr = restText.trim();
+  // 去除可能开头的市辖区、县等
+  detailAddr = detailAddr.replace(/^(市辖区|市辖区|县|区)/, '').trim();
+  // 去除可能残留的门牌号等格式问题
+  detailAddr = detailAddr.replace(/^[，,、\s]+/, '').trim();
 
-  // 设置 picker 索引
-  const pIdx = regionData.findIndex(p => p.label === province);
-  const cIdx = provinceData.children.findIndex(c => c.label === city);
-  const dIdx = cityData?.children?.findIndex(d => d.label === district) ?? 0;
-  initRegionColumns(pIdx, cIdx, Math.max(0, dIdx));
+  // 7. 如果成功解析出省市区，填充表单
+  if (formData.value.province) {
+    formData.value.detail_address = detailAddr;
+    importText.value = '';
+    // 设置 picker 索引
+    const pIdx = regionData.findIndex(p => p.label === formData.value.province);
+    const provinceData = regionData[pIdx];
+    const cIdx = provinceData?.children?.findIndex(c => c.label === formData.value.city) ?? 0;
+    const cityData = provinceData?.children?.[cIdx];
+    let dIdx = 0;
+    if (cityData?.children?.length > 0) {
+      dIdx = cityData.children.findIndex(d => d.label === formData.value.district);
+      if (dIdx < 0) dIdx = 0;
+    }
+    initRegionColumns(pIdx, cIdx, dIdx);
+    uni.showToast({ title: '地址解析成功', icon: 'success' });
+  }
 }
 
 
@@ -364,8 +497,8 @@ function onRegionChange(e) {
   const [pIdx, cIdx, dIdx] = e.detail.value;
   formData.value.province = regionCol1.value[pIdx]?.label || '';
   if (regionTwoLevel.value) {
-    // 两级模式（直辖市）：city 设为"市辖区"，district 为选择的区
-    formData.value.city = '市辖区';
+    // 两级模式（直辖市）：city = 省份名称，district = 选中的区县
+    formData.value.city = regionCol1.value[pIdx]?.label || '';
     formData.value.district = regionCol2.value[cIdx]?.label || '';
   } else {
     formData.value.city = regionCol2.value[cIdx]?.label || '';
@@ -876,12 +1009,64 @@ $tabbar-height: 100rpx;
   }
 }
 
-.import-input {
+.import-textarea {
+  width: 100%;
+  min-height: 120rpx;
   background: $surface-container-low;
   border-radius: $radius-md;
-  padding: 20rpx 24rpx;
-  font-size: 26rpx;
+  padding: 24rpx;
+  font-size: 28rpx;
   color: $on-surface;
+  box-sizing: border-box;
+  line-height: 1.6;
+}
+
+.btn-row {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.import-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 22rpx 0;
+  background: linear-gradient(135deg, $primary 0%, $primary-container 100%);
+  border-radius: $radius-md;
+  flex-shrink: 0;
+
+  .material-symbols-outlined {
+    font-size: 28rpx;
+    color: $on-primary;
+  }
+
+  .btn-text {
+    font-size: 26rpx;
+    color: $on-primary;
+    font-weight: 600;
+  }
+}
+
+.parse-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 22rpx 0;
+  background: linear-gradient(135deg, #6c5ce7 0%, #a55eea 100%);
+  border-radius: $radius-md;
+  font-size: 26rpx;
+  color: $on-primary;
+  font-weight: 600;
+
+  .material-symbols-outlined {
+    font-size: 28rpx;
+    color: $on-primary;
+  }
 }
 
 
