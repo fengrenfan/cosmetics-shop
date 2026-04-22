@@ -276,14 +276,26 @@ async function loadProductDetail() {
     const data = await request.get(`/product/${productId.value}`);
     // 修复图片URL
     data.cover_image = request.fixImageUrl(data.cover_image);
-    data.images = request.fixImageUrls(data.images);
+    data.images = request.fixImageUrls(data.images || []);
     if (data.skus) {
       data.skus = data.skus.map(sku => ({
         ...sku,
-        image: request.fixImageUrl(sku.image)
+        image: request.fixImageUrl(sku.image),
+        price: parseFloat(sku.price) || 0
       }));
     }
-    product.value = data;
+    // 规范化数据格式
+    product.value = {
+      ...data,
+      price: parseFloat(data.price) || 0,
+      original_price: data.original_price ? parseFloat(data.original_price) : 0,
+      stock: data.stock || 0,
+      sales_count: data.sales_count || 0,
+      is_new: !!data.is_new,
+      is_hot: !!data.is_hot,
+      is_recommend: !!data.is_recommend,
+      is_seckill: false
+    };
     maxQuantity.value = data.stock || 999;
     
     // 解析SKU规格（支持多规格组合）

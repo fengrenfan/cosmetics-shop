@@ -197,12 +197,9 @@ async function loadHomeData() {
 
     banners.value = (bannerRes || []).map(b => ({ ...b, image: request.fixImageUrl(b.image) }));
     categories.value = categoryRes || [];
-    featured.value = featuredRes ? { ...featuredRes, cover_image: request.fixImageUrl(featuredRes.cover_image) } : null;
-    hotProducts.value = (hotRes || []).map(p => ({ ...p, cover_image: request.fixImageUrl(p.cover_image) }));
-    recommendProducts.value = (recommendRes?.list || []).map(p => ({
-      ...p,
-      cover_image: request.fixImageUrl(p.cover_image)
-    }));
+    featured.value = featuredRes ? request.normalizeProduct(featuredRes) : null;
+    hotProducts.value = (hotRes || []).map(p => request.normalizeProduct(p));
+    recommendProducts.value = (recommendRes?.list || []).map(p => request.normalizeProduct(p));
     noMore.value = true; // 推荐列表为后台配置，不支持分页
   } catch (e) {
     console.error('加载首页数据失败', e);
@@ -226,9 +223,7 @@ async function loadMore() {
   try {
     const res = await request.get('/product/recommend', { page: page.value, pageSize });
     if (res?.list?.length > 0) {
-      recommendProducts.value = [...recommendProducts.value, ...res.list.map(p => ({
-        ...p, cover_image: request.fixImageUrl(p.cover_image)
-      }))];
+      recommendProducts.value = [...recommendProducts.value, ...res.list.map(p => request.normalizeProduct(p))];
     } else {
       noMore.value = true;
     }

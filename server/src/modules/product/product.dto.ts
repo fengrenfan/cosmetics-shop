@@ -13,9 +13,8 @@ export class ProductListDto {
   pageSize?: number = 10;
 
   @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  category_id?: number;
+  @IsString()
+  category_id?: string;
 
   @IsOptional()
   @IsString()

@@ -58,8 +58,12 @@ async function loadData() {
   try {
     const res = await request.get('/favorite/list');
     list.value = (res || []).map(item => ({
-      ...item,
-      cover_image: request.fixImageUrl(item.cover_image)
+      id: item.id,
+      product_id: item.product_id,
+      title: item.title,
+      cover_image: request.fixImageUrl(item.cover_image),
+      price: parseFloat(item.price) || 0,
+      created_at: item.created_at
     }));
   } catch (e) {
     console.error('加载收藏失败', e);

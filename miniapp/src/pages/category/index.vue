@@ -369,10 +369,7 @@ async function loadProducts(append = false) {
 
     const res = await request.get('/product/list', params);
 
-    const list = ((res?.list || [])).map(p => ({
-      ...p,
-      cover_image: request.fixImageUrl(p.cover_image)
-    }));
+    const list = (res?.list || []).map(p => request.normalizeProduct(p));
 
     if (append) {
       products.value = [...products.value, ...list];
@@ -380,7 +377,7 @@ async function loadProducts(append = false) {
       products.value = list;
     }
 
-    if (list.length < PAGE_SIZE) {
+    if (!res?.pagination || res.pagination.page >= res.pagination.totalPages) {
       noMore.value = true;
     }
   } catch (e) {

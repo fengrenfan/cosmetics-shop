@@ -181,7 +181,8 @@ async function loadCartList() {
     const data = await request.get('/cart/list');
     cartList.value = (data || []).map(item => ({
       ...item,
-      cover_image: request.fixImageUrl(item.cover_image)
+      cover_image: request.fixImageUrl(item.cover_image),
+      price: parseFloat(item.price) || 0
     }));
     cartStore.setList(cartList.value);
   } catch (e) {
@@ -194,10 +195,7 @@ async function loadCartList() {
 async function loadRecommend() {
   try {
     const res = await request.get('/product/recommend', { page: 1, pageSize: 4 });
-    recommendList.value = (res?.list || []).map(p => ({
-      ...p,
-      cover_image: request.fixImageUrl(p.cover_image)
-    }));
+    recommendList.value = (res?.list || []).map(p => request.normalizeProduct(p));
   } catch (e) {
     console.error('加载推荐失败', e);
   }

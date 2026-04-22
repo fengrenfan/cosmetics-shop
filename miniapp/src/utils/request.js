@@ -3,7 +3,7 @@
  * 基于 uni.request
  */
 
-// 服务器API地址（开发阶段走 Vite 代理到 localhost:3000）
+// 服务器API地址（开发阶段走 Vite 代理到 NestJS 服务器）
 const BASE_URL = '/api';
 const IMG_BASE = 'http://118.25.192.73';
 
@@ -62,16 +62,19 @@ class Request {
           uni.hideLoading();
 
           if (res.statusCode === 200 || res.statusCode === 201) {
-            if (res.data.code === 0 || res.data.code === 200) {
-              resolve(res.data.data);
-            } else if (res.data.code === 401) {
+            const body = res.data;
+
+            // NestJS 统一响应格式: { code: 0, message: 'success', data: ... }
+            if (body.code === 0 || body.code === 200) {
+              resolve(body.data);
+            } else if (body.code === 401 || body.statusCode === 401) {
               this.clearToken();
               uni.showToast({ title: '请先登录', icon: 'none' });
               uni.navigateTo({ url: '/pages/login/index' });
-              reject(res.data);
+              reject(body);
             } else {
-              uni.showToast({ title: res.data.message || '请求失败', icon: 'none' });
-              reject(res.data);
+              uni.showToast({ title: body.message || '请求失败', icon: 'none' });
+              reject(body);
             }
           } else {
             uni.showToast({ title: '网络请求失败', icon: 'none' });
@@ -113,7 +116,54 @@ class Request {
 
   fixImageUrls(urls) {
     if (!urls || !Array.isArray(urls)) return [];
+    // 处理可能为 JSON 字符串的情况
+    if (typeof urls === 'string') {
+      try {
+        urls = JSON.parse(urls);
+      } catch (e) {
+        return [];
+      }
+    }
     return urls.map(url => this.fixImageUrl(url));
+  }
+
+  // 标准化商品数据格式
+  normalizeProduct(p) {
+    let images = p.images;
+    if (typeof images === 'string') {
+      try {
+        images = JSON.parse(images);
+      } catch (e) {
+        images = [];
+      }
+    }
+    if (!Array.isArray(images)) {
+      images = [];
+    }
+
+    return {
+      id: p.id,
+      title: p.title || '',
+      subtitle: p.subtitle || '',
+      cover_image: this.fixImageUrl(p.cover_image),
+      images: images.map(img => this.fixImageUrl(img)),
+      price: parseFloat(p.price) || 0,
+      original_price: p.original_price ? parseFloat(p.original_price) : 0,
+      stock: p.stock || 0,
+      sales_count: p.sales_count || 0,
+      view_count: p.view_count || 0,
+      is_new: !!p.is_new,
+      is_hot: !!p.is_hot,
+      is_recommend: !!p.is_recommend,
+      is_seckill: !!p.is_seckill,
+      status: p.status,
+      category: p.category,
+      skus: (p.skus || []).map(sku => ({
+        ...sku,
+        price: parseFloat(sku.price) || 0,
+        image: this.fixImageUrl(sku.image)
+      }))
+    };
   }
 }
 

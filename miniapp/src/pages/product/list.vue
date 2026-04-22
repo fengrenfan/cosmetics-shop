@@ -1,7 +1,7 @@
 <template>
   <view class="page">
-    <!-- 搜索栏 -->
-    <view class="search-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
+    <!-- 搜索栏（非榜单模式显示） -->
+    <view class="search-bar" :style="{ paddingTop: statusBarHeight + 'px' }" v-if="!isRankMode">
       <view class="search-input">
         <text class="iconfont search">search</text>
         <input
@@ -17,8 +17,8 @@
       <text class="search-btn" @click="handleSearch">搜索</text>
     </view>
 
-    <!-- 筛选栏 -->
-    <view class="filter-bar">
+    <!-- 筛选栏（非榜单模式显示） -->
+    <view class="filter-bar" v-if="!isRankMode">
       <view class="filter-tabs">
         <view 
           class="filter-tab" 
@@ -47,8 +47,8 @@
         </view>
       </view>
       <view class="filter-action">
-        <text class="iconfont filter">filter_list</text>
-        <text>筛选</text>
+        <text class="iconfont filter" @click="showFilter = true">filter_list</text>
+        <text @click="showFilter = true">筛选</text>
         <view class="view-mode-toggle" @click.stop="toggleViewMode">
           <text class="iconfont">{{ viewMode === 'grid' ? 'view_list' : 'grid_view' }}</text>
         </view>
@@ -137,24 +137,30 @@
 
         <view class="filter-body">
           <!-- 分类筛选 -->
-          <view class="filter-section" v-if="categoryList.length > 0">
+          <view class="filter-section">
             <text class="section-title">分类</text>
-            <view class="tag-list">
+            <!-- 一级分类 -->
+            <view class="parent-categories">
               <view
-                class="tag-item"
-                :class="{ active: filterForm.category_id === null }"
-                @click="filterForm.category_id = null"
-              >
-                全部
-              </view>
-              <view
-                class="tag-item"
-                v-for="item in categoryList"
+                class="tag-item parent"
+                :class="{ active: selectedParentId === item.id }"
+                v-for="item in parentCategories"
                 :key="item.id"
-                :class="{ active: filterForm.category_id === item.id }"
-                @click="filterForm.category_id = item.id"
+                @click="toggleParent(item)"
               >
                 {{ item.name }}
+              </view>
+            </view>
+            <!-- 二级分类 -->
+            <view class="child-categories" v-if="childCategories.length > 0">
+              <view
+                class="tag-item child"
+                :class="{ active: isCategorySelected(child.id) }"
+                v-for="child in childCategories"
+                :key="child.id"
+                @click="toggleChild(child)"
+              >
+                {{ child.name }}
               </view>
             </view>
           </view>
@@ -208,7 +214,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
 import request from '@/utils/request.js';
 import { useCartStore } from '@/stores/cart.js';
@@ -238,6 +244,43 @@ const filterForm = ref({
 });
 
 const categoryList = ref([]);
+const selectedParentId = ref(null);
+const selectedCategories = ref([]); // 已选中的分类ID数组
+
+// 一级分类
+const parentCategories = computed(() => {
+  return categoryList.value.filter(c => c.level === 1);
+});
+
+const isRankMode = ref(false);
+
+// 根据选中的一级分类显示二级分类
+const childCategories = computed(() => {
+  if (!selectedParentId.value) return [];
+  const parent = categoryList.value.find(c => c.id === selectedParentId.value);
+  return parent?.children || [];
+});
+
+function isCategorySelected(id) {
+  return selectedCategories.value.includes(id);
+}
+
+function toggleParent(item) {
+  if (selectedParentId.value === item.id) {
+    selectedParentId.value = null;
+  } else {
+    selectedParentId.value = item.id;
+  }
+}
+
+function toggleChild(child) {
+  const idx = selectedCategories.value.indexOf(child.id);
+  if (idx >= 0) {
+    selectedCategories.value.splice(idx, 1);
+  } else {
+    selectedCategories.value.push(child.id);
+  }
+}
 
 onLoad((options) => {
   if (options.keyword) keyword.value = options.keyword;
@@ -245,9 +288,16 @@ onLoad((options) => {
     categoryId.value = options.category_id;
     filterForm.value.category_id = options.category_id;
   }
-
   if (options.title) {
     uni.setNavigationBarTitle({ title: options.title });
+  }
+  if (options.rank === 'hot') {
+    isRankMode.value = true;
+    uni.setNavigationBarTitle({ title: '热销榜单' });
+    loadHotProducts();
+  } else {
+    loadCategories();
+    loadData();
   }
 });
 
@@ -255,9 +305,24 @@ onMounted(() => {
   const systemInfo = uni.getSystemInfoSync();
   statusBarHeight.value = systemInfo.statusBarHeight || 20;
 
-  loadCategories();
-  loadData();
+  if (productList.value.length === 0 && !categoryId.value && !keyword.value) {
+    // 只在非榜单模式下加载分类
+  }
 });
+
+async function loadHotProducts() {
+  if (loading.value) return;
+  loading.value = true;
+  try {
+    const res = await request.get('/product-recommend/hot');
+    productList.value = (res || []).map(p => request.normalizeProduct(p));
+    noMore.value = true;
+  } catch (e) {
+    console.error('加载热销榜单失败', e);
+  } finally {
+    loading.value = false;
+  }
+}
 
 async function loadCategories() {
   try {
@@ -276,13 +341,13 @@ async function loadData(append = false) {
     const params = {
       page: page.value,
       pageSize,
-      sort: sort.value,
-      order: sort.value.includes('asc') ? 'asc' : 'desc'
     };
-    
+
     if (keyword.value) params.keyword = keyword.value;
     if (categoryId.value) params.category_id = categoryId.value;
-    if (filterForm.value.category_id) params.category_id = filterForm.value.category_id;
+    if (selectedCategories.value.length > 0) {
+      params.category_id = selectedCategories.value.join(',');
+    }
     if (filterForm.value.minPrice) params.min_price = filterForm.value.minPrice;
     if (filterForm.value.maxPrice) params.max_price = filterForm.value.maxPrice;
     if (filterForm.value.is_new) params.is_new = 1;
@@ -290,18 +355,15 @@ async function loadData(append = false) {
     if (filterForm.value.is_recommend) params.is_recommend = 1;
 
     const res = await request.get('/product/list', params);
-    const list = (res?.list || []).map(p => ({
-      ...p,
-      cover_image: request.fixImageUrl(p.cover_image)
-    }));
-    
+    const list = (res?.list || []).map(p => request.normalizeProduct(p));
+
     if (append) {
       productList.value = [...productList.value, ...list];
     } else {
       productList.value = list;
     }
 
-    if (list.length < pageSize) {
+    if (!res?.pagination || res.pagination.page >= res.pagination.totalPages) {
       noMore.value = true;
     }
   } catch (e) {
@@ -330,7 +392,7 @@ function clearKeyword() {
   loadData();
 }
 
-function onKeywordInput(e) {
+function onKeywordInput() {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => {
     handleSearch();
@@ -354,6 +416,8 @@ function resetFilter() {
     is_recommend: false,
     category_id: null
   };
+  selectedParentId.value = null;
+  selectedCategories.value = [];
 }
 
 function applyFilter() {
@@ -369,10 +433,6 @@ function toggleViewMode() {
 
 function goDetail(item) {
   uni.navigateTo({ url: `/pages/product/detail?id=${item.id}` });
-}
-
-function goBack() {
-  uni.navigateBack();
 }
 
 async function addToCart(item) {
@@ -806,11 +866,36 @@ async function addToCart(item) {
   border-radius: 8rpx;
   font-size: 26rpx;
   color: #666;
-  
+
   &.active {
     background: #ffe6f0;
     color: #ff4a8d;
   }
+
+  &.parent {
+    font-weight: bold;
+  }
+
+  &.child {
+    font-size: 24rpx;
+    padding: 12rpx 24rpx;
+  }
+}
+
+.parent-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.child-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 16rpx;
 }
 
 .filter-footer {

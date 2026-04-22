@@ -30,7 +30,10 @@ export class ProductService {
     }
 
     if (category_id) {
-      qb.andWhere('product.category_id = :category_id', { category_id });
+      const ids = category_id.split(',').map(id => +id.trim()).filter(id => !isNaN(id));
+      if (ids.length > 0) {
+        qb.andWhere('product.category_id IN (:...ids)', { ids });
+      }
     }
 
     if (keyword) {
