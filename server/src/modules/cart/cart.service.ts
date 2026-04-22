@@ -1,0 +1,179 @@
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Cart } from './cart.entity';
+import { ProductService } from '../product/product.service';
+
+@Injectable()
+export class CartService {
+  constructor(
+    @InjectRepository(Cart)
+    private readonly cartRepository: Repository<Cart>,
+    private readonly productService: ProductService,
+  ) {}
+
+  /**
+   * 获取购物车列表
+   */
+  async getList(userId: number | null, deviceId: string | null) {
+    const where: any = {};
+    if (userId) {
+      where.user_id = userId;
+    } else if (deviceId) {
+      where.device_id = deviceId;
+    } else {
+      return [];
+    }
+
+    const carts = await this.cartRepository.find({
+      where,
+      relations: ['product', 'sku'],
+      order: { created_at: 'DESC' },
+    });
+
+    return carts.map((cart) => ({
+      id: cart.id,
+      product_id: cart.product_id,
+      sku_id: cart.sku_id,
+      title: cart.product?.title,
+      cover_image: cart.product?.cover_image,
+      price: cart.sku?.price || cart.product?.price,
+      stock: cart.sku?.stock || cart.product?.stock,
+      sku_name: cart.sku?.sku_name,
+      quantity: cart.quantity,
+      is_checked: cart.is_checked,
+    }));
+  }
+
+  /**
+   * 加入购物车
+   */
+  async add(dto: { user_id?: number | null; device_id?: string | null; product_id: number; sku_id?: number; quantity?: number }) {
+    const { user_id, device_id, product_id, sku_id, quantity = 1 } = dto;
+
+    if (!user_id && !device_id) {
+      throw new BadRequestException('无法识别用户身份');
+    }
+
+    // 检查商品是否存在
+    const product = await this.productService.getDetail(product_id);
+    if (!product) {
+      throw new NotFoundException('商品不存在');
+    }
+
+    if (product.status === 0) {
+      throw new BadRequestException('商品已下架');
+    }
+
+    // 检查库存
+    let price = product.price;
+    let stock = product.stock;
+
+    if (sku_id) {
+      const sku = product.skus?.find((s: any) => s.id === sku_id);
+      if (!sku) {
+        throw new BadRequestException('SKU不存在');
+      }
+      price = sku.price;
+      stock = sku.stock;
+    }
+
+    if (stock < quantity) {
+      throw new BadRequestException('库存不足');
+    }
+
+    // 检查是否已存在（同一用户/设备 + 同一商品）
+    const existWhere: any = { product_id, sku_id: sku_id || 0 };
+    if (user_id) {
+      existWhere.user_id = user_id;
+    } else {
+      existWhere.device_id = device_id;
+    }
+
+    const existCart = await this.cartRepository.findOne({ where: existWhere });
+
+    if (existCart) {
+      // 更新数量
+      const newQuantity = existCart.quantity + quantity;
+      if (newQuantity > stock) {
+        throw new BadRequestException('库存不足');
+      }
+      existCart.quantity = newQuantity;
+      await this.cartRepository.save(existCart);
+      return { id: existCart.id, quantity: newQuantity };
+    }
+
+    // 新增
+    const cart = this.cartRepository.create({
+      user_id: user_id || null,
+      device_id: device_id || null,
+      product_id,
+      sku_id: sku_id || null,
+      quantity,
+      is_checked: 1,
+    });
+    const result = await this.cartRepository.save(cart);
+    return { id: result.id, quantity };
+  }
+
+  /**
+   * 更新购物车数量
+   */
+  async update(id: number, dto: { quantity?: number }) {
+    const cart = await this.cartRepository.findOne({
+      where: { id },
+      relations: ['product', 'sku'],
+    });
+
+    if (!cart) {
+      throw new NotFoundException('购物车商品不存在');
+    }
+
+    if (dto.quantity !== undefined) {
+      if (dto.quantity === 0) {
+        await this.cartRepository.delete(id);
+        return { success: true };
+      }
+
+      const stock = cart.sku?.stock || cart.product?.stock;
+      if (dto.quantity > stock) {
+        throw new BadRequestException('库存不足');
+      }
+      cart.quantity = dto.quantity;
+    }
+
+    await this.cartRepository.save(cart);
+    return { success: true };
+  }
+
+  /**
+   * 删除购物车商品
+   */
+  async remove(id: number) {
+    await this.cartRepository.delete(id);
+    return { success: true };
+  }
+
+  /**
+   * 批量删除
+   */
+  async batchRemove(ids: number[]) {
+    await this.cartRepository.delete(ids);
+    return { success: true };
+  }
+
+  /**
+   * 更新选中状态
+   */
+  async updateChecked(ids: number[], checked: number) {
+    if (ids && ids.length > 0) {
+      await this.cartRepository
+        .createQueryBuilder()
+        .update(Cart)
+        .set({ is_checked: checked })
+        .whereInIds(ids)
+        .execute();
+    }
+    return { success: true };
+  }
+}
