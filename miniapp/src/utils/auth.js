@@ -61,6 +61,13 @@ export function getUserInfo() {
 }
 
 /**
+ * 清除 Token
+ */
+export function clearToken() {
+  request.clearToken();
+}
+
+/**
  * 退出登录
  */
 export function logout() {

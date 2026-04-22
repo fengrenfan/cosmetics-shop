@@ -1,11 +1,14 @@
 <template>
   <view class="page">
     <!-- 商品图片轮播 -->
-    <swiper class="product-swiper" :indicator-dots="true" :autoplay="false" indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#fff">
+    <swiper class="product-swiper" :indicator-dots="product.images?.length > 1" :autoplay="true" :interval="3000" indicator-color="rgba(255,255,255,0.5)" indicator-active-color="#fff" v-if="product.images?.length > 0">
       <swiper-item v-for="(image, index) in product.images" :key="index">
         <image class="product-image" :src="image" mode="aspectFill" @click="previewImage(index)" />
       </swiper-item>
     </swiper>
+    <view class="product-swiper no-image" v-else>
+      <image class="product-image" :src="product.cover_image || '/static/default-product.png'" mode="aspectFill" />
+    </view>
 
     <!-- 价格信息 -->
     <view class="price-section">
@@ -85,20 +88,26 @@
       <view class="reviews-content" v-if="detailTab === 'reviews'">
         <view class="review-item" v-for="item in reviews" :key="item.id">
           <view class="review-header">
-            <image class="review-avatar" :src="item.user?.avatar || '/static/default-avatar.png'"></image>
-            <text class="review-name">{{ item.user?.nickname || '匿名用户' }}</text>
-            <view class="review-rating">
-              <text v-for="n in item.rating" :key="n" class="iconfont star"></text>
+            <image class="review-avatar" :src="item.user?.avatar || '/static/default-avatar.png'" mode="aspectFill"></image>
+            <view class="review-user-info">
+              <text class="review-name">{{ item.user?.nickname || '匿名用户' }}</text>
+              <view class="review-rating">
+                <text class="iconfont star" v-for="n in 5" :key="n" :class="{ active: n <= item.rating }"></text>
+                <text class="rating-text">{{ item.rating }}分</text>
+              </view>
             </view>
           </view>
           <text class="review-content">{{ item.content }}</text>
-          <view class="review-images" v-if="item.images">
-            <image v-for="(img, idx) in item.images" :key="idx" :src="img" mode="aspectFill" @click="previewImage(idx)"></image>
+          <view class="review-images" v-if="item.images && item.images.length > 0">
+            <image v-for="(img, idx) in item.images" :key="idx" :src="img" mode="aspectFill" @click="previewReviewImage(item.images, idx)"></image>
           </view>
           <text class="review-time">{{ formatTime(item.created_at) }}</text>
         </view>
         <view class="empty-reviews" v-if="reviews.length === 0 && !reviewsLoading">
           <text>暂无评价</text>
+        </view>
+        <view class="loading-reviews" v-if="reviewsLoading">
+          <text>加载中...</text>
         </view>
       </view>
     </view>
@@ -110,18 +119,18 @@
     <view class="action-bar">
       <view class="action-icons">
         <view class="action-icon" @click="toggleFavorite">
-          <text class="iconfont" :class="isFavorite ? 'star-filled' : 'star'"></text>
+          <text class="iconfont star-icon" :class="{ active: isFavorite }">star</text>
           <text>收藏</text>
         </view>
         <view class="action-icon" @click="goCart">
-          <text class="iconfont shopping_cart"></text>
+          <text class="iconfont cart-icon">shopping_cart</text>
           <text>购物车</text>
           <view class="cart-badge" v-if="cartCount > 0">{{ cartCount > 99 ? '99+' : cartCount }}</view>
         </view>
       </view>
       <view class="action-buttons">
-        <view class="btn-add-cart" @click="showSkuModal('cart')">加入购物车</view>
-        <view class="btn-buy-now" @click="showSkuModal('buy')">立即购买</view>
+        <view class="btn-add-cart" @click="handleAddCart">加入购物车</view>
+        <view class="btn-buy-now" @click="handleBuyNow">立即购买</view>
       </view>
     </view>
 
@@ -384,7 +393,14 @@ function increaseQuantity() {
 function previewImage(index) {
   uni.previewImage({
     urls: product.value.images,
-    current: index
+    current: product.value.images[index]
+  });
+}
+
+function previewReviewImage(images, index) {
+  uni.previewImage({
+    urls: images,
+    current: images[index]
   });
 }
 
@@ -477,15 +493,13 @@ function buyNow() {
 
 async function toggleFavorite() {
   try {
-    if (isFavorite.value) {
-      await request.post('/favorite/toggle', { product_id: productId.value });
-      isFavorite.value = false;
-      uni.showToast({ title: '已取消收藏', icon: 'success' });
+    const res = await request.post('/favorite/toggle', { product_id: productId.value });
+    if (res?.is_favorite !== undefined) {
+      isFavorite.value = res.is_favorite;
     } else {
-      await request.post('/favorite/toggle', { product_id: productId.value });
-      isFavorite.value = true;
-      uni.showToast({ title: '收藏成功', icon: 'success' });
+      isFavorite.value = !isFavorite.value;
     }
+    uni.showToast({ title: isFavorite.value ? '收藏成功' : '已取消收藏', icon: 'success' });
   } catch (e) {
     console.error('操作失败', e);
   }
@@ -495,7 +509,7 @@ async function checkFavorite() {
   try {
     const res = await request.get('/favorite/list');
     const list = res || [];
-    isFavorite.value = list.some(item => item.product_id == productId.value);
+    isFavorite.value = list.some(item => item.id == productId.value || item.product_id == productId.value);
   } catch (e) {
     // 忽略
   }
@@ -505,19 +519,44 @@ async function loadCartCount() {
   try {
     const res = await request.get('/cart/list');
     const list = res || [];
-    cartCount.value = list.reduce((sum, item) => sum + item.quantity, 0);
-    if (cartCount.value > 0) {
-      uni.setTabBarBadge({ index: 2, text: String(cartCount.value) });
-    }
+    cartCount.value = list.reduce((sum, item) => sum + (item.quantity || 0), 0);
   } catch (e) {
-    // 忽略
+    cartCount.value = 0;
   }
 }
 
-function loadReviews() {
+async function loadReviews() {
   if (detailTab.value === 'reviews' && reviews.value.length > 0) return;
   detailTab.value = 'reviews';
-  // TODO: 加载评论
+  if (reviews.value.length > 0) return;
+  reviewsLoading.value = true;
+  try {
+    const res = await request.get('/product/reviews', { product_id: productId.value });
+    reviews.value = (res || []).map(r => ({
+      ...r,
+      images: r.images ? (typeof r.images === 'string' ? r.images.split(',') : r.images) : []
+    }));
+  } catch (e) {
+    console.error('加载评价失败', e);
+  } finally {
+    reviewsLoading.value = false;
+  }
+}
+
+function handleAddCart() {
+  if (product.value.skus?.length > 0) {
+    showSkuModal('cart');
+  } else {
+    addToCart();
+  }
+}
+
+function handleBuyNow() {
+  if (product.value.skus?.length > 0) {
+    showSkuModal('buy');
+  } else {
+    buyNow();
+  }
 }
 
 function goCart() {
@@ -535,11 +574,15 @@ function formatTime(time) {
 .page {
   min-height: 100vh;
   background: #f5f5f5;
-  padding-bottom: calc(120rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
 }
 
 .product-swiper {
   height: 750rpx;
+
+  &.no-image {
+    background: #f5f5f5;
+  }
 }
 
 .product-image {
@@ -651,6 +694,11 @@ function formatTime(time) {
   padding: 30rpx;
   background: #fff;
   margin-top: 20rpx;
+  cursor: pointer;
+
+  &:active {
+    background: #f9f9f9;
+  }
 }
 
 .sku-header {
@@ -755,25 +803,48 @@ function formatTime(time) {
 
 .review-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .review-avatar {
-  width: 60rpx;
-  height: 60rpx;
+  width: 64rpx;
+  height: 64rpx;
   border-radius: 50%;
   margin-right: 16rpx;
+  background: #f5f5f5;
+}
+
+.review-user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .review-name {
-  flex: 1;
   font-size: 26rpx;
   color: #333;
+  margin-bottom: 8rpx;
 }
 
 .review-rating {
-  color: #ffcc00;
-  font-size: 24rpx;
+  display: flex;
+  align-items: center;
+
+  .iconfont.star {
+    font-size: 24rpx;
+    color: #ddd;
+    margin-right: 4rpx;
+
+    &.active {
+      color: #ffcc00;
+    }
+  }
+
+  .rating-text {
+    font-size: 22rpx;
+    color: #999;
+    margin-left: 8rpx;
+  }
 }
 
 .review-content {
@@ -810,8 +881,15 @@ function formatTime(time) {
   font-size: 26rpx;
 }
 
+.loading-reviews {
+  text-align: center;
+  padding: 60rpx 0;
+  color: #999;
+  font-size: 26rpx;
+}
+
 .bottom-placeholder {
-  height: 120rpx;
+  height: calc(120rpx + env(safe-area-inset-bottom));
 }
 
 .action-bar {
@@ -819,49 +897,66 @@ function formatTime(time) {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 100rpx;
-  padding: 0 30rpx;
-  padding-bottom: calc(100rpx + env(safe-area-inset-bottom));
+  padding: 16rpx 30rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
   background: #fff;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  z-index: 100;
+  box-sizing: border-box;
   box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
 }
 
 .action-icons {
   display: flex;
+  align-items: center;
 }
 
 .action-icon {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-right: 40rpx;
+  justify-content: center;
+  margin-right: 48rpx;
   position: relative;
-  
-  .iconfont {
-    font-size: 44rpx;
+
+  .star-icon {
+    font-size: 48rpx;
     color: #666;
+    font-family: 'Material Symbols Outlined' !important;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+
+    &.active {
+      color: #ff4a8d;
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
   }
-  
+
+  .cart-icon {
+    font-size: 48rpx;
+    color: #666;
+    font-family: 'Material Symbols Outlined' !important;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+
   text {
     font-size: 20rpx;
     color: #666;
-    margin-top: 4rpx;
+    margin-top: 6rpx;
   }
-  
+
   .cart-badge {
     position: absolute;
     top: -8rpx;
-    right: -16rpx;
-    min-width: 32rpx;
-    height: 32rpx;
-    padding: 0 8rpx;
+    right: -20rpx;
+    min-width: 36rpx;
+    height: 36rpx;
+    padding: 0 10rpx;
     background: #ff4a8d;
     color: #fff;
-    font-size: 20rpx;
-    border-radius: 16rpx;
+    font-size: 22rpx;
+    border-radius: 18rpx;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -870,11 +965,12 @@ function formatTime(time) {
 
 .action-buttons {
   display: flex;
+  align-items: center;
 }
 
 .btn-add-cart,
 .btn-buy-now {
-  padding: 0 50rpx;
+  padding: 0 40rpx;
   height: 72rpx;
   line-height: 72rpx;
   font-size: 28rpx;
@@ -884,7 +980,7 @@ function formatTime(time) {
 .btn-add-cart {
   background: linear-gradient(135deg, #ff9500 0%, #ffb347 100%);
   color: #fff;
-  margin-right: 20rpx;
+  margin-right: 24rpx;
 }
 
 .btn-buy-now {

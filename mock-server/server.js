@@ -91,6 +91,7 @@ const db = {
     { id: 1, product_id: 3, position: 1, status: 1 },
     { id: 2, product_id: 5, position: 2, status: 1 },
   ],
+  favorites: [],
   dicts: [
     { id: 1, name: '商品状态', code: 'product_status', items: [
       { label: '上架', value: 1 },
@@ -175,7 +176,8 @@ app.get('/api/product/featured', (req, res) => {
 app.get('/api/product/detail', (req, res) => {
   const p = db.products.find(p => p.id === parseInt(req.query.id));
   if (!p) return res.json({ code: 404, message: '商品不存在' });
-  res.json({ code: 0, data: { ...p, skus: [{ id: 1, sku_name: '默认', price: p.price, stock: p.stock }] } });
+  const isFavorite = db.favorites.some(f => f.user_id === (req.user?.userId || 1) && f.product_id === p.id);
+  res.json({ code: 0, data: { ...p, is_favorite: isFavorite, images: [p.cover_image], skus: [{ id: 1, sku_name: '默认', price: p.price, stock: p.stock }] } });
 });
 
 // ── 分类接口 ──
@@ -433,6 +435,47 @@ app.delete('/api/cart/batch', (req, res) => {
 
 app.put('/api/cart/checked', (req, res) => {
   res.json({ code: 0, data: { success: true } });
+});
+
+// ── 收藏接口 ──
+app.get('/api/favorite/list', (req, res) => {
+  const userId = req.user?.userId || 1;
+  const list = db.favorites.filter(f => f.user_id === userId);
+  const products = list.map(f => {
+    const product = db.products.find(p => p.id === f.product_id);
+    return product ? { ...product, is_favorite: true } : null;
+  }).filter(Boolean);
+  res.json({ code: 0, data: products });
+});
+
+app.post('/api/favorite/toggle', (req, res) => {
+  const userId = req.user?.userId || 1;
+  const { product_id } = req.body;
+  if (!product_id) return res.json({ code: 400, message: '商品ID不能为空' });
+
+  const product = db.products.find(p => p.id === product_id);
+  if (!product) return res.json({ code: 404, message: '商品不存在' });
+
+  const existIdx = db.favorites.findIndex(f => f.user_id === userId && f.product_id === product_id);
+  if (existIdx >= 0) {
+    db.favorites.splice(existIdx, 1);
+    res.json({ code: 0, data: { is_favorite: false } });
+  } else {
+    db.favorites.push({ id: Date.now(), user_id: userId, product_id, created_at: new Date().toISOString() });
+    res.json({ code: 0, data: { is_favorite: true } });
+  }
+});
+
+// ── 商品评价接口 ──
+app.get('/api/product/reviews', (req, res) => {
+  const { product_id } = req.query;
+  const reviews = [
+    { id: 1, product_id: 1, user: { nickname: '爱美的猫', avatar: 'https://picsum.photos/100/100?random=u1' }, rating: 5, content: '非常好用，保湿效果很明显，皮肤变得光滑细腻，会回购！', images: ['https://picsum.photos/200/200?random=r1'], created_at: '2026-04-15 10:30:00' },
+    { id: 2, product_id: 1, user: { nickname: '护肤达人', avatar: 'https://picsum.photos/100/100?random=u2' }, rating: 4, content: '质地轻薄好吸收，适合夏天使用。', images: [], created_at: '2026-04-10 14:20:00' },
+    { id: 3, product_id: 2, user: { nickname: '美妆控', avatar: 'https://picsum.photos/100/100?random=u3' }, rating: 5, content: '遮瑕效果很棒，持久度也不错，推荐给朋友了！', images: ['https://picsum.photos/200/200?random=r2', 'https://picsum.photos/200/200?random=r3'], created_at: '2026-04-08 09:15:00' },
+  ];
+  const filtered = product_id ? reviews.filter(r => r.product_id === parseInt(product_id)) : reviews;
+  res.json({ code: 0, data: filtered });
 });
 
 // ── 地址接口 ──
