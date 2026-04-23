@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Req } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CartService } from './cart.service';
-import { AddCartDto, UpdateCartDto } from './cart.dto';
+import { AddCartDto, UpdateCartDto, UpdateCheckedDto } from './cart.dto';
 
 @Controller('cart')
 export class CartController {
@@ -64,10 +64,25 @@ export class CartController {
   /**
    * 更新选中状态
    * PUT /api/cart/checked
+   * 支持游客（device_id）和登录用户
    */
-  @UseGuards(JwtAuthGuard)
   @Put('checked')
-  async updateChecked(@Body('ids') ids: number[], @Body('checked') checked: number) {
-    return this.cartService.updateChecked(ids, checked);
+  async updateChecked(@Body() dto: UpdateCheckedDto, @Req() req: any) {
+    const userId = req.user?.id || null;
+    const deviceId = req.headers['x-device-id'] || null;
+    return this.cartService.updateChecked(dto.ids, dto.checked, userId, deviceId);
+  }
+
+  /**
+   * 猜你喜欢
+   * GET /api/cart/recommend
+   * 根据用户购物车的商品分类查询对应商品，购物车为空则查询销量前50
+   * 支持游客（device_id）和登录用户
+   */
+  @Get('recommend')
+  async getRecommend(@Req() req: any) {
+    const userId = req.user?.id || null;
+    const deviceId = req.headers['x-device-id'] || null;
+    return this.cartService.getRecommend(userId, deviceId);
   }
 }

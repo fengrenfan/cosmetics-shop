@@ -4,12 +4,11 @@
     <header class="nav-header">
       <view class="nav-inner">
         <view class="nav-left">
-          <text class="material-symbols-outlined nav-icon">location_on</text>
-          <text class="nav-title">搜索商品</text>
+          <text class="material-symbols-outlined nav-icon">shopping_bag</text>
+          <text class="nav-title">我的购物车</text>
         </view>
-        <view class="nav-right">
-          <text class="material-symbols-outlined nav-icon-sm">qr_code_scanner</text>
-          <text class="nav-manage">管理</text>
+        <view class="nav-right" @click="toggleEdit">
+          <text class="nav-manage">{{ isEdit ? '完成' : '编辑' }}</text>
         </view>
       </view>
     </header>
@@ -63,8 +62,8 @@
             <view class="item-bottom">
               <view class="item-price-wrap">
                 <text class="price-symbol">¥</text>
-                <text class="price-int">{{ Math.floor(item.price) }}</text>
-                <text class="price-dec">.{{ String((item.price % 1).toFixed(2)).slice(2) }}</text>
+                <text class="price-int">{{ String(item.price).split('.')[0] }}</text>
+                <text class="price-dec">.{{ String(item.price).split('.')[1] || '00' }}</text>
               </view>
               <!-- 数量步进器 -->
               <view class="qty-stepper">
@@ -134,9 +133,10 @@
         </view>
       </view>
       <view class="footer-right">
-        <view class="btn-settlement" @click="goSettlement">
-          去结算
-          <text class="settlement-count" v-if="checkedCount">({{ checkedCount }}件)</text>
+        <view class="btn-settlement" :class="{ 'btn-delete': isEdit }" @click="isEdit ? deleteChecked() : goSettlement()">
+          <text v-if="!isEdit">去结算</text>
+          <text v-else>删除</text>
+          <text class="settlement-count" v-if="!isEdit && checkedCount">({{ checkedCount }}件)</text>
         </view>
       </view>
     </view>
@@ -194,8 +194,8 @@ async function loadCartList() {
 
 async function loadRecommend() {
   try {
-    const res = await request.get('/product/recommend', { page: 1, pageSize: 4 });
-    recommendList.value = (res?.list || []).map(p => request.normalizeProduct(p));
+    const res = await request.get('/cart/recommend');
+    recommendList.value = (res || []).map(p => request.normalizeProduct(p));
   } catch (e) {
     console.error('加载推荐失败', e);
   }
@@ -337,6 +337,14 @@ $tabbar-height: 100rpx;
   padding-top: env(safe-area-inset-top);
 }
 
+.page-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
 /* ── 顶部导航 (参考设计: fixed glass header) ── */
 .nav-header {
   position: fixed;
@@ -441,7 +449,7 @@ $tabbar-height: 100rpx;
 
 /* ── 购物车内容 ── */
 .cart-content {
-  padding: 148rpx 32rpx 0;
+  padding: 128rpx 32rpx 0;
 }
 
 /* ── 提示条 ── */
@@ -811,7 +819,7 @@ $tabbar-height: 100rpx;
 
 /* ── 底部占位 ── */
 .bottom-placeholder {
-  height: calc(180rpx + 100rpx);
+  height: calc(140rpx + 100rpx);
 }
 
 /* ── 底部结算栏 (玻璃模糊) ── */
@@ -821,8 +829,8 @@ $tabbar-height: 100rpx;
   right: 0;
   bottom: calc(100rpx + env(safe-area-inset-bottom));
   z-index: 100;
-  padding: 20rpx 32rpx;
-  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  padding: 16rpx 32rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
@@ -830,7 +838,7 @@ $tabbar-height: 100rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 160rpx;
+  min-height: 120rpx;
 }
 
 .footer-left {
@@ -879,7 +887,7 @@ $tabbar-height: 100rpx;
 
 .total-price {
   font-family: 'Manrope', sans-serif;
-  font-size: 40rpx;
+  font-size: 36rpx;
   font-weight: 800;
   color: $primary;
   letter-spacing: -0.03em;
@@ -894,10 +902,10 @@ $tabbar-height: 100rpx;
 .btn-settlement {
   background: linear-gradient(135deg, $primary 0%, $primary-container 100%);
   color: $on-primary;
-  font-size: 30rpx;
-  font-weight: 800;
-  padding: 0 56rpx;
-  height: 96rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+  padding: 0 40rpx;
+  height: 80rpx;
   border-radius: $radius-full;
   display: flex;
   align-items: center;
@@ -907,7 +915,7 @@ $tabbar-height: 100rpx;
   transition: all 0.2s ease;
 
   .settlement-count {
-    font-size: 22rpx;
+    font-size: 20rpx;
     font-weight: 500;
     opacity: 0.85;
     margin-left: 4rpx;
@@ -917,6 +925,16 @@ $tabbar-height: 100rpx;
     opacity: 0.88;
     transform: scale(0.96);
     box-shadow: 0 4rpx 16rpx rgba($primary, 0.25);
+  }
+
+  &.btn-delete {
+    background: $surface-container-high;
+    box-shadow: none;
+
+    &:active {
+      background: $surface-high;
+      opacity: 1;
+    }
   }
 }
 </style>

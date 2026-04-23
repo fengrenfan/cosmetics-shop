@@ -24,9 +24,11 @@ export class ProductService {
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.category', 'category');
 
-    // status 不传则返回所有商品，传值则按状态筛选
+    // status 不传则默认返回已上架商品，传值则按状态筛选
     if (status !== undefined && status !== null) {
       qb.andWhere('product.status = :status', { status: +status });
+    } else {
+      qb.andWhere('product.status = :status', { status: 1 });
     }
 
     if (category_id) {
@@ -166,7 +168,7 @@ export class ProductService {
    */
   async getDetail(id: number) {
     const product = await this.productRepository.findOne({
-      where: { id },
+      where: { id, status: 1 },
       relations: ['category'],
     });
 

@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, Min, IsString } from 'class-validator';
+import { IsNumber, IsOptional, Min, IsString, IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class AddCartDto {
@@ -32,4 +32,12 @@ export class UpdateCartDto {
   @IsNumber()
   @Min(0)
   quantity?: number;
+}
+
+export class UpdateCheckedDto {
+  @IsArray()
+  ids: number[];
+
+  @IsNumber()
+  checked: number;
 }

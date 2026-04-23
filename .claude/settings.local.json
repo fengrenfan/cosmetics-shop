@@ -4,7 +4,29 @@
       "mcp__ide__getDiagnostics",
       "Bash(node *)",
       "Bash(npx sass *)",
-      "Bash(curl *)"
+      "Bash(curl *)",
+      "Bash(awk '{print $2}')",
+      "Bash(xargs kill *)",
+      "Bash(npm run *)",
+      "Bash(kill 14791)",
+      "Bash(kill 16884)",
+      "Bash(kill 91867)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d, indent=2, ensure_ascii=False\\)\\)\")",
+      "Bash(file /Users/fengrenfan/feng_pro/cosmetics-shop/miniapp/static/tabbar/*.png)",
+      "Bash(identify /Users/fengrenfan/feng_pro/cosmetics-shop/miniapp/static/tabbar/home.png)",
+      "Bash(/usr/bin/identify /Users/fengrenfan/feng_pro/cosmetics-shop/miniapp/static/tabbar/home.png)",
+      "Bash(python3 *)",
+      "Bash(xxd)",
+      "Bash(sips *)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(pkill -f \"nest start\")",
+      "Bash(pkill -f \"nest\")",
+      "Bash(pkill -f \"node.*3001\")",
+      "Bash(lsof -ti:3001)",
+      "Bash(order)",
+      "Bash(shop_order)",
+      "Bash(mysql -u cosmetics -pcosmetics123 cosmetics_shop -e \"RENAME TABLE `order` TO `shop_order`\")"
     ]
   }
 }

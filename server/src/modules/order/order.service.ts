@@ -244,17 +244,17 @@ export class OrderService {
    * 获取订单数量统计
    */
   async getCount(userId: number) {
-    const statuses = ['pending', 'paid', 'shipped', 'completed'];
-    const result: any = {};
+    const pendingCount = await this.orderRepository.count({ where: { user_id: userId, status: 'pending' } });
+    const paidCount = await this.orderRepository.count({ where: { user_id: userId, status: 'paid' } });
+    const shippedCount = await this.orderRepository.count({ where: { user_id: userId, status: 'shipped' } });
+    const completedCount = await this.orderRepository.count({ where: { user_id: userId, status: 'completed' } });
 
-    for (const status of statuses) {
-      const count = await this.orderRepository.count({
-        where: { user_id: userId, status },
-      });
-      result[status] = count;
-    }
-
-    return result;
+    return {
+      pending: pendingCount,
+      paid: paidCount,
+      shipped: shippedCount,
+      completed: completedCount,
+    };
   }
 
   // ==================== 管理端接口 ====================

@@ -28,6 +28,19 @@ export class OrderController {
   }
 
   /**
+   * 获取订单数量统计
+   * GET /api/order/count
+   */
+  @UseGuards(JwtAuthGuard)
+  @Get('count')
+  async getCount(@Request() req) {
+    if (!req.user?.id) {
+      return { pending: 0, paid: 0, shipped: 0, completed: 0 };
+    }
+    return this.orderService.getCount(req.user.id);
+  }
+
+  /**
    * 订单详情
    * GET /api/order/:id
    */
@@ -55,16 +68,6 @@ export class OrderController {
   @Put(':id/confirm')
   async confirm(@Param('id') id: string) {
     return this.orderService.confirm(+id);
-  }
-
-  /**
-   * 获取订单数量统计
-   * GET /api/order/count
-   */
-  @UseGuards(JwtAuthGuard)
-  @Get('count')
-  async getCount(@Request() req) {
-    return this.orderService.getCount(req.user.id);
   }
 
   // ==================== 管理端接口 ====================
