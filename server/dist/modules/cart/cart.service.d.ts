@@ -1,10 +1,10 @@
 import { Repository } from 'typeorm';
 import { Cart } from './cart.entity';
-import { ProductService } from '../product/product.service';
+import { Product } from '../product/product.entity';
 export declare class CartService {
     private readonly cartRepository;
-    private readonly productService;
-    constructor(cartRepository: Repository<Cart>, productService: ProductService);
+    private readonly productRepository;
+    constructor(cartRepository: Repository<Cart>, productRepository: Repository<Product>);
     getList(userId: number | null, deviceId: string | null): Promise<{
         id: number;
         product_id: number;
@@ -38,7 +38,9 @@ export declare class CartService {
     batchRemove(ids: number[]): Promise<{
         success: boolean;
     }>;
-    updateChecked(ids: number[], checked: number): Promise<{
+    updateChecked(ids: number[], checked: number, userId: number | null, deviceId: string | null): Promise<{
         success: boolean;
     }>;
+    getRecommend(userId: number | null, deviceId: string | null, limit?: number): Promise<Product[]>;
+    private getHotProducts;
 }

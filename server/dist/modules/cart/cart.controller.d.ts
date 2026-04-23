@@ -1,5 +1,5 @@
 import { CartService } from './cart.service';
-import { AddCartDto, UpdateCartDto } from './cart.dto';
+import { AddCartDto, UpdateCartDto, UpdateCheckedDto } from './cart.dto';
 export declare class CartController {
     private readonly cartService;
     constructor(cartService: CartService);
@@ -28,7 +28,8 @@ export declare class CartController {
     batchRemove(ids: number[]): Promise<{
         success: boolean;
     }>;
-    updateChecked(ids: number[], checked: number): Promise<{
+    updateChecked(dto: UpdateCheckedDto, req: any): Promise<{
         success: boolean;
     }>;
+    getRecommend(req: any): Promise<import("../product/product.entity").Product[]>;
 }

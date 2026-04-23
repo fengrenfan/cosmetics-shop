@@ -38,7 +38,12 @@ export declare class OrderService {
     confirm(id: number): Promise<{
         success: boolean;
     }>;
-    getCount(userId: number): Promise<any>;
+    getCount(userId: number): Promise<{
+        pending: number;
+        paid: number;
+        shipped: number;
+        completed: number;
+    }>;
     getAdminList(query: {
         status?: string;
         page?: number;

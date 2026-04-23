@@ -27,6 +27,12 @@ let OrderController = class OrderController {
     async getList(query) {
         return this.orderService.getList(query);
     }
+    async getCount(req) {
+        if (!req.user?.id) {
+            return { pending: 0, paid: 0, shipped: 0, completed: 0 };
+        }
+        return this.orderService.getCount(req.user.id);
+    }
     async getDetail(id) {
         return this.orderService.getDetail(+id);
     }
@@ -35,9 +41,6 @@ let OrderController = class OrderController {
     }
     async confirm(id) {
         return this.orderService.confirm(+id);
-    }
-    async getCount(req) {
-        return this.orderService.getCount(req.user.id);
     }
     async getAdminList(query) {
         return this.orderService.getAdminList(query);
@@ -68,6 +71,14 @@ __decorate([
 ], OrderController.prototype, "getList", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Get)('count'),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], OrderController.prototype, "getCount", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -91,14 +102,6 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], OrderController.prototype, "confirm", null);
-__decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, common_1.Get)('count'),
-    __param(0, (0, common_1.Request)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], OrderController.prototype, "getCount", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Get)('admin/list'),

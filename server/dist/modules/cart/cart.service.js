@@ -17,11 +17,11 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const cart_entity_1 = require("./cart.entity");
-const product_service_1 = require("../product/product.service");
+const product_entity_1 = require("../product/product.entity");
 let CartService = class CartService {
-    constructor(cartRepository, productService) {
+    constructor(cartRepository, productRepository) {
         this.cartRepository = cartRepository;
-        this.productService = productService;
+        this.productRepository = productRepository;
     }
     async getList(userId, deviceId) {
         const where = {};
@@ -57,7 +57,10 @@ let CartService = class CartService {
         if (!user_id && !device_id) {
             throw new common_1.BadRequestException('无法识别用户身份');
         }
-        const product = await this.productService.getDetail(product_id);
+        const product = await this.productRepository.findOne({
+            where: { id: product_id },
+            relations: ['skus'],
+        });
         if (!product) {
             throw new common_1.NotFoundException('商品不存在');
         }
@@ -135,8 +138,15 @@ let CartService = class CartService {
         await this.cartRepository.delete(ids);
         return { success: true };
     }
-    async updateChecked(ids, checked) {
+    async updateChecked(ids, checked, userId, deviceId) {
         if (ids && ids.length > 0) {
+            const where = { id: ids.map(id => +id) };
+            if (userId) {
+                where.user_id = userId;
+            }
+            else if (deviceId) {
+                where.device_id = deviceId;
+            }
             await this.cartRepository
                 .createQueryBuilder()
                 .update(cart_entity_1.Cart)
@@ -146,12 +156,74 @@ let CartService = class CartService {
         }
         return { success: true };
     }
+    async getRecommend(userId, deviceId, limit = 50) {
+        const qb = this.cartRepository.createQueryBuilder('cart')
+            .leftJoinAndSelect('cart.product', 'product')
+            .leftJoinAndSelect('product.category', 'category');
+        if (userId) {
+            qb.where('cart.user_id = :userId', { userId });
+        }
+        else if (deviceId) {
+            qb.where('cart.device_id = :deviceId', { deviceId });
+        }
+        else {
+            return this.getHotProducts(limit);
+        }
+        const carts = await qb.getMany();
+        if (carts.length === 0) {
+            return this.getHotProducts(limit);
+        }
+        const categoryIds = [...new Set(carts
+                .map(cart => cart.product?.category?.parent_id || cart.product?.category_id)
+                .filter(id => id))];
+        const cartProductIds = carts.map(c => c.product_id);
+        const productQb = this.productRepository.createQueryBuilder('product')
+            .leftJoinAndSelect('product.category', 'category')
+            .where('product.status = :status', { status: 1 })
+            .andWhere('product.id NOT IN (:...cartProductIds)', { cartProductIds });
+        if (categoryIds.length > 0) {
+            productQb.andWhere('(product.category_id IN (:...categoryIds) OR product.category_id IN (SELECT id FROM category WHERE parent_id IN (:...categoryIds)))', { categoryIds });
+        }
+        productQb.orderBy('product.sales_count', 'DESC').take(limit);
+        const products = await productQb.getMany();
+        for (const product of products) {
+            if (product.images) {
+                try {
+                    product.images = JSON.parse(product.images);
+                }
+                catch {
+                    product.images = [];
+                }
+            }
+        }
+        return products;
+    }
+    async getHotProducts(limit = 50) {
+        const products = await this.productRepository.find({
+            where: { status: 1 },
+            order: { sales_count: 'DESC' },
+            take: limit,
+            relations: ['category'],
+        });
+        for (const product of products) {
+            if (product.images) {
+                try {
+                    product.images = JSON.parse(product.images);
+                }
+                catch {
+                    product.images = [];
+                }
+            }
+        }
+        return products;
+    }
 };
 exports.CartService = CartService;
 exports.CartService = CartService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(cart_entity_1.Cart)),
+    __param(1, (0, typeorm_1.InjectRepository)(product_entity_1.Product)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
-        product_service_1.ProductService])
+        typeorm_2.Repository])
 ], CartService);
 //# sourceMappingURL=cart.service.js.map

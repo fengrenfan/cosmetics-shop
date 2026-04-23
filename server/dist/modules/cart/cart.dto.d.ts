@@ -8,3 +8,7 @@ export declare class AddCartDto {
 export declare class UpdateCartDto {
     quantity?: number;
 }
+export declare class UpdateCheckedDto {
+    ids: number[];
+    checked: number;
+}

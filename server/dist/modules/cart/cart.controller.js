@@ -40,8 +40,15 @@ let CartController = class CartController {
     async batchRemove(ids) {
         return this.cartService.batchRemove(ids);
     }
-    async updateChecked(ids, checked) {
-        return this.cartService.updateChecked(ids, checked);
+    async updateChecked(dto, req) {
+        const userId = req.user?.id || null;
+        const deviceId = req.headers['x-device-id'] || null;
+        return this.cartService.updateChecked(dto.ids, dto.checked, userId, deviceId);
+    }
+    async getRecommend(req) {
+        const userId = req.user?.id || null;
+        const deviceId = req.headers['x-device-id'] || null;
+        return this.cartService.getRecommend(userId, deviceId);
     }
 };
 exports.CartController = CartController;
@@ -86,14 +93,20 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CartController.prototype, "batchRemove", null);
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Put)('checked'),
-    __param(0, (0, common_1.Body)('ids')),
-    __param(1, (0, common_1.Body)('checked')),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Array, Number]),
+    __metadata("design:paramtypes", [cart_dto_1.UpdateCheckedDto, Object]),
     __metadata("design:returntype", Promise)
 ], CartController.prototype, "updateChecked", null);
+__decorate([
+    (0, common_1.Get)('recommend'),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], CartController.prototype, "getRecommend", null);
 exports.CartController = CartController = __decorate([
     (0, common_1.Controller)('cart'),
     __metadata("design:paramtypes", [cart_service_1.CartService])

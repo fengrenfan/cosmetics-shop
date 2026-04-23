@@ -184,15 +184,16 @@ let OrderService = class OrderService {
         return { success: true };
     }
     async getCount(userId) {
-        const statuses = ['pending', 'paid', 'shipped', 'completed'];
-        const result = {};
-        for (const status of statuses) {
-            const count = await this.orderRepository.count({
-                where: { user_id: userId, status },
-            });
-            result[status] = count;
-        }
-        return result;
+        const pendingCount = await this.orderRepository.count({ where: { user_id: userId, status: 'pending' } });
+        const paidCount = await this.orderRepository.count({ where: { user_id: userId, status: 'paid' } });
+        const shippedCount = await this.orderRepository.count({ where: { user_id: userId, status: 'shipped' } });
+        const completedCount = await this.orderRepository.count({ where: { user_id: userId, status: 'completed' } });
+        return {
+            pending: pendingCount,
+            paid: paidCount,
+            shipped: shippedCount,
+            completed: completedCount,
+        };
     }
     async getAdminList(query) {
         const { status, page = 1, pageSize = 10 } = query;

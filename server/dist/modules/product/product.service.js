@@ -31,8 +31,14 @@ let ProductService = class ProductService {
         if (status !== undefined && status !== null) {
             qb.andWhere('product.status = :status', { status: +status });
         }
+        else {
+            qb.andWhere('product.status = :status', { status: 1 });
+        }
         if (category_id) {
-            qb.andWhere('product.category_id = :category_id', { category_id });
+            const ids = category_id.split(',').map(id => +id.trim()).filter(id => !isNaN(id));
+            if (ids.length > 0) {
+                qb.andWhere('product.category_id IN (:...ids)', { ids });
+            }
         }
         if (keyword) {
             qb.andWhere('(product.title LIKE :keyword OR product.subtitle LIKE :keyword)', {
@@ -139,7 +145,7 @@ let ProductService = class ProductService {
     }
     async getDetail(id) {
         const product = await this.productRepository.findOne({
-            where: { id },
+            where: { id, status: 1 },
             relations: ['category'],
         });
         if (!product) {

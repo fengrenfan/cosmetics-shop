@@ -17,6 +17,12 @@ export declare class OrderController {
             totalPages: number;
         };
     }>;
+    getCount(req: any): Promise<{
+        pending: number;
+        paid: number;
+        shipped: number;
+        completed: number;
+    }>;
     getDetail(id: string): Promise<import("./order.entity").Order>;
     cancel(id: string, reason: string): Promise<{
         success: boolean;
@@ -24,7 +30,6 @@ export declare class OrderController {
     confirm(id: string): Promise<{
         success: boolean;
     }>;
-    getCount(req: any): Promise<any>;
     getAdminList(query: any): Promise<{
         list: import("./order.entity").Order[];
         pagination: {
