@@ -10,11 +10,11 @@
         />
         <view class="btn-row">
           <view class="paste-btn" @click="pasteAndParse">
-            <text class="material-symbols-outlined">content_paste</text>
+            <text class="iconfont fa-clipboard"></text>
             <text class="btn-text">粘贴</text>
           </view>
           <view class="parse-btn" @click="parseImportAddress" v-if="importText.trim()">
-            <text class="material-symbols-outlined">auto_awesome</text>
+            <text class="iconfont fa-wand-magic-sparkles"></text>
             <text>智能识别</text>
           </view>
         </view>
@@ -371,7 +371,7 @@ export default {
   border-radius: 8rpx;
   flex-shrink: 0;
 
-  .material-symbols-outlined {
+  .iconfont {
     font-size: 28rpx;
     color: #fff;
   }
@@ -396,7 +396,7 @@ export default {
   color: #fff;
   font-weight: 600;
 
-  .material-symbols-outlined {
+  .iconfont {
     font-size: 28rpx;
     color: #fff;
   }

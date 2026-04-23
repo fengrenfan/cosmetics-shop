@@ -4,12 +4,12 @@
     <view class="top-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="top-bar-inner">
         <view class="location">
-          <text class="material-symbols-outlined" style="color: #bb0004;">location_on</text>
+          <text class="iconfont fa-location-dot" style="color: #bb0004;"></text>
           <text class="page-title">分类</text>
         </view>
         <view class="top-icons">
           <view class="icon-btn" @click="goSearch">
-            <text class="material-symbols-outlined">search</text>
+            <text class="iconfont fa-search"></text>
           </view>
         </view>
       </view>
@@ -100,7 +100,7 @@
               >{{ sort.label }}</text>
             </view>
             <view class="filter-btn" @click="showFilter = !showFilter">
-              <text class="material-symbols-outlined">filter_list</text>
+              <text class="iconfont fa-filter"></text>
               <text>筛选</text>
             </view>
           </view>
@@ -161,7 +161,7 @@
               </view>
               <text class="card-title">{{ item.title }}</text>
               <view class="card-rating">
-                <text class="material-symbols-outlined" style="color: #7c5800; font-size: 20rpx;">star</text>
+                <text class="iconfont fa-star" style="color: #7c5800; font-size: 20rpx;"></text>
                 <text class="rating-text">{{ item.rating || '4.9' }} | {{ item.sales_count || '0' }} 已售</text>
               </view>
               <view class="card-bottom">
@@ -172,7 +172,7 @@
                   </text>
                 </view>
                 <view class="add-cart-btn" @click.stop="addToCart(item)">
-                  <text class="material-symbols-outlined add-cart-icon">add_shopping_cart</text>
+                  <text class="iconfont fa-cart-plus add-cart-icon"></text>
                 </view>
               </view>
             </view>
@@ -188,7 +188,7 @@
 
         <!-- 空状态 -->
         <view class="empty-state" v-if="!loading && products.length === 0 && subCategories.length > 0">
-          <text class="material-symbols-outlined empty-icon">inbox</text>
+          <text class="iconfont fa-inbox empty-icon"></text>
           <text class="empty-text">该分类下暂无商品</text>
           <view class="empty-btn" @click="resetFilter" v-if="hasActiveFilter">清除筛选</view>
         </view>

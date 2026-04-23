@@ -148,14 +148,14 @@ const showActions = computed(() => {
 
 function getStatusIcon(status) {
   const map = {
-    pending: 'account_balance_wallet',
-    paid: 'flight',
-    shipped: 'local_shipping',
-    completed: 'check_circle',
-    cancelled: 'close',
-    refunded: 'assignment_return'
+    pending: 'fa-wallet',
+    paid: 'fa-plane',
+    shipped: 'fa-truck',
+    completed: 'fa-circle-check',
+    cancelled: 'fa-xmark',
+    refunded: 'fa-rotate-left'
   };
-  return map[status] || 'account_balance_wallet';
+  return map[status] || 'fa-wallet';
 }
 
 function getStatusText(status) {

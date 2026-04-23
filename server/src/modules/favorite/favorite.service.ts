@@ -33,6 +33,13 @@ export class FavoriteService {
   }
 
   /**
+   * 获取收藏数量
+   */
+  async getCount(userId: number) {
+    return this.favoriteRepository.count({ where: { user_id: userId } });
+  }
+
+  /**
    * 收藏/取消收藏
    */
   async toggle(userId: number, productId: number) {

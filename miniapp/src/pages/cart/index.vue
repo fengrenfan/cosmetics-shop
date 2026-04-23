@@ -4,7 +4,7 @@
     <header class="nav-header">
       <view class="nav-inner">
         <view class="nav-left">
-          <text class="material-symbols-outlined nav-icon">shopping_bag</text>
+          <text class="iconfont fa-bag-shopping nav-icon"></text>
           <text class="nav-title">我的购物车</text>
         </view>
         <view class="nav-right" @click="toggleEdit">
@@ -16,7 +16,7 @@
     <!-- 空购物车 -->
     <view class="empty-cart" v-if="cartList.length === 0 && !loading">
       <view class="empty-icon-wrap">
-        <text class="material-symbols-outlined empty-icon">shopping_cart</text>
+        <text class="iconfont fa-cart-shopping empty-icon"></text>
       </view>
       <text class="empty-text">购物车是空的</text>
       <view class="empty-btn" @click="goShopping">去逛逛</view>
@@ -43,7 +43,7 @@
           <!-- 圆形选择框 -->
           <view class="item-check" @click="toggleCheck(index)">
             <view class="check-circle" :class="{ checked: item.is_checked }">
-              <text class="iconfont-check" v-if="item.is_checked">✓</text>
+              <text class="iconfont fa-check" v-if="item.is_checked"></text>
             </view>
           </view>
 
@@ -57,7 +57,7 @@
             <text class="item-title" @click="goDetail(item)">{{ item.title }}</text>
             <view class="item-sku-row" v-if="item.sku_name">
               <text class="item-sku">{{ item.sku_name }}</text>
-              <text class="material-symbols-outlined sku-arrow">expand_more</text>
+              <text class="iconfont fa-chevron-down sku-arrow"></text>
             </view>
             <view class="item-bottom">
               <view class="item-price-wrap">
@@ -85,7 +85,7 @@
         <view class="recommend-header">
           <view class="divider-line"></view>
           <view class="recommend-title">
-            <text class="material-symbols-outlined heart-icon">favorite</text>
+            <text class="iconfont fa-heart heart-icon"></text>
             <text>猜你喜欢</text>
           </view>
           <view class="divider-line"></view>
@@ -103,7 +103,7 @@
                   <text class="rec-price">{{ item.price }}</text>
                 </view>
                 <view class="rec-add-btn">
-                  <text class="material-symbols-outlined rec-cart-icon">add_shopping_cart</text>
+                  <text class="iconfont fa-cart-plus rec-cart-icon"></text>
                 </view>
               </view>
             </view>
@@ -120,7 +120,7 @@
       <view class="footer-left">
         <view class="select-all" @click="toggleAllCheck">
           <view class="check-circle" :class="{ checked: isAllChecked }">
-            <text class="iconfont-check" v-if="isAllChecked">✓</text>
+            <text class="iconfont fa-check" v-if="isAllChecked"></text>
           </view>
           <text class="select-all-text">全选</text>
         </view>
@@ -528,14 +528,15 @@ $tabbar-height: 100rpx;
     border-color: $primary;
     box-shadow: 0 4rpx 12rpx rgba($primary, 0.3);
 
-    .iconfont-check {
+    .fa-check {
       color: $on-primary;
       display: block;
     }
   }
 }
 
-.iconfont-check {
+.iconfont-check,
+.fa-check {
   display: none;
   font-size: 24rpx;
   color: transparent;

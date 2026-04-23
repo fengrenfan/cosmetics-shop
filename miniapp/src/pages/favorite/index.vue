@@ -14,10 +14,10 @@
             <text class="goods-price">¥{{ item.price }}</text>
             <view class="goods-actions">
               <view class="action-btn cart" @click="addToCart(item)">
-                <text class="iconfont shopping_cart"></text>
+                <text class="cart-icon">🛒</text>
               </view>
               <view class="action-btn delete" @click="removeFavorite(item)">
-                <text class="iconfont delete"></text>
+                <text class="delete-icon">✕</text>
               </view>
             </view>
           </view>
@@ -40,7 +40,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
+import { onShow } from '@dcloudio/uni-app';
 import request from '@/utils/request.js';
 import { useCartStore } from '@/stores/cart.js';
 
@@ -178,16 +179,16 @@ async function removeFavorite(item) {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  
-  .iconfont {
+
+  .cart-icon, .delete-icon {
     font-size: 24rpx;
   }
-  
+
   &.cart {
     background: linear-gradient(135deg, #ff4a8d 0%, #ff6b9d 100%);
     color: #fff;
   }
-  
+
   &.delete {
     background: #f5f5f5;
     color: #999;

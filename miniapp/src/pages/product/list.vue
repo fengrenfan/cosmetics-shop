@@ -3,7 +3,7 @@
     <!-- 搜索栏（非榜单模式显示） -->
     <view class="search-bar" :style="{ paddingTop: statusBarHeight + 'px' }" v-if="!isRankMode">
       <view class="search-input">
-        <text class="iconfont search">search</text>
+        <text class="iconfont fa-search"></text>
         <input
           class="input"
           v-model="keyword"
@@ -12,7 +12,7 @@
           @input="onKeywordInput"
           confirm-type="search"
         />
-        <text class="iconfont close" v-if="keyword" @click="clearKeyword">close</text>
+        <text class="iconfont fa-xmark" v-if="keyword" @click="clearKeyword"></text>
       </view>
       <text class="search-btn" @click="handleSearch">搜索</text>
     </view>
@@ -41,16 +41,16 @@
         >
           <text>价格</text>
           <view class="price-arrow">
-            <text class="iconfont expand_less" :class="{ active: sort === 'price_asc' }">expand_less</text>
-            <text class="iconfont expand_more" :class="{ active: sort === 'price_desc' }">expand_more</text>
+            <text class="iconfont fa-chevron-up" :class="{ active: sort === 'price_asc' }"></text>
+            <text class="iconfont fa-chevron-down" :class="{ active: sort === 'price_desc' }"></text>
           </view>
         </view>
       </view>
       <view class="filter-action">
-        <text class="iconfont filter" @click="showFilter = true">filter_list</text>
+        <text class="iconfont fa-filter" @click="showFilter = true"></text>
         <text @click="showFilter = true">筛选</text>
         <view class="view-mode-toggle" @click.stop="toggleViewMode">
-          <text class="iconfont">{{ viewMode === 'grid' ? 'view_list' : 'grid_view' }}</text>
+          <text class="iconfont" :class="viewMode === 'grid' ? 'fa-table-cells' : 'fa-list'"></text>
         </view>
       </view>
     </view>
@@ -79,7 +79,7 @@
                 <text class="original-price" v-if="item.original_price">¥{{ item.original_price }}</text>
               </view>
               <view class="add-cart" @click.stop="addToCart(item)">
-                <text class="iconfont">shopping_cart</text>
+                <text class="iconfont fa-cart-shopping"></text>
               </view>
             </view>
           </view>
@@ -663,8 +663,6 @@ async function addToCart(item) {
   .iconfont {
     font-size: 24rpx;
     color: #fff;
-    font-family: 'Material Symbols Outlined' !important;
-    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   }
 }
 

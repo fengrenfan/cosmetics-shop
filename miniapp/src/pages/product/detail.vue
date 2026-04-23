@@ -37,11 +37,11 @@
     <!-- 配送信息 -->
     <view class="delivery-section">
       <view class="delivery-item">
-        <text class="iconfont local_shipping"></text>
+        <text class="iconfont fa-truck"></text>
         <text>快递: ¥{{ freight }} {{ freight > 0 ? '(满99包邮)' : '(包邮)' }}</text>
       </view>
       <view class="delivery-item">
-        <text class="iconfont location_on"></text>
+        <text class="iconfont fa-location-dot"></text>
         <text>{{ product.category?.name || '全国' }}</text>
       </view>
     </view>
@@ -52,7 +52,7 @@
         <text class="sku-title">选择</text>
         <text class="sku-selected">{{ selectedSkuText || '请选择规格' }}</text>
       </view>
-      <text class="iconfont chevron_right"></text>
+      <text class="iconfont fa-chevron-right"></text>
     </view>
 
     <!-- 商品详情 -->
@@ -92,7 +92,7 @@
             <view class="review-user-info">
               <text class="review-name">{{ item.user?.nickname || '匿名用户' }}</text>
               <view class="review-rating">
-                <text class="iconfont star" v-for="n in 5" :key="n" :class="{ active: n <= item.rating }"></text>
+                <text class="iconfont fa-star" v-for="n in 5" :key="n" :class="{ active: n <= item.rating }"></text>
                 <text class="rating-text">{{ item.rating }}分</text>
               </view>
             </view>
@@ -119,11 +119,11 @@
     <view class="action-bar">
       <view class="action-icons">
         <view class="action-icon" @click="toggleFavorite">
-          <text class="iconfont star-icon" :class="{ active: isFavorite }">star</text>
+          <text class="iconfont fa-star star-icon" :class="{ active: isFavorite }"></text>
           <text>收藏</text>
         </view>
         <view class="action-icon" @click="goCart">
-          <text class="iconfont cart-icon">shopping_cart</text>
+          <text class="iconfont fa-cart-shopping cart-icon"></text>
           <text>购物车</text>
           <view class="cart-badge" v-if="cartCount > 0">{{ cartCount > 99 ? '99+' : cartCount }}</view>
         </view>
@@ -145,7 +145,7 @@
             <text class="sku-stock">库存: {{ finalStock }}</text>
             <text class="sku-selected-text" v-if="selectedSpecText">{{ selectedSpecText }}</text>
           </view>
-          <text class="sku-close iconfont close" @click="closeSkuModal"></text>
+          <text class="sku-close iconfont fa-xmark close" @click="closeSkuModal"></text>
         </view>
 
         <!-- SKU 规格（多规格模式） -->
@@ -297,7 +297,10 @@ async function loadProductDetail() {
       is_seckill: false
     };
     maxQuantity.value = data.stock || 999;
-    
+
+    // 记录浏览历史
+    addBrowseHistory();
+
     // 解析SKU规格（支持多规格组合）
     if (data.skus?.length > 0) {
       const specMap = {};
@@ -534,6 +537,14 @@ async function loadCartCount() {
     cartCount.value = list.reduce((sum, item) => sum + (item.quantity || 0), 0);
   } catch (e) {
     cartCount.value = 0;
+  }
+}
+
+async function addBrowseHistory() {
+  try {
+    await request.post('/browse-history/add', { product_id: productId.value });
+  } catch (e) {
+    // 忽略浏览历史记录失败
   }
 }
 
@@ -936,20 +947,15 @@ function formatTime(time) {
   .star-icon {
     font-size: 48rpx;
     color: #666;
-    font-family: 'Material Symbols Outlined' !important;
-    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 
     &.active {
       color: #ff4a8d;
-      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
     }
   }
 
   .cart-icon {
     font-size: 48rpx;
     color: #666;
-    font-family: 'Material Symbols Outlined' !important;
-    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   }
 
   text {

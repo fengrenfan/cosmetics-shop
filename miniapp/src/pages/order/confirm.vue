@@ -1,26 +1,10 @@
 <template>
   <view class="page">
-    <!-- 顶部导航栏 -->
-    <view class="top-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
-      <view class="top-bar-inner">
-        <view class="back-btn" @click="goBack">
-          <text class="iconfont arrow_back" style="font-size: 36rpx; color: #636e72;"></text>
-        </view>
-        <text class="page-title">确认订单</text>
-        <view class="more-btn">
-          <text class="iconfont more_horiz" style="font-size: 36rpx; color: #636e72;"></text>
-        </view>
-      </view>
-      <view class="top-divider"></view>
-    </view>
-
     <scroll-view class="main-content" scroll-y>
       <!-- 收货地址 -->
       <view class="address-section" @click="goAddressList">
         <view class="address-content" v-if="selectedAddress">
-          <view class="address-icon-wrap">
-            <text class="iconfont location_on" style="font-size: 36rpx; color: #bb0004;"></text>
-          </view>
+          <text class="iconfont fa-location-dot" style="font-size: 40rpx; color: #bb0004; flex-shrink: 0;"></text>
           <view class="address-info">
             <view class="address-user">
               <view class="address-default-tag" v-if="selectedAddress.is_default">默认</view>
@@ -31,20 +15,20 @@
               {{ selectedAddress.province }}{{ selectedAddress.city }}{{ selectedAddress.district }}{{ selectedAddress.detail_address }}
             </view>
           </view>
-          <text class="iconfont chevron_right" style="font-size: 32rpx; color: #926f69; flex-shrink: 0;"></text>
+          <text class="iconfont fa-chevron-right" style="font-size: 32rpx; color: #926f69; flex-shrink: 0;"></text>
           <view class="address-stripe"></view>
         </view>
         <view class="address-empty" v-else>
-          <text class="iconfont location_on" style="font-size: 40rpx; color: #5d3f3b;"></text>
+          <text class="iconfont fa-location-dot" style="font-size: 40rpx; color: #5d3f3b;"></text>
           <text style="font-size: 28rpx; color: #5d3f3b;">请添加收货地址</text>
-          <text class="iconfont chevron_right" style="font-size: 32rpx; color: #926f69;"></text>
+          <text class="iconfont fa-chevron-right" style="font-size: 32rpx; color: #926f69;"></text>
         </view>
       </view>
 
       <!-- 商品列表 -->
       <view class="goods-section">
         <view class="shop-header">
-          <text class="iconfont storefront" style="font-size: 32rpx; color: #bb0004;"></text>
+          <text class="iconfont fa-shop" style="font-size: 32rpx; color: #bb0004;"></text>
           <text class="shop-name">极致美妆旗舰店</text>
         </view>
         <view class="goods-list">
@@ -72,21 +56,17 @@
         <text class="section-title">支付方式</text>
         <view class="payment-list">
           <view class="payment-item" :class="{ active: payMethod === 'wechat' }" @click="payMethod = 'wechat'">
-            <view class="payment-icon" style="color: #07C160;">
-              <text class="iconfont account_balance_wallet" style="font-size: 40rpx;"></text>
-            </view>
+            <image class="payment-icon" src="/static/images/wechat_pay_icon.png" mode="aspectFit" />
             <text class="payment-name">微信支付</text>
-            <view class="payment-check" v-if="payMethod === 'wechat'">
-              <text class="iconfont check" style="font-size: 24rpx; color: #bb0004;"></text>
+            <view class="payment-check" :class="{ checked: payMethod === 'wechat' }">
+              <text class="iconfont fa-check" style="font-size: 20rpx; color: #fff;"></text>
             </view>
           </view>
           <view class="payment-item" :class="{ active: payMethod === 'alipay' }" @click="payMethod = 'alipay'">
-            <view class="payment-icon" style="color: #1677FF;">
-              <text class="iconfont payments" style="font-size: 40rpx;"></text>
-            </view>
+            <image class="payment-icon" src="/static/images/alipay_icon.png" mode="aspectFit" />
             <text class="payment-name">支付宝支付</text>
-            <view class="payment-check" v-if="payMethod === 'alipay'">
-              <text class="iconfont check" style="font-size: 24rpx; color: #bb0004;"></text>
+            <view class="payment-check" :class="{ checked: payMethod === 'alipay' }">
+              <text class="iconfont fa-check" style="font-size: 20rpx; color: #fff;"></text>
             </view>
           </view>
         </view>
@@ -118,13 +98,13 @@
       <!-- 积分提示 -->
       <view class="points-section">
         <view class="points-left">
-          <text class="iconfont stars" style="font-size: 36rpx; color: #7c5800;"></text>
+          <text class="iconfont fa-star" style="font-size: 36rpx; color: #7c5800;"></text>
           <view class="points-text">
             <text class="points-label">可用积分</text>
             <text class="points-desc">本次订单可获得 {{ Math.floor(actualPrice) }} 积分</text>
           </view>
         </view>
-        <text class="iconfont help_outline" style="font-size: 32rpx; color: #7c5800;"></text>
+        <text class="iconfont fa-circle-question" style="font-size: 32rpx; color: #7c5800;"></text>
       </view>
 
       <!-- 底部占位 -->
@@ -149,9 +129,9 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { onLoad } from '@dcloudio/uni-app';
 import request from '@/utils/request.js';
 
-const statusBarHeight = ref(20);
 const settlementItems = ref([]);
 const selectedAddress = ref(null);
 const payMethod = ref('wechat');
@@ -183,9 +163,11 @@ const canSubmit = computed(() => {
 });
 
 onMounted(() => {
-  const systemInfo = uni.getSystemInfoSync();
-  statusBarHeight.value = systemInfo.statusBarHeight || 20;
   loadData();
+});
+
+onLoad(() => {
+  uni.setNavigationBarTitle({ title: '确认订单' });
 });
 
 async function loadData() {
@@ -249,7 +231,7 @@ async function handleSubmit() {
 
 <style lang="scss">
 /* ============================================================
-   确认订单页 — 参考 stitch_/_4 重构
+   确认订单页
    ============================================================ */
 
 $primary: #bb0004;
@@ -259,7 +241,7 @@ $secondary: #7c5800;
 $secondary-container: #feb700;
 $secondary-fixed: #ffdea8;
 $tertiary: #005da3;
-$surface: #fbf9f9;
+$surface: #f5f3f3;
 $surface-lowest: #ffffff;
 $surface-low: #f5f3f3;
 $surface-high: #e9e8e7;
@@ -267,100 +249,42 @@ $surface-variant: #e3e2e2;
 $on-surface: #1b1c1c;
 $on-surface-variant: #5d3f3b;
 $outline-variant: #e7bdb7;
-$radius-sm: 4rpx;
-$radius-md: 12rpx;
-$radius-lg: 16rpx;
-$radius-xl: 24rpx;
+$radius-sm: 8rpx;
+$radius-md: 16rpx;
+$radius-lg: 24rpx;
+$radius-xl: 32rpx;
 $radius-full: 9999rpx;
+$tabbar-height: 100rpx;
 
 .page {
   min-height: 100vh;
   background: $surface;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  padding-bottom: env(safe-area-inset-bottom);
   display: flex;
   flex-direction: column;
-}
-
-// ── 顶部导航栏 ──
-.top-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-}
-
-.top-bar-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 88rpx;
-  padding: 0 16rpx;
-}
-
-.back-btn,
-.more-btn {
-  width: 72rpx;
-  height: 72rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-
-  &:active {
-    background: rgba(0, 0, 0, 0.05);
-  }
-}
-
-.page-title {
-  font-family: 'Manrope', sans-serif;
-  font-size: 32rpx;
-  font-weight: 700;
-  color: $primary;
-  letter-spacing: -0.01em;
-}
-
-.top-divider {
-  height: 2rpx;
-  background: $surface-high;
 }
 
 // ── 主内容 ──
 .main-content {
   flex: 1;
-  padding-top: calc(90rpx + env(safe-area-inset-top));
-  padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
 }
 
 // ── 收货地址 ──
 .address-section {
-  margin: 24rpx 32rpx;
+  margin: 24rpx;
   background: $surface-lowest;
-  border-radius: $radius-xl;
+  border-radius: $radius-lg;
   overflow: hidden;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.02);
 }
 
 .address-content {
   display: flex;
-  align-items: flex-start;
-  padding: 32rpx;
-  gap: 16rpx;
-  position: relative;
-}
-
-.address-icon-wrap {
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: $radius-md;
-  background: rgba($primary, 0.08);
-  display: flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  padding: 32rpx;
+  gap: 20rpx;
+  position: relative;
 }
 
 .address-info {
@@ -370,25 +294,22 @@ $radius-full: 9999rpx;
 .address-user {
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  margin-bottom: 12rpx;
+  gap: 16rpx;
+  margin-bottom: 8rpx;
 }
 
 .address-default-tag {
   background: rgba($primary, 0.1);
   color: $primary;
   font-size: 20rpx;
-  font-weight: 700;
+  font-weight: 600;
   padding: 4rpx 12rpx;
-  border-radius: $radius-full;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  border-radius: $radius-sm;
 }
 
 .address-name {
-  font-family: 'Manrope', sans-serif;
-  font-size: 32rpx;
-  font-weight: 800;
+  font-size: 30rpx;
+  font-weight: 600;
   color: $on-surface;
 }
 
@@ -400,27 +321,7 @@ $radius-full: 9999rpx;
 .address-detail {
   font-size: 26rpx;
   color: $on-surface-variant;
-  line-height: 1.5;
-}
-
-// 地址装饰条纹
-.address-stripe {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 6rpx;
-  background: repeating-linear-gradient(
-    -45deg,
-    $primary,
-    $primary 10rpx,
-    $surface-lowest 10rpx,
-    $surface-lowest 20rpx,
-    $tertiary 20rpx,
-    $tertiary 30rpx,
-    $surface-lowest 30rpx,
-    $surface-lowest 40rpx
-  );
+  line-height: 1.4;
 }
 
 .address-empty {
@@ -429,13 +330,14 @@ $radius-full: 9999rpx;
   justify-content: center;
   gap: 12rpx;
   padding: 48rpx;
+  color: $on-surface-variant;
 }
 
 // ── 商品列表 ──
 .goods-section {
-  margin: 0 32rpx 20rpx;
+  margin: 0 24rpx 24rpx;
   background: $surface-lowest;
-  border-radius: $radius-xl;
+  border-radius: $radius-lg;
   padding: 24rpx;
 }
 
@@ -443,12 +345,11 @@ $radius-full: 9999rpx;
   display: flex;
   align-items: center;
   gap: 12rpx;
-  margin-bottom: 24rpx;
+  margin-bottom: 20rpx;
 
   .shop-name {
-    font-family: 'Manrope', sans-serif;
     font-size: 26rpx;
-    font-weight: 700;
+    font-weight: 600;
     color: $on-surface;
   }
 }
@@ -456,7 +357,7 @@ $radius-full: 9999rpx;
 .goods-list {
   display: flex;
   flex-direction: column;
-  gap: 24rpx;
+  gap: 20rpx;
 }
 
 .goods-item {
@@ -467,15 +368,15 @@ $radius-full: 9999rpx;
 .goods-img-wrap {
   width: 160rpx;
   height: 160rpx;
-  border-radius: $radius-lg;
+  border-radius: $radius-md;
   overflow: hidden;
   background: $surface-low;
   flex-shrink: 0;
+}
 
-  .goods-image {
-    width: 100%;
-    height: 100%;
-  }
+.goods-image {
+  width: 100%;
+  height: 100%;
 }
 
 .goods-info {
@@ -483,12 +384,12 @@ $radius-full: 9999rpx;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 4rpx 0;
+  min-height: 160rpx;
 }
 
 .goods-title {
   font-size: 28rpx;
-  font-weight: 700;
+  font-weight: 500;
   color: $on-surface;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -501,7 +402,7 @@ $radius-full: 9999rpx;
   font-size: 22rpx;
   color: $on-surface-variant;
   background: $surface-low;
-  padding: 4rpx 16rpx;
+  padding: 6rpx 16rpx;
   border-radius: $radius-sm;
   display: inline-block;
   margin-top: 8rpx;
@@ -511,46 +412,44 @@ $radius-full: 9999rpx;
 .goods-bottom {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
+  margin-top: auto;
 }
 
 .goods-price-wrap {
   display: flex;
   align-items: baseline;
-  gap: 2rpx;
+  gap: 4rpx;
+}
 
-  .price-symbol {
-    font-weight: 700;
-    color: $primary;
-  }
+.price-symbol {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: $primary;
+}
 
-  .goods-price {
-    font-family: 'Manrope', sans-serif;
-    font-size: 36rpx;
-    font-weight: 800;
-    color: $primary;
-    letter-spacing: -0.02em;
-  }
+.goods-price {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: $primary;
 }
 
 .goods-count {
-  font-size: 26rpx;
+  font-size: 24rpx;
   color: $on-surface-variant;
-  font-weight: 500;
 }
 
 // ── 支付方式 ──
 .payment-section {
-  margin: 0 32rpx 20rpx;
+  margin: 0 24rpx 24rpx;
   background: $surface-lowest;
-  border-radius: $radius-xl;
+  border-radius: $radius-lg;
   padding: 24rpx;
 }
 
 .section-title {
-  display: block;
   font-size: 28rpx;
-  font-weight: 700;
+  font-weight: 600;
   color: $on-surface;
   margin-bottom: 20rpx;
 }
@@ -558,58 +457,54 @@ $radius-full: 9999rpx;
 .payment-list {
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  gap: 12rpx;
 }
 
 .payment-item {
   display: flex;
   align-items: center;
   padding: 20rpx;
-  border-radius: $radius-lg;
+  border-radius: $radius-md;
   gap: 16rpx;
-  transition: background 0.15s ease;
-
-  &:active {
-    background: $surface-low;
-  }
 
   &.active {
-    background: rgba($primary, 0.03);
+    background: rgba($primary, 0.05);
+    border: 2rpx solid rgba($primary, 0.2);
   }
 }
 
 .payment-icon {
-  width: 64rpx;
-  height: 64rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 48rpx;
+  height: 48rpx;
 }
 
 .payment-name {
   flex: 1;
   font-size: 28rpx;
   color: $on-surface;
-  font-weight: 500;
 }
 
 .payment-check {
-  width: 40rpx;
-  height: 40rpx;
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  border: 2rpx solid $outline-variant;
   display: flex;
   align-items: center;
   justify-content: center;
+
+  &.checked {
+    background: $primary;
+    border-color: $primary;
+  }
 }
 
 // ── 订单摘要 ──
 .summary-section {
-  margin: 0 32rpx 20rpx;
+  margin: 0 24rpx 24rpx;
   background: $surface-lowest;
-  border-radius: $radius-xl;
-  padding: 28rpx;
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
+  border-radius: $radius-lg;
+  padding: 24rpx;
 }
 
 .summary-row {
@@ -617,16 +512,16 @@ $radius-full: 9999rpx;
   justify-content: space-between;
   font-size: 26rpx;
   color: $on-surface-variant;
+  padding: 12rpx 0;
 }
 
 .summary-value {
   color: $on-surface;
-  font-weight: 500;
 }
 
 .summary-discount {
   color: $primary;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .summary-total-row {
@@ -634,35 +529,33 @@ $radius-full: 9999rpx;
   justify-content: flex-end;
   align-items: baseline;
   gap: 12rpx;
-  padding-top: 20rpx;
-  border-top: 1rpx solid $surface-high;
+  padding-top: 16rpx;
+  border-top: 1rpx solid $surface-low;
+}
 
-  .summary-tip {
-    font-size: 22rpx;
-    color: $on-surface-variant;
-  }
+.summary-tip {
+  font-size: 24rpx;
+  color: $on-surface-variant;
+}
 
-  .total-price-wrap {
-    display: flex;
-    align-items: baseline;
-    gap: 2rpx;
+.total-price-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 4rpx;
+}
 
-    .total-price {
-      font-family: 'Manrope', sans-serif;
-      font-size: 40rpx;
-      font-weight: 800;
-      color: $primary;
-      letter-spacing: -0.02em;
-    }
-  }
+.total-price {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: $primary;
 }
 
 // ── 积分提示 ──
 .points-section {
-  margin: 0 32rpx 20rpx;
+  margin: 0 24rpx 24rpx;
   background: $secondary-fixed;
-  border-radius: $radius-xl;
-  padding: 24rpx;
+  border-radius: $radius-lg;
+  padding: 20rpx 24rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -671,31 +564,23 @@ $radius-full: 9999rpx;
 .points-left {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-}
-
-.points-text {
-  display: flex;
-  flex-direction: column;
-  gap: 4rpx;
+  gap: 12rpx;
 }
 
 .points-label {
-  font-size: 22rpx;
-  font-weight: 700;
+  font-size: 24rpx;
+  font-weight: 600;
   color: $secondary;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
 }
 
 .points-desc {
-  font-size: 20rpx;
-  color: rgba($secondary, 0.7);
+  font-size: 22rpx;
+  color: rgba($secondary, 0.8);
 }
 
 // ── 底部占位 ──
 .bottom-placeholder {
-  height: 160rpx;
+  height: calc(140rpx + env(safe-area-inset-bottom));
 }
 
 // ── 底部结算栏 ──
@@ -704,67 +589,57 @@ $radius-full: 9999rpx;
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 20rpx 32rpx;
-  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  box-shadow: 0 -8rpx 30rpx rgba(0, 0, 0, 0.04);
+  padding: 16rpx 24rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  background: $surface-lowest;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.06);
   display: flex;
   align-items: center;
   justify-content: space-between;
   z-index: 100;
+  border-top: 1rpx solid $surface-low;
 }
 
 .total-info {
   display: flex;
   flex-direction: column;
-  gap: 4rpx;
+}
 
-  .total-label {
-    font-size: 20rpx;
-    font-weight: 700;
-    color: $on-surface-variant;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
+.total-label {
+  font-size: 22rpx;
+  color: $on-surface-variant;
+}
 
-  .total-price-wrap {
-    display: flex;
-    align-items: baseline;
-    gap: 2rpx;
+.total-price-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 2rpx;
+}
 
-    .total-price {
-      font-family: 'Manrope', sans-serif;
-      font-size: 48rpx;
-      font-weight: 800;
-      color: $primary;
-      letter-spacing: -0.02em;
-    }
-  }
+.total-price {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: $primary;
 }
 
 .btn-submit {
   background: linear-gradient(135deg, $primary 0%, $primary-container 100%);
   color: $on-primary;
-  font-family: 'Manrope', sans-serif;
-  font-size: 30rpx;
-  font-weight: 800;
-  padding: 0 56rpx;
-  height: 88rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  padding: 0 48rpx;
+  height: 80rpx;
   border-radius: $radius-full;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4rpx 20rpx rgba($primary, 0.2);
 
   &:active {
-    transform: scale(0.95);
+    opacity: 0.9;
   }
 
   &.disabled {
     background: #ccc;
-    box-shadow: none;
   }
 }
 </style>

@@ -89,6 +89,13 @@ export class CouponService {
   }
 
   /**
+   * 获取我的优惠券数量
+   */
+  async getMyCouponCount(userId: number) {
+    return this.userCouponRepository.count({ where: { user_id: userId, status: 'unused' } });
+  }
+
+  /**
    * 获取我的优惠券
    */
   async getMyCoupons(userId: number, status?: string) {

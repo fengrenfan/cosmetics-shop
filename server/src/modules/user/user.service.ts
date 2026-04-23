@@ -2,12 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
+import { FavoriteService } from '../favorite/favorite.service';
+import { CouponService } from '../coupon/coupon.service';
+import { OrderService } from '../order/order.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly favoriteService: FavoriteService,
+    private readonly couponService: CouponService,
+    private readonly orderService: OrderService,
   ) {}
 
   async getProfile(userId: number) {
@@ -19,6 +25,23 @@ export class UserService {
       avatar: user.avatar,
       phone: user.phone,
       gender: user.gender,
+    };
+  }
+
+  /**
+   * 获取用户统计数据
+   */
+  async getStats(userId: number) {
+    const [favorites, coupons, orderCount] = await Promise.all([
+      this.favoriteService.getCount(userId),
+      this.couponService.getMyCouponCount(userId),
+      this.orderService.getCount(userId),
+    ]);
+
+    return {
+      favorite_count: favorites,
+      coupon_count: coupons,
+      order_count: orderCount,
     };
   }
 

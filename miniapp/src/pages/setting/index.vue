@@ -3,7 +3,7 @@
     <view class="setting-list">
       <view class="setting-item" @click="clearCache">
         <view class="item-left">
-          <text class="iconfont clear"></text>
+          <text class="iconfont fa-trash-can"></text>
           <text class="item-label">清除缓存</text>
         </view>
         <view class="item-right">
@@ -13,7 +13,7 @@
       
       <view class="setting-item" @click="checkVersion">
         <view class="item-left">
-          <text class="iconfont about"></text>
+          <text class="iconfont fa-circle-info"></text>
           <text class="item-label">版本信息</text>
         </view>
         <view class="item-right">

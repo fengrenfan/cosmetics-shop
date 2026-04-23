@@ -17,9 +17,9 @@
         <view class="user-detail">
           <text class="user-name">{{ userInfo?.nickname || '点击登录' }}</text>
           <view class="user-level">
-            <text class="iconfont star" style="font-size: 22rpx; color: rgba(255,255,255,0.7);"></text>
+            <text class="iconfont fa-star" style="font-size: 22rpx; color: rgba(255,255,255,0.7);"></text>
             <text class="level-text">黄金会员</text>
-            <text class="iconfont chevron_right" style="font-size: 24rpx; color: rgba(255,255,255,0.6);"></text>
+            <text class="iconfont fa-chevron-right" style="font-size: 24rpx; color: rgba(255,255,255,0.6);"></text>
           </view>
         </view>
       </view>
@@ -29,17 +29,17 @@
 
     <!-- 资产卡片（悬浮效果） -->
     <view class="asset-card">
-      <view class="asset-item">
-        <text class="asset-num">{{ userInfo?.coupon_count || 0 }}</text>
+      <view class="asset-item" @click="goMyCoupons">
+        <text class="asset-num">{{ userStats.coupon_count }}</text>
         <text class="asset-label">优惠券</text>
       </view>
       <view class="asset-divider"></view>
-      <view class="asset-item">
+      <view class="asset-item" @click="goPoints">
         <text class="asset-num">{{ userInfo?.points || '0' }}</text>
         <text class="asset-label">积分</text>
       </view>
       <view class="asset-divider"></view>
-      <view class="asset-item">
+      <view class="asset-item" @click="goBalance">
         <text class="asset-num">¥{{ userInfo?.balance || '0.00' }}</text>
         <text class="asset-label">余额</text>
       </view>
@@ -51,38 +51,38 @@
         <text class="section-title">我的订单</text>
         <view class="section-more" @click="goOrderList('')">
           <text>查看全部</text>
-          <text class="iconfont chevron_right" style="font-size: 24rpx;"></text>
+          <text class="iconfont fa-chevron-right" style="font-size: 24rpx;"></text>
         </view>
       </view>
       <view class="order-tabs">
         <view class="order-tab" @click="goOrderList('pending')">
           <view class="tab-icon">
-            <text class="iconfont account_balance_wallet" style="font-size: 40rpx;"></text>
+            <text class="iconfont fa-wallet" style="font-size: 40rpx;"></text>
           </view>
           <text class="tab-text">待付款</text>
         </view>
         <view class="order-tab" @click="goOrderList('paid')">
           <view class="tab-icon">
-            <text class="iconfont inventory" style="font-size: 40rpx;"></text>
+            <text class="iconfont fa-box-open" style="font-size: 40rpx;"></text>
           </view>
           <text class="tab-text">待发货</text>
         </view>
         <view class="order-tab" @click="goOrderList('shipped')">
           <view class="tab-icon relative">
-            <text class="iconfont local_shipping" style="font-size: 40rpx;"></text>
+            <text class="iconfont fa-truck" style="font-size: 40rpx;"></text>
             <view class="tab-badge" v-if="orderCount.shipped > 0">{{ orderCount.shipped }}</view>
           </view>
           <text class="tab-text">待收货</text>
         </view>
         <view class="order-tab" @click="goOrderList('completed')">
           <view class="tab-icon">
-            <text class="iconfont rate_review" style="font-size: 40rpx;"></text>
+            <text class="iconfont fa-pen-to-square" style="font-size: 40rpx;"></text>
           </view>
           <text class="tab-text">待评价</text>
         </view>
         <view class="order-tab" @click="goOrderList('after-sale')">
           <view class="tab-icon">
-            <text class="iconfont assignment_return" style="font-size: 40rpx;"></text>
+            <text class="iconfont fa-rotate-left" style="font-size: 40rpx;"></text>
           </view>
           <text class="tab-text">售后</text>
         </view>
@@ -94,49 +94,38 @@
       <text class="section-title" style="margin-bottom: 20rpx;">常用工具</text>
       <view class="tools-grid">
         <view class="tool-card" @click="goAddress">
-          <text class="iconfont location_on" style="color: #005da3; font-size: 44rpx;"></text>
+          <text class="iconfont fa-location-dot" style="color: #005da3; font-size: 44rpx;"></text>
           <text class="tool-name">地址管理</text>
         </view>
         <view class="tool-card" @click="callService">
-          <text class="iconfont support_agent" style="color: #7c5800; font-size: 44rpx;"></text>
+          <text class="iconfont fa-headset" style="color: #7c5800; font-size: 44rpx;"></text>
           <text class="tool-name">客服</text>
         </view>
         <view class="tool-card" @click="goSetting">
-          <text class="iconfont settings" style="color: #bb0004; font-size: 44rpx;"></text>
+          <text class="iconfont fa-gear" style="color: #bb0004; font-size: 44rpx;"></text>
           <text class="tool-name">设置</text>
         </view>
         <view class="tool-card" @click="goPrivacy">
-          <text class="iconfont verified_user" style="color: #004880; font-size: 44rpx;"></text>
+          <text class="iconfont fa-shield-halved" style="color: #004880; font-size: 44rpx;"></text>
           <text class="tool-name">隐私</text>
         </view>
         <view class="tool-card" @click="goFavorite">
-          <text class="iconfont favorite" style="color: #636e72; font-size: 44rpx;"></text>
+          <text class="iconfont fa-heart" style="color: #636e72; font-size: 44rpx;"></text>
           <text class="tool-name">收藏</text>
         </view>
         <view class="tool-card" @click="goHistory">
-          <text class="iconfont history" style="color: #636e72; font-size: 44rpx;"></text>
+          <text class="iconfont fa-clock-rotate-left" style="color: #636e72; font-size: 44rpx;"></text>
           <text class="tool-name">浏览历史</text>
         </view>
         <view class="tool-card" @click="goInvite">
-          <text class="iconfont share" style="color: #636e72; font-size: 44rpx;"></text>
+          <text class="iconfont fa-share-nodes" style="color: #636e72; font-size: 44rpx;"></text>
           <text class="tool-name">邀请</text>
         </view>
         <view class="tool-card" @click="goHelp">
-          <text class="iconfont help_outline" style="color: #636e72; font-size: 44rpx;"></text>
+          <text class="iconfont fa-circle-question" style="color: #636e72; font-size: 44rpx;"></text>
           <text class="tool-name">帮助</text>
         </view>
       </view>
-    </view>
-
-    <!-- 促销 Banner -->
-    <view class="promo-banner">
-      <view class="promo-overlay"></view>
-      <image class="promo-bg" src="/static/promo-bg.png" mode="aspectFill" />
-      <view class="promo-content">
-        <text class="promo-tag">专属优惠</text>
-        <text class="promo-title">今日升级PLUS会员享5折</text>
-      </view>
-      <view class="promo-btn">UPGRADE</view>
     </view>
 
     <view class="bottom-safe"></view>
@@ -151,8 +140,8 @@ import request from '@/utils/request.js';
 
 const statusBarHeight = ref(20);
 const userInfo = ref(null);
+const userStats = reactive({ favorite_count: 0, coupon_count: 0, order_count: {} });
 const orderCount = reactive({ pending: 0, paid: 0, shipped: 0, completed: 0 });
-const recommendList = ref([]);
 
 onMounted(async () => {
   const systemInfo = uni.getSystemInfoSync();
@@ -163,12 +152,30 @@ onMounted(async () => {
 onShow(async () => {
   if (checkLogin()) {
     userInfo.value = uni.getStorageSync('userInfo');
+    await loadUserStats();
     await loadOrderCount();
   }
 });
 
 async function init() {
   userInfo.value = uni.getStorageSync('userInfo');
+  if (checkLogin()) {
+    await loadUserStats();
+    await loadOrderCount();
+  }
+}
+
+async function loadUserStats() {
+  try {
+    const data = await request.get('/user/stats');
+    if (data) {
+      userStats.favorite_count = data.favorite_count || 0;
+      userStats.coupon_count = data.coupon_count || 0;
+      userStats.order_count = data.order_count || {};
+    }
+  } catch (e) {
+    console.error('加载用户统计失败', e);
+  }
 }
 
 async function loadOrderCount() {
@@ -207,15 +214,31 @@ function goSetting() {
 }
 
 function goPrivacy() {
-  uni.navigateTo({ url: '/pages/privacy/index' });
+  uni.showModal({
+    title: '隐私政策',
+    content: '我们非常重视您的个人隐私保护...',
+    showCancel: false,
+  });
 }
 
 function goHistory() {
-  uni.navigateTo({ url: '/pages/history/index' });
+  checkAuthAndNavigate('/pages/browse-history/index');
 }
 
 function goInvite() {
-  uni.navigateTo({ url: '/pages/invite/index' });
+  uni.showToast({ title: '功能开发中', icon: 'none' });
+}
+
+function goMyCoupons() {
+  checkAuthAndNavigate('/pages/coupon/index');
+}
+
+function goPoints() {
+  uni.showToast({ title: '积分功能开发中', icon: 'none' });
+}
+
+function goBalance() {
+  uni.showToast({ title: '余额功能开发中', icon: 'none' });
 }
 
 function goHelp() {
@@ -223,14 +246,6 @@ function goHelp() {
     title: '帮助中心',
     content: '客服电话：400-888-8888',
     showCancel: true,
-  });
-}
-
-function goAbout() {
-  uni.showModal({
-    title: '关于我们',
-    content: '唯伊美妆 v1.0.0\n专注于美妆好物分享',
-    showCancel: false,
   });
 }
 
@@ -565,77 +580,6 @@ $radius-full: 9999rpx;
     text-transform: uppercase;
     letter-spacing: 0.03em;
     text-align: center;
-  }
-}
-
-// ── 促销 Banner ──
-.promo-banner {
-  position: relative;
-  margin: 24rpx 32rpx;
-  height: 200rpx;
-  border-radius: $radius-xl;
-  overflow: hidden;
-  background: $on-surface;
-
-  .promo-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, transparent 70%);
-    z-index: 1;
-  }
-
-  .promo-bg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  .promo-content {
-    position: absolute;
-    left: 32rpx;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 2;
-    max-width: 70%;
-  }
-
-  .promo-tag {
-    display: block;
-    font-family: 'Manrope', sans-serif;
-    font-size: 20rpx;
-    font-weight: 900;
-    color: $secondary-fixed-dim;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    margin-bottom: 8rpx;
-  }
-
-  .promo-title {
-    font-family: 'Manrope', sans-serif;
-    font-size: 32rpx;
-    font-weight: 800;
-    color: #fff;
-    line-height: 1.3;
-  }
-
-  .promo-btn {
-    position: absolute;
-    right: 32rpx;
-    bottom: 50%;
-    transform: translateY(50%);
-    z-index: 2;
-    background: $secondary-container;
-    color: $secondary;
-    font-size: 22rpx;
-    font-weight: 900;
-    padding: 16rpx 32rpx;
-    border-radius: $radius-full;
-    letter-spacing: 0.05em;
-
-    &:active {
-      transform: translateY(50%) scale(0.95);
-    }
   }
 }
 

@@ -13,6 +13,9 @@ export default {
 </script>
 
 <style>
+/* 引入 Font Awesome 字体 */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css');
+
 /* 全局样式 + 图标系统 */
 page {
   background-color: #f5f5f5;
@@ -27,10 +30,10 @@ page {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* iconfont → Material Symbols 全局映射 */
+/* Font Awesome 图标全局样式 */
 .iconfont {
-  font-family: 'Material Symbols Outlined' !important;
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-family: 'Font Awesome 6 Free' !important;
+  font-weight: 900;
   display: inline-block;
   vertical-align: middle;
   line-height: 1;
@@ -39,26 +42,9 @@ page {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Material Symbols base class */
-.material-symbols-outlined,
-.expand_less,
-.expand_more,
-.expand_less *,
-.expand_more * {
-  font-family: 'Material Symbols Outlined' !important;
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-  display: inline-block;
-  vertical-align: middle;
-  line-height: 1;
-  font-style: normal;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Filled variant */
+/* 填充类图标 */
 .iconfont-filled,
-[class*=" iconfont icon-"][style*="font-variation-settings: 'FILL' 1"],
-.iconfont[style*="font-variation-settings: 'FILL' 1"] {
-  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24 !important;
+.iconfont.filled {
+  font-weight: 400;
 }
 </style>

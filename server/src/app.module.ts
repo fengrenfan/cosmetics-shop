@@ -21,6 +21,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { DictModule } from './modules/dict/dict.module';
 import { ProductRecommendModule } from './modules/product-recommend/product-recommend.module';
 import { QuickEntryModule } from './modules/quick-entry/quick-entry.module';
+import { BrowseHistoryModule } from './modules/browse-history/browse-history.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { QuickEntryModule } from './modules/quick-entry/quick-entry.module';
     DictModule,
     ProductRecommendModule,
     QuickEntryModule,
+    BrowseHistoryModule,
   ],
   providers: [
     {

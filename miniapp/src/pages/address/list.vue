@@ -4,11 +4,11 @@
     <header class="nav-header">
       <view class="nav-inner">
         <view class="nav-left" @click="goBack">
-          <text class="material-symbols-outlined nav-back">arrow_back</text>
+          <text class="iconfont fa-arrow-left nav-back"></text>
         </view>
         <text class="nav-title">收货地址</text>
         <view class="nav-right" @click="addAddress">
-          <text class="material-symbols-outlined nav-add">add</text>
+          <text class="iconfont fa-plus nav-add"></text>
         </view>
       </view>
     </header>
@@ -35,7 +35,7 @@
           </view>
           <view class="address-check" @click.stop="selectAddress(item)">
             <view class="check-circle" :class="{ checked: selectedId === item.id }">
-              <text class="iconfont-check" v-if="selectedId === item.id">✓</text>
+              <text class="iconfont fa-check" v-if="selectedId === item.id"></text>
             </view>
           </view>
         </view>
@@ -43,15 +43,15 @@
         <!-- 操作栏 -->
         <view class="address-actions">
           <view class="action-btn" @click.stop="setDefault(item)" v-if="!item.is_default">
-            <text class="material-symbols-outlined action-icon">star</text>
+            <text class="iconfont fa-star action-icon"></text>
             <text>设为默认</text>
           </view>
           <view class="action-btn" @click.stop="editAddress(item)">
-            <text class="material-symbols-outlined action-icon">edit</text>
+            <text class="iconfont fa-pen action-icon"></text>
             <text>编辑</text>
           </view>
           <view class="action-btn danger" @click.stop="deleteAddress(item)">
-            <text class="material-symbols-outlined action-icon">delete</text>
+            <text class="iconfont fa-trash action-icon"></text>
             <text>删除</text>
           </view>
         </view>
@@ -61,7 +61,7 @@
     <!-- 空状态 -->
     <view class="empty-state" v-if="addressList.length === 0 && !loading">
       <view class="empty-icon-wrap">
-        <text class="material-symbols-outlined empty-icon">location_off</text>
+        <text class="iconfont fa-location-dot empty-icon"></text>
       </view>
       <text class="empty-title">暂无收货地址</text>
       <text class="empty-sub">添加收货地址以便快速下单</text>
@@ -79,7 +79,7 @@
     <!-- 底部添加按钮 -->
     <view class="add-btn-wrap" v-if="addressList.length > 0" @click="addAddress">
       <view class="add-btn">
-        <text class="material-symbols-outlined add-icon">add</text>
+        <text class="iconfont fa-plus add-icon"></text>
         <text>添加新地址</text>
       </view>
     </view>
@@ -93,7 +93,7 @@
         <!-- 头部 -->
         <view class="sheet-header">
           <text class="sheet-title">{{ isEdit ? '编辑地址' : '新增地址' }}</text>
-          <text class="material-symbols-outlined sheet-close" @click="closeModal">close</text>
+          <text class="iconfont fa-xmark sheet-close" @click="closeModal"></text>
         </view>
 
         <!-- 表单 -->
@@ -108,11 +108,11 @@
             />
             <view class="btn-row">
               <view class="import-btn" @click="pasteAndParse">
-                <text class="material-symbols-outlined">content_paste</text>
+                <text class="iconfont fa-clipboard"></text>
                 <text class="btn-text">粘贴</text>
               </view>
               <view class="parse-btn" @click="parseImportAddress" v-if="importText.trim()">
-                <text class="material-symbols-outlined">auto_awesome</text>
+                <text class="iconfont fa-wand-magic-sparkles"></text>
                 <text>智能识别</text>
               </view>
             </view>
@@ -139,7 +139,7 @@
               <view class="picker-value" :class="{ empty: !formData.province }">
                 <text v-if="formData.province">{{ formData.province }} {{ formData.city }} {{ formData.district }}</text>
                 <text v-else>请选择省市区</text>
-                <text class="material-symbols-outlined picker-arrow">chevron_right</text>
+                <text class="iconfont fa-chevron-right picker-arrow"></text>
               </view>
             </picker>
           </view>
@@ -1038,7 +1038,7 @@ $tabbar-height: 100rpx;
   border-radius: $radius-md;
   flex-shrink: 0;
 
-  .material-symbols-outlined {
+  .iconfont {
     font-size: 28rpx;
     color: $on-primary;
   }
@@ -1063,7 +1063,7 @@ $tabbar-height: 100rpx;
   color: $on-primary;
   font-weight: 600;
 
-  .material-symbols-outlined {
+  .iconfont {
     font-size: 28rpx;
     color: $on-primary;
   }

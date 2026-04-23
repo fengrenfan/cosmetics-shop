@@ -5,23 +5,23 @@
       <view class="nav-inner">
         <!-- 定位 -->
         <view class="location">
-          <text class="material-symbols-outlined" style="color: #bb0004; font-size: 32rpx;">location_on</text>
+          <text class="iconfont fa-location-dot" style="color: #bb0004; font-size: 32rpx;"></text>
           <text class="city-name">上海</text>
-          <text class="material-symbols-outlined" style="font-size: 20rpx; color: #5d3f3b;">expand_more</text>
+          <text class="iconfont fa-chevron-down" style="font-size: 20rpx; color: #5d3f3b;"></text>
         </view>
         <!-- 搜索栏 -->
         <view class="search-bar" @click="goSearch">
-          <text class="material-symbols-outlined" style="font-size: 32rpx;">search</text>
+          <text class="iconfont fa-search" style="font-size: 32rpx;"></text>
           <text class="placeholder">搜索高端护肤品...</text>
-          <text class="material-symbols-outlined" style="font-size: 36rpx;">photo_camera</text>
+          <text class="iconfont fa-camera" style="font-size: 36rpx;"></text>
         </view>
         <!-- 右侧图标 -->
         <view class="nav-icons">
           <view class="nav-icon-btn">
-            <text class="material-symbols-outlined">qr_code_scanner</text>
+            <text class="iconfont fa-qrcode"></text>
           </view>
           <view class="nav-icon-btn relative">
-            <text class="material-symbols-outlined">notifications</text>
+            <text class="iconfont fa-bell"></text>
             <view class="red-dot"></view>
           </view>
         </view>
@@ -66,7 +66,7 @@
       <view class="category-grid">
         <view class="grid-item" v-for="(item, idx) in categoryIcons" :key="idx" @click="onGridIconClick(item)">
           <view class="grid-icon-bg" :style="{ background: item.bgColor }">
-            <text class="iconfont" :style="{ color: item.iconColor }">{{ item.icon }}</text>
+            <text class="iconfont" :class="item.icon" :style="{ color: item.iconColor }"></text>
           </view>
           <text class="grid-name">{{ item.name }}</text>
         </view>
@@ -79,7 +79,7 @@
           <text class="section-title">热销TOP10</text>
           <view class="section-more" @click="goHotList">
             <text>查看榜单</text>
-            <text class="iconfont chevron_right" style="font-size: 22rpx;"></text>
+            <text class="iconfont fa-chevron-right" style="font-size: 22rpx;"></text>
           </view>
         </view>
         <scroll-view scroll-x class="product-scroll">
@@ -113,7 +113,7 @@
               <view class="product-bottom">
                 <text class="product-price">¥{{ item.price }}</text>
                 <view class="add-btn" @click.stop="addToCart(item)">
-                  <text class="material-symbols-outlined add-cart-icon">add_shopping_cart</text>
+                  <text class="iconfont fa-cart-plus add-cart-icon"></text>
                 </view>
               </view>
               <text class="product-sales">{{ item.rating || '5.0' }} ★ 已售 {{ item.sales_count || '0' }}</text>
@@ -146,18 +146,18 @@ const refreshing = ref(false);
 const loading = ref(false);
 const noMore = ref(false);
 
-// 固定分类图标（参考 HTML 配色）
+// 固定分类图标（Font Awesome 6 Free 图标）
 const categoryIcons = [
-  { name: '每日特惠', icon: 'local_offer', bgColor: '#FFE8E8', iconColor: '#E1251B' },
-  { name: '热销榜单', icon: 'trending_up', bgColor: '#FFF4E0', iconColor: '#FF9500' },
-  { name: '新人专享', icon: 'workspace_premium', bgColor: '#E8F3FF', iconColor: '#007AFF' },
-  { name: '积分商城', icon: 'redeem', bgColor: '#FFF0E5', iconColor: '#FF6B00' },
-  { name: '会员中心', icon: 'emoji_events', bgColor: '#F5EBFF', iconColor: '#985EFF' },
-  { name: '全球直邮', icon: 'public', bgColor: '#E6F8FF', iconColor: '#00B2FF' },
-  { name: '肤质测试', icon: 'face', bgColor: '#FFEDF3', iconColor: '#FF2D78' },
-  { name: '有机系列', icon: 'eco', bgColor: '#ECF9F0', iconColor: '#34C759' },
-  { name: '超值套装', icon: 'inventory_2', bgColor: '#FFF6E5', iconColor: '#FFCC00' },
-  { name: '专家咨询', icon: 'support_agent', bgColor: '#F0F2F5', iconColor: '#636E72' },
+  { name: '每日特惠', icon: 'fa-tag', bgColor: '#FFE8E8', iconColor: '#E1251B' },
+  { name: '热销榜单', icon: 'fa-fire', bgColor: '#FFF4E0', iconColor: '#FF9500' },
+  { name: '新人专享', icon: 'fa-crown', bgColor: '#E8F3FF', iconColor: '#007AFF' },
+  { name: '积分商城', icon: 'fa-coins', bgColor: '#FFF0E5', iconColor: '#FF6B00' },
+  { name: '会员中心', icon: 'fa-id-card', bgColor: '#F5EBFF', iconColor: '#985EFF' },
+  { name: '全球直邮', icon: 'fa-globe', bgColor: '#E6F8FF', iconColor: '#00B2FF' },
+  { name: '肤质测试', icon: 'fa-face-smile', bgColor: '#FFEDF3', iconColor: '#FF2D78' },
+  { name: '有机系列', icon: 'fa-leaf', bgColor: '#ECF9F0', iconColor: '#34C759' },
+  { name: '超值套装', icon: 'fa-box-open', bgColor: '#FFF6E5', iconColor: '#FFCC00' },
+  { name: '专家咨询', icon: 'fa-headset', bgColor: '#F0F2F5', iconColor: '#636E72' },
 ];
 
 // 数据
@@ -353,7 +353,7 @@ $radius-full: 9999rpx;
   gap: 12rpx;
   transition: all 0.2s;
 
-  .material-symbols-outlined {
+  .iconfont {
     color: $on-surface-variant;
     font-size: 32rpx;
     flex-shrink: 0;
@@ -390,7 +390,7 @@ $radius-full: 9999rpx;
     background: rgba(0, 0, 0, 0.05);
   }
 
-  .material-symbols-outlined {
+  .iconfont {
     font-size: 40rpx;
     color: $on-surface;
   }

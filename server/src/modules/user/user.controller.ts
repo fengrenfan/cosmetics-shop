@@ -19,6 +19,16 @@ export class UserController {
     return this.userService.updateProfile(req.user.id, dto);
   }
 
+  /**
+   * 获取用户统计数据
+   * GET /api/user/stats
+   */
+  @UseGuards(JwtAuthGuard)
+  @Get('stats')
+  getStats(@Request() req) {
+    return this.userService.getStats(req.user.id);
+  }
+
   // ========== 管理员接口 ==========
 
   @UseGuards(JwtAuthGuard)

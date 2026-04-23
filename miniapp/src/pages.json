@@ -93,6 +93,12 @@
       "style": {
         "navigationBarTitleText": "设置"
       }
+    },
+    {
+      "path": "pages/browse-history/index",
+      "style": {
+        "navigationBarTitleText": "浏览历史"
+      }
     }
   ],
   "globalStyle": {

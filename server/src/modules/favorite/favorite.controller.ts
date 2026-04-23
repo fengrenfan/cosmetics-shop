@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, UseGuards, Request } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FavoriteService } from './favorite.service';
 
@@ -12,8 +12,8 @@ export class FavoriteController {
    * GET /api/favorite/list
    */
   @Get('list')
-  async getList(@Body('user_id') userId: number) {
-    return this.favoriteService.getList(userId);
+  async getList(@Request() req) {
+    return this.favoriteService.getList(req.user.id);
   }
 
   /**
@@ -21,7 +21,7 @@ export class FavoriteController {
    * POST /api/favorite/toggle
    */
   @Post('toggle')
-  async toggle(@Body('user_id') userId: number, @Body('product_id') productId: number) {
-    return this.favoriteService.toggle(userId, productId);
+  async toggle(@Request() req, @Body('product_id') productId: number) {
+    return this.favoriteService.toggle(req.user.id, productId);
   }
 }

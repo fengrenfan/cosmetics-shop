@@ -15,7 +15,7 @@
       
       <!-- 微信一键登录 -->
       <button class="btn-wechat" @click="handleWxLogin" :loading="loading">
-        <text class="iconfont wechat"></text>
+        <text class="iconfont fa-weixin"></text>
         <text>微信一键登录</text>
       </button>
       
@@ -28,7 +28,7 @@
       <!-- 手机号登录 -->
       <view class="phone-login">
         <button class="btn-phone" @click="showPhoneLogin = true">
-          <text class="iconfont phone"></text>
+          <text class="iconfont fa-phone"></text>
           <text>手机号登录</text>
         </button>
       </view>
@@ -36,7 +36,7 @@
       <!-- 协议 -->
       <view class="agreement">
         <view class="checkbox" :class="{ checked: agreed }" @click="agreed = !agreed">
-          <text class="iconfont check" v-if="agreed"></text>
+          <text class="iconfont fa-check" v-if="agreed"></text>
         </view>
         <text class="agreement-text">
           登录即表示同意
@@ -52,7 +52,7 @@
       <view class="modal-content" @click.stop>
         <view class="modal-header">
           <text>手机号登录</text>
-          <text class="iconfont close" @click="showPhoneLogin = false"></text>
+          <text class="iconfont fa-xmark" @click="showPhoneLogin = false"></text>
         </view>
         
         <view class="modal-body">
@@ -79,7 +79,7 @@
       <view class="modal-content agreement-modal" @click.stop>
         <view class="modal-header">
           <text>{{ agreementTitle }}</text>
-          <text class="iconfont close" @click="showAgreementModal = false"></text>
+          <text class="iconfont fa-xmark" @click="showAgreementModal = false"></text>
         </view>
         <scroll-view class="agreement-content" scroll-y>
           <text>{{ agreementContent }}</text>
