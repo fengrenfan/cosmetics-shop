@@ -17,9 +17,15 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const user_entity_1 = require("./user.entity");
+const favorite_service_1 = require("../favorite/favorite.service");
+const coupon_service_1 = require("../coupon/coupon.service");
+const order_service_1 = require("../order/order.service");
 let UserService = class UserService {
-    constructor(userRepository) {
+    constructor(userRepository, favoriteService, couponService, orderService) {
         this.userRepository = userRepository;
+        this.favoriteService = favoriteService;
+        this.couponService = couponService;
+        this.orderService = orderService;
     }
     async getProfile(userId) {
         const user = await this.userRepository.findOne({ where: { id: userId } });
@@ -31,6 +37,18 @@ let UserService = class UserService {
             avatar: user.avatar,
             phone: user.phone,
             gender: user.gender,
+        };
+    }
+    async getStats(userId) {
+        const [favorites, coupons, orderCount] = await Promise.all([
+            this.favoriteService.getCount(userId),
+            this.couponService.getMyCouponCount(userId),
+            this.orderService.getCount(userId),
+        ]);
+        return {
+            favorite_count: favorites,
+            coupon_count: coupons,
+            order_count: orderCount,
         };
     }
     async updateProfile(userId, dto) {
@@ -77,6 +95,9 @@ exports.UserService = UserService;
 exports.UserService = UserService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        favorite_service_1.FavoriteService,
+        coupon_service_1.CouponService,
+        order_service_1.OrderService])
 ], UserService);
 //# sourceMappingURL=user.service.js.map

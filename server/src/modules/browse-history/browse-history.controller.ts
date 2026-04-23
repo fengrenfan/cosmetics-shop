@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Delete, Body, Query, Request } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Query, Request, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { BrowseHistoryService } from './browse-history.service';
 
 @Controller('browse-history')
+@UseGuards(JwtAuthGuard)
 export class BrowseHistoryController {
   constructor(private readonly browseHistoryService: BrowseHistoryService) {}
 

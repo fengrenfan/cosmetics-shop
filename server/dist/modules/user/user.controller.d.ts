@@ -13,6 +13,16 @@ export declare class UserController {
     updateProfile(req: any, dto: UpdateProfileDto): Promise<{
         success: boolean;
     }>;
+    getStats(req: any): Promise<{
+        favorite_count: number;
+        coupon_count: number;
+        order_count: {
+            pending: number;
+            paid: number;
+            shipped: number;
+            completed: number;
+        };
+    }>;
     getAdminList(page: number, pageSize: number): Promise<{
         list: {
             id: number;

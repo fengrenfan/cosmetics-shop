@@ -35,7 +35,7 @@ let ProductService = class ProductService {
             qb.andWhere('product.status = :status', { status: 1 });
         }
         if (category_id) {
-            const ids = category_id.split(',').map(id => +id.trim()).filter(id => !isNaN(id));
+            const ids = String(category_id).split(',').map(id => +id.trim()).filter(id => !isNaN(id));
             if (ids.length > 0) {
                 qb.andWhere('product.category_id IN (:...ids)', { ids });
             }

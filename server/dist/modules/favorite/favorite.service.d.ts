@@ -11,6 +11,7 @@ export declare class FavoriteService {
         price: number;
         created_at: Date;
     }[]>;
+    getCount(userId: number): Promise<number>;
     toggle(userId: number, productId: number): Promise<{
         is_favorited: boolean;
     }>;

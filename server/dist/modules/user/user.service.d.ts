@@ -1,14 +1,30 @@
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
+import { FavoriteService } from '../favorite/favorite.service';
+import { CouponService } from '../coupon/coupon.service';
+import { OrderService } from '../order/order.service';
 export declare class UserService {
     private readonly userRepository;
-    constructor(userRepository: Repository<User>);
+    private readonly favoriteService;
+    private readonly couponService;
+    private readonly orderService;
+    constructor(userRepository: Repository<User>, favoriteService: FavoriteService, couponService: CouponService, orderService: OrderService);
     getProfile(userId: number): Promise<{
         id: number;
         nickname: string;
         avatar: string;
         phone: string;
         gender: number;
+    }>;
+    getStats(userId: number): Promise<{
+        favorite_count: number;
+        coupon_count: number;
+        order_count: {
+            pending: number;
+            paid: number;
+            shipped: number;
+            completed: number;
+        };
     }>;
     updateProfile(userId: number, dto: any): Promise<{
         success: boolean;

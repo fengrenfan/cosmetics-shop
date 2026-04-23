@@ -29,6 +29,7 @@ const dashboard_module_1 = require("./modules/dashboard/dashboard.module");
 const dict_module_1 = require("./modules/dict/dict.module");
 const product_recommend_module_1 = require("./modules/product-recommend/product-recommend.module");
 const quick_entry_module_1 = require("./modules/quick-entry/quick-entry.module");
+const browse_history_module_1 = require("./modules/browse-history/browse-history.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -67,6 +68,7 @@ exports.AppModule = AppModule = __decorate([
             dict_module_1.DictModule,
             product_recommend_module_1.ProductRecommendModule,
             quick_entry_module_1.QuickEntryModule,
+            browse_history_module_1.BrowseHistoryModule,
         ],
         providers: [
             {

@@ -26,6 +26,7 @@ export declare class CouponService {
     claim(couponId: number, userId: number): Promise<{
         success: boolean;
     }>;
+    getMyCouponCount(userId: number): Promise<number>;
     getMyCoupons(userId: number, status?: string): Promise<{
         id: number;
         status: string;

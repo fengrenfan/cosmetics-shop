@@ -20,27 +20,27 @@ let FavoriteController = class FavoriteController {
     constructor(favoriteService) {
         this.favoriteService = favoriteService;
     }
-    async getList(userId) {
-        return this.favoriteService.getList(userId);
+    async getList(req) {
+        return this.favoriteService.getList(req.user.id);
     }
-    async toggle(userId, productId) {
-        return this.favoriteService.toggle(userId, productId);
+    async toggle(req, productId) {
+        return this.favoriteService.toggle(req.user.id, productId);
     }
 };
 exports.FavoriteController = FavoriteController;
 __decorate([
     (0, common_1.Get)('list'),
-    __param(0, (0, common_1.Body)('user_id')),
+    __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], FavoriteController.prototype, "getList", null);
 __decorate([
     (0, common_1.Post)('toggle'),
-    __param(0, (0, common_1.Body)('user_id')),
+    __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Body)('product_id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:paramtypes", [Object, Number]),
     __metadata("design:returntype", Promise)
 ], FavoriteController.prototype, "toggle", null);
 exports.FavoriteController = FavoriteController = __decorate([

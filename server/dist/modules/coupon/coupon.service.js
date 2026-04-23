@@ -74,6 +74,9 @@ let CouponService = class CouponService {
         await this.couponRepository.increment({ id: couponId }, 'used_count', 1);
         return { success: true };
     }
+    async getMyCouponCount(userId) {
+        return this.userCouponRepository.count({ where: { user_id: userId, status: 'unused' } });
+    }
     async getMyCoupons(userId, status) {
         const qb = this.userCouponRepository
             .createQueryBuilder('uc')

@@ -38,6 +38,9 @@ let FavoriteService = class FavoriteService {
             created_at: f.created_at,
         }));
     }
+    async getCount(userId) {
+        return this.favoriteRepository.count({ where: { user_id: userId } });
+    }
     async toggle(userId, productId) {
         const exist = await this.favoriteRepository.findOne({
             where: { user_id: userId, product_id: productId },

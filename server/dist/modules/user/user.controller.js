@@ -27,6 +27,9 @@ let UserController = class UserController {
     updateProfile(req, dto) {
         return this.userService.updateProfile(req.user.id, dto);
     }
+    getStats(req) {
+        return this.userService.getStats(req.user.id);
+    }
     getAdminList(page, pageSize) {
         return this.userService.getAdminList(page || 1, pageSize || 20);
     }
@@ -49,6 +52,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, user_dto_1.UpdateProfileDto]),
     __metadata("design:returntype", void 0)
 ], UserController.prototype, "updateProfile", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Get)('stats'),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], UserController.prototype, "getStats", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Get)('admin/list'),
