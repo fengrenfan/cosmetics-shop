@@ -32,6 +32,9 @@ export class PointLog {
   @Column({ type: 'datetime', nullable: true, name: 'deducted_at' })
   deducted_at: Date; // 扣减时间（用于 FIFO 追踪）
 
+  @Column({ type: 'int', default: 0, name: 'deducted_points' })
+  deducted_points: number; // 已扣减的积分数量
+
   @CreateDateColumn({ name: 'created_at' })
   created_at: Date;
 }

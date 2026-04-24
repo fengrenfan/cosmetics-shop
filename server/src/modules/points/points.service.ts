@@ -115,25 +115,30 @@ export class PointsService {
       where: {
         user_id: userId,
         type: 1, // 收入
-        deducted_at: IsNull(), // 未被扣减
       },
       order: { expired_at: 'ASC' }, // 过期时间早的先扣
     });
 
     const initialBalance = user.points; // 记录初始余额用于计算
     let remainingPoints = points;
+    let totalDeductedFromLogs = 0;
+
     for (const log of availableLogs) {
       if (remainingPoints <= 0) break;
-      if (log.expired_at && new Date(log.expired_at) < new Date()) continue; // 跳过已过期的
 
-      const deductFromThis = Math.min(log.points, remainingPoints);
+      // 跳过已过期或已完全扣减的批次
+      if (log.expired_at && new Date(log.expired_at) < new Date()) continue;
+      const availableInLog = (log.points || 0) - (log.deducted_points || 0);
+      if (availableInLog <= 0) continue;
+
+      const deductFromThis = Math.min(availableInLog, remainingPoints);
       if (deductFromThis > 0) {
         // 创建支出记录
         const deductLog = this.pointLogRepository.create({
           user_id: userId,
           type: 2, // 支出
           points: deductFromThis,
-          balance: initialBalance - (points - remainingPoints + deductFromThis),
+          balance: initialBalance - totalDeductedFromLogs - deductFromThis,
           source: 'exchange',
           order_id: orderId,
           remark: '积分兑换',
@@ -141,10 +146,14 @@ export class PointsService {
         await this.pointLogRepository.save(deductLog);
 
         // 更新原收入记录的已扣减数量
-        log.deducted_at = new Date();
+        log.deducted_points = (log.deducted_points || 0) + deductFromThis;
+        if (log.deducted_points >= log.points) {
+          log.deducted_at = new Date(); // 完全扣减才标记时间
+        }
         await this.pointLogRepository.save(log);
 
         remainingPoints -= deductFromThis;
+        totalDeductedFromLogs += deductFromThis;
       }
     }
 
