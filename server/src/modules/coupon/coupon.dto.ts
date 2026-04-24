@@ -98,6 +98,8 @@ export class UpdateCouponDto {
   status?: number;
 
   @IsNumber()
+  @Min(0)
+  @Max(2)
   @IsOptional()
   auto_grant?: number;
 }
