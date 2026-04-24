@@ -38,6 +38,9 @@ export class Coupon {
   @Column({ default: 1 })
   status: number;
 
+  @Column({ default: 0, name: 'auto_grant' })
+  auto_grant: number; // 0:否 1:新用户注册 2:首单
+
   @CreateDateColumn({ name: 'created_at' })
   created_at: Date;
 
@@ -67,6 +70,9 @@ export class UserCoupon {
 
   @Column({ nullable: true, name: 'order_id' })
   order_id: number;
+
+  @Column({ length: 20, default: 'claim', name: 'source' })
+  source: string; // 'claim'领取 'admin'管理员发放 'auto'自动发放
 
   @ManyToOne(() => Coupon)
   @JoinColumn({ name: 'coupon_id' })
