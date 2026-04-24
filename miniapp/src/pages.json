@@ -88,6 +88,12 @@
       }
     },
     {
+      "path": "pages/coupon/mine",
+      "style": {
+        "navigationBarTitleText": "我的优惠券"
+      }
+    },
+    {
       "path": "pages/login/index",
       "style": {
         "navigationBarTitleText": "登录",
