@@ -1,14 +1,14 @@
 // coupon.dto.ts
-import { IsString, IsNumber, IsOptional, IsDateString, Min } from 'class-validator';
-import { COUPON_TYPE } from './coupon.constants';
+import { IsString, IsNumber, IsOptional, IsDateString, Min, Max, IsEnum } from 'class-validator';
+import { COUPON_TYPE, CouponType } from './coupon.constants';
 
 // 创建优惠券 DTO
 export class CreateCouponDto {
   @IsString()
   title: string;
 
-  @IsString()
-  type: string; // 'cash' | 'discount' | 'noThreshold'
+  @IsEnum(COUPON_TYPE)
+  type: CouponType; // 'cash' | 'discount' | 'noThreshold'
 
   @IsNumber()
   @Min(0)
@@ -42,6 +42,8 @@ export class CreateCouponDto {
   end_time?: string;
 
   @IsNumber()
+  @Min(0)
+  @Max(2)
   @IsOptional()
   auto_grant?: number; // 0:否 1:新用户注册 2:首单
 }
@@ -52,9 +54,9 @@ export class UpdateCouponDto {
   @IsOptional()
   title?: string;
 
-  @IsString()
+  @IsEnum(COUPON_TYPE)
   @IsOptional()
-  type?: string;
+  type?: CouponType;
 
   @IsNumber()
   @Min(0)
@@ -90,6 +92,8 @@ export class UpdateCouponDto {
   end_time?: string;
 
   @IsNumber()
+  @Min(0)
+  @Max(1)
   @IsOptional()
   status?: number;
 
