@@ -1,12 +1,26 @@
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { Coupon, UserCoupon } from './coupon.entity';
+import { UpdateCouponDto } from './coupon.dto';
+import { DiscountResult } from './coupon.utils';
+export interface ValidationResult {
+    valid: boolean;
+    error?: string;
+    code?: string;
+}
 export declare class CouponService {
     private readonly couponRepository;
     private readonly userCouponRepository;
-    constructor(couponRepository: Repository<Coupon>, userCouponRepository: Repository<UserCoupon>);
+    private readonly dataSource;
+    constructor(couponRepository: Repository<Coupon>, userCouponRepository: Repository<UserCoupon>, dataSource: DataSource);
+    validateForOrder(userId: number, couponId: number, orderAmount: number): Promise<ValidationResult>;
+    applyToOrder(couponId: number, orderAmount: number): Promise<DiscountResult>;
+    markAsUsed(userCouponId: number, orderId: number): Promise<void>;
+    grantToUser(userId: number, couponId: number): Promise<UserCoupon>;
+    autoGrant(userId: number, trigger: number): Promise<UserCoupon[]>;
     getAvailable(userId: number): Promise<{
         is_claimed: boolean;
         is_expired: boolean;
+        is_used: boolean;
         can_claim: boolean;
         id: number;
         title: string;
@@ -20,6 +34,7 @@ export declare class CouponService {
         start_time: Date;
         end_time: Date;
         status: number;
+        auto_grant: number;
         created_at: Date;
         updated_at: Date;
     }[]>;
@@ -45,7 +60,7 @@ export declare class CouponService {
         start_time?: string;
         end_time?: string;
     }): Promise<Coupon>;
-    update(id: number, dto: any): Promise<Coupon>;
+    update(id: number, dto: UpdateCouponDto): Promise<Coupon>;
     delete(id: number): Promise<{
         success: boolean;
     }>;

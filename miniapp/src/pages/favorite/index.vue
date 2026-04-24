@@ -36,6 +36,15 @@
     <view class="load-more" v-if="loading">
       <text>加载中...</text>
     </view>
+
+    <!-- SKU 选择弹窗 -->
+    <SkuSelectModal
+      :show="showSkuModal"
+      :product="currentProduct"
+      actionType="cart"
+      @close="showSkuModal = false"
+      @confirm="onSkuConfirm"
+    />
   </view>
 </template>
 
@@ -44,11 +53,14 @@ import { ref } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
 import request from '@/utils/request.js';
 import { useCartStore } from '@/stores/cart.js';
+import SkuSelectModal from '@/components/SkuSelectModal.vue';
 
 const cartStore = useCartStore();
 
 const list = ref([]);
 const loading = ref(false);
+const showSkuModal = ref(false);
+const currentProduct = ref(null);
 
 onShow(() => {
   loadData();
@@ -82,15 +94,51 @@ function goShopping() {
 }
 
 async function addToCart(item) {
+  // 有规格的商品需要先加载详情获取 SKU 信息
+  if (item.skus?.length > 0) {
+    currentProduct.value = item;
+    showSkuModal.value = true;
+    return;
+  }
+
+  // 加载商品详情检查是否有规格
+  try {
+    const detail = await request.get(`/product/${item.product_id}`);
+    if (detail.skus?.length > 0) {
+      // 有规格，弹出选择弹窗
+      currentProduct.value = { ...item, skus: detail.skus, price: detail.price };
+      showSkuModal.value = true;
+      return;
+    }
+  } catch (e) {
+    console.error('获取商品详情失败', e);
+  }
+
+  // 无规格直接加入购物车
   await cartStore.addItem({
     product_id: item.product_id,
-    sku_id: item.sku_id || null,
+    sku_id: null,
     title: item.title,
     cover_image: item.cover_image,
     price: item.price,
     quantity: 1,
     stock: 999,
   });
+}
+
+async function onSkuConfirm({ sku_id, quantity }) {
+  const product = currentProduct.value;
+  const sku = product.skus?.find(s => s.id === sku_id);
+  await cartStore.addItem({
+    product_id: product.product_id,
+    sku_id: sku_id,
+    title: product.title,
+    cover_image: product.cover_image,
+    price: sku?.price || product.price,
+    quantity: quantity,
+    stock: 999,
+  });
+  showSkuModal.value = false;
 }
 
 async function removeFavorite(item) {

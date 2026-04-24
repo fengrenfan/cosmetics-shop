@@ -21,16 +21,23 @@ const order_item_entity_1 = require("./order-item.entity");
 const product_service_1 = require("../product/product.service");
 const address_service_1 = require("../address/address.service");
 const cart_service_1 = require("../cart/cart.service");
+const points_service_1 = require("../points/points.service");
+const coupon_service_1 = require("../coupon/coupon.service");
+const coupon_entity_1 = require("../coupon/coupon.entity");
+const coupon_constants_1 = require("../coupon/coupon.constants");
 let OrderService = class OrderService {
-    constructor(orderRepository, orderItemRepository, productService, addressService, cartService) {
+    constructor(orderRepository, orderItemRepository, userCouponRepository, productService, addressService, cartService, pointsService, couponService) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
+        this.userCouponRepository = userCouponRepository;
         this.productService = productService;
         this.addressService = addressService;
         this.cartService = cartService;
+        this.pointsService = pointsService;
+        this.couponService = couponService;
     }
     async create(dto) {
-        const { user_id, address_id, items, remark, coupon_id } = dto;
+        const { user_id, address_id, items, remark, coupon_id, points_amount, points_money } = dto;
         const address = await this.addressService.getById(address_id, user_id);
         if (!address) {
             throw new common_1.NotFoundException('收货地址不存在');
@@ -73,15 +80,29 @@ let OrderService = class OrderService {
             await this.productService.decrementStock(item.product_id, item.sku_id, item.quantity);
         }
         const freightAmount = totalAmount >= 99 ? 0 : 10;
-        const couponAmount = 0;
-        const payAmount = totalAmount + freightAmount - couponAmount;
+        let discountAmount = 0;
+        let userCouponId = null;
+        if (coupon_id) {
+            const validation = await this.couponService.validateForOrder(user_id, coupon_id, totalAmount);
+            if (!validation.valid) {
+                throw new common_1.BadRequestException(validation.error);
+            }
+            const discount = await this.couponService.applyToOrder(coupon_id, totalAmount);
+            discountAmount = discount.discountAmount;
+            const userCoupon = await this.userCouponRepository.findOne({
+                where: { user_id, coupon_id, status: coupon_constants_1.USER_COUPON_STATUS.UNUSED },
+            });
+            userCouponId = userCoupon?.id;
+        }
+        const pointsMoney = points_money || 0;
+        const payAmount = totalAmount + freightAmount - discountAmount - pointsMoney;
         const orderNo = this.generateOrderNo();
         const order = this.orderRepository.create({
             order_no: orderNo,
             user_id,
             total_amount: totalAmount,
             freight_amount: freightAmount,
-            coupon_amount: couponAmount,
+            coupon_amount: discountAmount,
             pay_amount: payAmount,
             status: 'pending',
             address_snapshot: {
@@ -95,6 +116,20 @@ let OrderService = class OrderService {
             remark,
         });
         const savedOrder = await this.orderRepository.save(order);
+        if (userCouponId) {
+            await this.couponService.markAsUsed(userCouponId, savedOrder.id);
+        }
+        if (points_amount && points_amount > 0) {
+            try {
+                await this.pointsService.deductPoints(user_id, points_amount, savedOrder.id);
+                savedOrder.points_amount = points_amount;
+                savedOrder.points_money = pointsMoney;
+                await this.orderRepository.save(savedOrder);
+            }
+            catch (e) {
+                throw new common_1.BadRequestException('积分扣减失败：' + e.message);
+            }
+        }
         for (const item of orderItems) {
             const orderItem = this.orderItemRepository.create({
                 ...item,
@@ -168,6 +203,9 @@ let OrderService = class OrderService {
         for (const item of items) {
             await this.productService.incrementStock(item.product_id, item.sku_id, item.quantity);
         }
+        if (order.points_amount && order.points_amount > 0) {
+            await this.pointsService.addPoints(order.user_id, order.points_amount, order.id, `订单取消返还积分`);
+        }
         return { success: true };
     }
     async confirm(id) {
@@ -181,6 +219,8 @@ let OrderService = class OrderService {
         order.status = 'completed';
         order.complete_time = new Date();
         await this.orderRepository.save(order);
+        const points = this.pointsService.calculateOrderPoints(order.pay_amount);
+        await this.pointsService.addPoints(order.user_id, points, order.id, `订单 ${order.order_no} 完成返积分`);
         return { success: true };
     }
     async getCount(userId) {
@@ -246,6 +286,9 @@ let OrderService = class OrderService {
         for (const item of items) {
             await this.productService.incrementStock(item.product_id, item.sku_id, item.quantity);
         }
+        if (order.points_amount && order.points_amount > 0) {
+            await this.pointsService.addPoints(order.user_id, order.points_amount, order.id, `订单退款返还积分`);
+        }
         return { success: true };
     }
     generateOrderNo() {
@@ -262,10 +305,14 @@ exports.OrderService = OrderService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(order_entity_1.Order)),
     __param(1, (0, typeorm_1.InjectRepository)(order_item_entity_1.OrderItem)),
+    __param(2, (0, typeorm_1.InjectRepository)(coupon_entity_1.UserCoupon)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository,
         product_service_1.ProductService,
         address_service_1.AddressService,
-        cart_service_1.CartService])
+        cart_service_1.CartService,
+        points_service_1.PointsService,
+        coupon_service_1.CouponService])
 ], OrderService);
 //# sourceMappingURL=order.service.js.map

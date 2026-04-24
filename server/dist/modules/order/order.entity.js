@@ -96,6 +96,14 @@ __decorate([
     __metadata("design:type", String)
 ], Order.prototype, "cancel_reason", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'int', default: 0, name: 'points_amount' }),
+    __metadata("design:type", Number)
+], Order.prototype, "points_amount", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 2, default: 0, name: 'points_money' }),
+    __metadata("design:type", Number)
+], Order.prototype, "points_money", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)({ name: 'created_at' }),
     __metadata("design:type", Date)
 ], Order.prototype, "created_at", void 0);

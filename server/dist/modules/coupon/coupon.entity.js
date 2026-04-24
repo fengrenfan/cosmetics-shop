@@ -63,6 +63,10 @@ __decorate([
     __metadata("design:type", Number)
 ], Coupon.prototype, "status", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ default: 0, name: 'auto_grant' }),
+    __metadata("design:type", Number)
+], Coupon.prototype, "auto_grant", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)({ name: 'created_at' }),
     __metadata("design:type", Date)
 ], Coupon.prototype, "created_at", void 0);
@@ -104,6 +108,10 @@ __decorate([
     (0, typeorm_1.Column)({ nullable: true, name: 'order_id' }),
     __metadata("design:type", Number)
 ], UserCoupon.prototype, "order_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 20, default: 'claim', name: 'source' }),
+    __metadata("design:type", String)
+], UserCoupon.prototype, "source", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => Coupon),
     (0, typeorm_1.JoinColumn)({ name: 'coupon_id' }),

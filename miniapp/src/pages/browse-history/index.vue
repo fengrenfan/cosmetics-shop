@@ -35,11 +35,16 @@
 import { ref } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
 import request from '@/utils/request.js';
+import { checkLogin } from '@/utils/auth.js';
 
 const list = ref([]);
 const loading = ref(false);
 
 onShow(() => {
+  if (!checkLogin()) {
+    list.value = [];
+    return;
+  }
   loadList();
 });
 

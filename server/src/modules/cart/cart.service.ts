@@ -86,15 +86,18 @@ export class CartService {
       throw new BadRequestException('库存不足');
     }
 
-    // 检查是否已存在（同一用户/设备 + 同一商品）
-    const existWhere: any = { product_id, sku_id: sku_id || 0 };
+    // 检查是否已存在（同一用户/设备 + 同一商品 + 同一规格）
+    const qb = this.cartRepository.createQueryBuilder('cart')
+      .where('cart.product_id = :product_id', { product_id })
+      .andWhere(sku_id ? 'cart.sku_id = :sku_id' : 'cart.sku_id IS NULL', { sku_id: sku_id || undefined });
+
     if (user_id) {
-      existWhere.user_id = user_id;
+      qb.andWhere('cart.user_id = :user_id', { user_id });
     } else {
-      existWhere.device_id = device_id;
+      qb.andWhere('cart.device_id = :device_id', { device_id });
     }
 
-    const existCart = await this.cartRepository.findOne({ where: existWhere });
+    const existCart = await qb.getOne();
 
     if (existCart) {
       // 更新数量

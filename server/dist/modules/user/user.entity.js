@@ -59,6 +59,10 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "last_login_ip", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'int', default: 0, name: 'points' }),
+    __metadata("design:type", Number)
+], User.prototype, "points", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], User.prototype, "created_at", void 0);

@@ -16,6 +16,7 @@ exports.CouponController = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const coupon_service_1 = require("./coupon.service");
+const coupon_dto_1 = require("./coupon.dto");
 let CouponController = class CouponController {
     constructor(couponService) {
         this.couponService = couponService;
@@ -25,6 +26,9 @@ let CouponController = class CouponController {
     }
     async claim(id, userId) {
         return this.couponService.claim(+id, userId);
+    }
+    async validate(dto) {
+        return this.couponService.validateForOrder(dto.user_id, dto.coupon_id, dto.order_amount);
     }
     async getMyCoupons(userId, status) {
         return this.couponService.getMyCoupons(userId, status);
@@ -37,6 +41,9 @@ let CouponController = class CouponController {
     }
     async update(id, dto) {
         return this.couponService.update(id, dto);
+    }
+    async grant(dto) {
+        return this.couponService.grantToUser(dto.user_id, dto.coupon_id);
     }
     async delete(id) {
         return this.couponService.delete(id);
@@ -60,6 +67,13 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CouponController.prototype, "claim", null);
 __decorate([
+    (0, common_1.Post)('validate'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [coupon_dto_1.ValidateCouponDto]),
+    __metadata("design:returntype", Promise)
+], CouponController.prototype, "validate", null);
+__decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Get)('my'),
     __param(0, (0, common_1.Query)('user_id')),
@@ -80,7 +94,7 @@ __decorate([
     (0, common_1.Post)('admin'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [coupon_dto_1.CreateCouponDto]),
     __metadata("design:returntype", Promise)
 ], CouponController.prototype, "create", null);
 __decorate([
@@ -89,9 +103,17 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:paramtypes", [Number, coupon_dto_1.UpdateCouponDto]),
     __metadata("design:returntype", Promise)
 ], CouponController.prototype, "update", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Post)('admin/grant'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [coupon_dto_1.GrantCouponDto]),
+    __metadata("design:returntype", Promise)
+], CouponController.prototype, "grant", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Delete)('admin/:id'),

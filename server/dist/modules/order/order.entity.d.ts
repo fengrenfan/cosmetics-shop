@@ -20,6 +20,8 @@ export declare class Order {
     coupon_id: number;
     cancel_time: Date;
     cancel_reason: string;
+    points_amount: number;
+    points_money: number;
     created_at: Date;
     updated_at: Date;
     items: OrderItem[];

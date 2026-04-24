@@ -432,15 +432,25 @@ function handleSkuConfirm() {
   // 检查是否选择了SKU规格
   if (skuSpecList.value.length > 0) {
     if (Object.keys(selectedSpecs.value).length < skuSpecList.value.length) {
-      uni.showToast({ title: '请选择完整的规格', icon: 'none' });
+      uni.showModal({
+        title: '提示',
+        content: '请选择完整的规格',
+        confirmText: '我知道了',
+        showCancel: false,
+      });
       return;
     }
     if (!currentSkuId.value) {
-      uni.showToast({ title: '该规格已售罄', icon: 'none' });
+      uni.showModal({
+        title: '提示',
+        content: '该规格已售罄，请选择其他规格',
+        confirmText: '我知道了',
+        showCancel: false,
+      });
       return;
     }
   }
-  
+
   if (actionType.value === 'cart') {
     addToCart();
   } else {
@@ -1014,7 +1024,7 @@ function formatTime(time) {
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
+  z-index: 999;
 }
 
 .sku-content {

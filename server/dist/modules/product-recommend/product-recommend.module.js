@@ -11,6 +11,7 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const product_recommend_entity_1 = require("./product-recommend.entity");
 const product_entity_1 = require("../product/product.entity");
+const product_sku_entity_1 = require("../product/product-sku.entity");
 const product_recommend_service_1 = require("./product-recommend.service");
 const product_recommend_controller_1 = require("./product-recommend.controller");
 let ProductRecommendModule = class ProductRecommendModule {
@@ -18,7 +19,7 @@ let ProductRecommendModule = class ProductRecommendModule {
 exports.ProductRecommendModule = ProductRecommendModule;
 exports.ProductRecommendModule = ProductRecommendModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([product_recommend_entity_1.ProductRecommend, product_entity_1.Product])],
+        imports: [typeorm_1.TypeOrmModule.forFeature([product_recommend_entity_1.ProductRecommend, product_entity_1.Product, product_sku_entity_1.ProductSku])],
         controllers: [product_recommend_controller_1.ProductRecommendController],
         providers: [product_recommend_service_1.ProductRecommendService],
         exports: [product_recommend_service_1.ProductRecommendService],

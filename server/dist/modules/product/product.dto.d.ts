@@ -1,7 +1,7 @@
 export declare class ProductListDto {
     page?: number;
     pageSize?: number;
-    category_id?: number;
+    category_id?: string;
     keyword?: string;
     status?: number;
     sort?: string;

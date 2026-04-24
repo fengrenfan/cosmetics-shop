@@ -80,14 +80,16 @@ let CartService = class CartService {
         if (stock < quantity) {
             throw new common_1.BadRequestException('库存不足');
         }
-        const existWhere = { product_id, sku_id: sku_id || 0 };
+        const qb = this.cartRepository.createQueryBuilder('cart')
+            .where('cart.product_id = :product_id', { product_id })
+            .andWhere(sku_id ? 'cart.sku_id = :sku_id' : 'cart.sku_id IS NULL', { sku_id: sku_id || undefined });
         if (user_id) {
-            existWhere.user_id = user_id;
+            qb.andWhere('cart.user_id = :user_id', { user_id });
         }
         else {
-            existWhere.device_id = device_id;
+            qb.andWhere('cart.device_id = :device_id', { device_id });
         }
-        const existCart = await this.cartRepository.findOne({ where: existWhere });
+        const existCart = await qb.getOne();
         if (existCart) {
             const newQuantity = existCart.quantity + quantity;
             if (newQuantity > stock) {

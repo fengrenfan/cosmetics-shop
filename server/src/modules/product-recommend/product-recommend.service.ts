@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProductRecommend } from './product-recommend.entity';
 import { Product } from '../product/product.entity';
+import { ProductSku } from '../product/product-sku.entity';
 
 @Injectable()
 export class ProductRecommendService {
@@ -11,6 +12,8 @@ export class ProductRecommendService {
     private readonly recommendRepository: Repository<ProductRecommend>,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    @InjectRepository(ProductSku)
+    private readonly skuRepository: Repository<ProductSku>,
   ) {}
 
   /**
@@ -42,6 +45,16 @@ export class ProductRecommendService {
       .where('product.id IN (:...ids)', { ids: productIds })
       .andWhere('product.status = :status', { status: 1 })
       .getMany();
+
+    // 获取 SKU
+    for (const product of products) {
+      product.skus = await this.skuRepository.find({
+        where: { product_id: product.id, status: 1 },
+      });
+      if (product.images) {
+        try { product.images = JSON.parse(product.images as string); } catch { product.images = []; }
+      }
+    }
 
     const productMap = new Map(products.map(p => [p.id, p]));
     const list = productIds.map(id => productMap.get(id)).filter(Boolean);

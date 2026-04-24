@@ -15,6 +15,7 @@ const user_entity_1 = require("./user.entity");
 const favorite_module_1 = require("../favorite/favorite.module");
 const coupon_module_1 = require("../coupon/coupon.module");
 const order_module_1 = require("../order/order.module");
+const points_module_1 = require("../points/points.module");
 let UserModule = class UserModule {
 };
 exports.UserModule = UserModule;
@@ -25,10 +26,11 @@ exports.UserModule = UserModule = __decorate([
             favorite_module_1.FavoriteModule,
             coupon_module_1.CouponModule,
             order_module_1.OrderModule,
+            points_module_1.PointsModule,
         ],
         controllers: [user_controller_1.UserController],
         providers: [user_service_1.UserService],
-        exports: [user_service_1.UserService],
+        exports: [user_service_1.UserService, points_module_1.PointsModule],
     })
 ], UserModule);
 //# sourceMappingURL=user.module.js.map

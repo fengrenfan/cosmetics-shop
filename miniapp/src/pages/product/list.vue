@@ -210,6 +210,15 @@
         </view>
       </view>
     </view>
+
+    <!-- SKU 选择弹窗 -->
+    <SkuSelectModal
+      :show="showSkuModal"
+      :product="currentProduct"
+      actionType="cart"
+      @close="showSkuModal = false"
+      @confirm="onSkuConfirm"
+    />
   </view>
 </template>
 
@@ -218,6 +227,7 @@ import { ref, onMounted, computed } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
 import request from '@/utils/request.js';
 import { useCartStore } from '@/stores/cart.js';
+import SkuSelectModal from '@/components/SkuSelectModal.vue';
 
 const cartStore = useCartStore();
 
@@ -232,6 +242,8 @@ const noMore = ref(false);
 const page = ref(1);
 const pageSize = 20;
 const showFilter = ref(false);
+const showSkuModal = ref(false);
+const currentProduct = ref(null);
 let searchTimer = null;
 
 const filterForm = ref({
@@ -436,15 +448,37 @@ function goDetail(item) {
 }
 
 async function addToCart(item) {
+  // 有规格的商品弹出规格选择弹窗
+  if (item.skus?.length > 0) {
+    currentProduct.value = item;
+    showSkuModal.value = true;
+    return;
+  }
+  // 无规格直接加入购物车
   await cartStore.addItem({
     product_id: item.id,
-    sku_id: item.sku_id || null,
+    sku_id: null,
     title: item.title,
     cover_image: item.cover_image,
     price: item.price,
     quantity: 1,
     stock: item.stock,
   });
+}
+
+async function onSkuConfirm({ sku_id, quantity }) {
+  const product = currentProduct.value;
+  const sku = product.skus?.find(s => s.id === sku_id);
+  await cartStore.addItem({
+    product_id: product.id,
+    sku_id: sku_id,
+    title: product.title,
+    cover_image: product.cover_image,
+    price: sku?.price || product.price,
+    quantity: quantity,
+    stock: product.stock,
+  });
+  showSkuModal.value = false;
 }
 </script>
 

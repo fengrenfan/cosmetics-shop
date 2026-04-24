@@ -10,6 +10,7 @@ export declare class User {
     status: number;
     last_login_at: Date;
     last_login_ip: string;
+    points: number;
     created_at: Date;
     updated_at: Date;
 }

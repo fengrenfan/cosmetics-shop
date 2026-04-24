@@ -124,6 +124,16 @@ export class ProductService {
       .take(pageSize)
       .getMany();
 
+    // 获取 SKU
+    for (const product of list) {
+      product.skus = await this.skuRepository.find({
+        where: { product_id: product.id, status: 1 },
+      });
+      if (product.images) {
+        try { product.images = JSON.parse(product.images as string); } catch { product.images = [] as any; }
+      }
+    }
+
     return {
       list,
       pagination: { page, pageSize, total },
@@ -156,11 +166,23 @@ export class ProductService {
    * 热卖商品
    */
   async getHot(limit: number = 10) {
-    return this.productRepository.find({
+    const products = await this.productRepository.find({
       where: { status: 1, is_hot: 1 },
       order: { sales_count: 'DESC' },
       take: limit,
     });
+
+    // 获取 SKU
+    for (const product of products) {
+      product.skus = await this.skuRepository.find({
+        where: { product_id: product.id, status: 1 },
+      });
+      if (product.images) {
+        try { product.images = JSON.parse(product.images as string); } catch { product.images = [] as any; }
+      }
+    }
+
+    return products;
   }
 
   /**

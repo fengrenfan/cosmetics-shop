@@ -17,16 +17,149 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const coupon_entity_1 = require("./coupon.entity");
+const coupon_constants_1 = require("./coupon.constants");
+const coupon_utils_1 = require("./coupon.utils");
 let CouponService = class CouponService {
-    constructor(couponRepository, userCouponRepository) {
+    constructor(couponRepository, userCouponRepository, dataSource) {
         this.couponRepository = couponRepository;
         this.userCouponRepository = userCouponRepository;
+        this.dataSource = dataSource;
+    }
+    async validateForOrder(userId, couponId, orderAmount) {
+        const coupon = await this.couponRepository.findOne({ where: { id: couponId } });
+        if (!coupon) {
+            return { valid: false, error: '优惠券不存在', code: 'NOT_FOUND' };
+        }
+        if (coupon.used_count >= coupon.total_count) {
+            return { valid: false, error: '优惠券已领完', code: coupon_constants_1.VALIDATION_ERROR_CODE.NO_STOCK };
+        }
+        const now = new Date();
+        if (now < coupon.start_time || now > coupon.end_time) {
+            return { valid: false, error: '优惠券已过期', code: coupon_constants_1.VALIDATION_ERROR_CODE.EXPIRED };
+        }
+        if (orderAmount < Number(coupon.min_amount)) {
+            return {
+                valid: false,
+                error: `订单金额需满 ${coupon.min_amount} 元`,
+                code: coupon_constants_1.VALIDATION_ERROR_CODE.BELOW_MIN_AMOUNT,
+            };
+        }
+        const userCoupon = await this.userCouponRepository.findOne({
+            where: { user_id: userId, coupon_id: couponId },
+        });
+        if (!userCoupon) {
+            return { valid: false, error: '您还未领取该优惠券', code: coupon_constants_1.VALIDATION_ERROR_CODE.NOT_CLAIMED };
+        }
+        if (userCoupon.status === coupon_constants_1.USER_COUPON_STATUS.USED) {
+            return { valid: false, error: '该优惠券已使用', code: coupon_constants_1.VALIDATION_ERROR_CODE.ALREADY_USED };
+        }
+        if (userCoupon.status === coupon_constants_1.USER_COUPON_STATUS.EXPIRED) {
+            return { valid: false, error: '该优惠券已过期', code: coupon_constants_1.VALIDATION_ERROR_CODE.EXPIRED };
+        }
+        const usedCount = await this.userCouponRepository.count({
+            where: { user_id: userId, coupon_id: couponId, status: coupon_constants_1.USER_COUPON_STATUS.USED },
+        });
+        if (usedCount >= coupon.per_limit) {
+            return { valid: false, error: '已达到使用上限', code: coupon_constants_1.VALIDATION_ERROR_CODE.CLAIM_EXCEEDED };
+        }
+        return { valid: true };
+    }
+    async applyToOrder(couponId, orderAmount) {
+        const coupon = await this.couponRepository.findOne({ where: { id: couponId } });
+        if (!coupon) {
+            return { discountAmount: 0, finalAmount: orderAmount };
+        }
+        return (0, coupon_utils_1.calculateDiscount)(coupon, orderAmount);
+    }
+    async markAsUsed(userCouponId, orderId) {
+        const userCoupon = await this.userCouponRepository.findOne({
+            where: { id: userCouponId },
+        });
+        if (!userCoupon) {
+            throw new common_1.NotFoundException('用户优惠券不存在');
+        }
+        userCoupon.status = coupon_constants_1.USER_COUPON_STATUS.USED;
+        userCoupon.used_at = new Date();
+        userCoupon.order_id = orderId;
+        await this.userCouponRepository.save(userCoupon);
+        await this.couponRepository.increment({ id: userCoupon.coupon_id }, 'used_count', 1);
+    }
+    async grantToUser(userId, couponId) {
+        const coupon = await this.couponRepository.findOne({ where: { id: couponId } });
+        if (!coupon) {
+            throw new common_1.NotFoundException('优惠券不存在');
+        }
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+        try {
+            const userCoupon = this.userCouponRepository.create({
+                user_id: userId,
+                coupon_id: couponId,
+                status: coupon_constants_1.USER_COUPON_STATUS.UNUSED,
+                claimed_at: new Date(),
+                source: coupon_constants_1.USER_COUPON_SOURCE.ADMIN,
+            });
+            await queryRunner.manager.save(userCoupon);
+            await queryRunner.manager.increment(coupon_entity_1.Coupon, { id: couponId }, 'used_count', 1);
+            await queryRunner.commitTransaction();
+            return userCoupon;
+        }
+        catch (err) {
+            await queryRunner.rollbackTransaction();
+            throw err;
+        }
+        finally {
+            await queryRunner.release();
+        }
+    }
+    async autoGrant(userId, trigger) {
+        const coupons = await this.couponRepository.find({
+            where: { auto_grant: trigger, status: coupon_constants_1.COUPON_STATUS.ACTIVE },
+        });
+        if (coupons.length === 0) {
+            return [];
+        }
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+        const results = [];
+        const now = new Date();
+        try {
+            for (const coupon of coupons) {
+                const existing = await queryRunner.manager.findOne(coupon_entity_1.UserCoupon, {
+                    where: { user_id: userId, coupon_id: coupon.id },
+                });
+                if (existing) {
+                    continue;
+                }
+                const userCoupon = this.userCouponRepository.create({
+                    user_id: userId,
+                    coupon_id: coupon.id,
+                    status: coupon_constants_1.USER_COUPON_STATUS.UNUSED,
+                    claimed_at: now,
+                    source: coupon_constants_1.USER_COUPON_SOURCE.AUTO,
+                });
+                await queryRunner.manager.save(userCoupon);
+                await queryRunner.manager.increment(coupon_entity_1.Coupon, { id: coupon.id }, 'used_count', 1);
+                results.push(userCoupon);
+            }
+            await queryRunner.commitTransaction();
+            return results;
+        }
+        catch (err) {
+            await queryRunner.rollbackTransaction();
+            throw err;
+        }
+        finally {
+            await queryRunner.release();
+        }
     }
     async getAvailable(userId) {
         const now = new Date();
         const coupons = await this.couponRepository.find({
             where: {
-                status: 1,
+                status: coupon_constants_1.COUPON_STATUS.ACTIVE,
                 start_time: (0, typeorm_2.LessThanOrEqual)(now),
                 end_time: (0, typeorm_2.MoreThanOrEqual)(now),
             },
@@ -41,7 +174,8 @@ let CouponService = class CouponService {
             return {
                 ...c,
                 is_claimed: !!userCoupon,
-                is_expired: userCoupon?.status === 'expired',
+                is_expired: userCoupon?.status === coupon_constants_1.USER_COUPON_STATUS.EXPIRED,
+                is_used: userCoupon?.status === coupon_constants_1.USER_COUPON_STATUS.USED,
                 can_claim: !userCoupon && (c.total_count - c.used_count) > 0,
             };
         });
@@ -58,24 +192,37 @@ let CouponService = class CouponService {
         if (coupon.used_count >= coupon.total_count) {
             throw new common_1.BadRequestException('优惠券已领完');
         }
-        const userCouponCount = await this.userCouponRepository.count({
-            where: { user_id: userId, coupon_id: couponId },
-        });
-        if (userCouponCount >= coupon.per_limit) {
-            throw new common_1.BadRequestException('已达到领取上限');
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+        try {
+            const userCouponCount = await queryRunner.manager.count(coupon_entity_1.UserCoupon, {
+                where: { user_id: userId, coupon_id: couponId },
+            });
+            if (userCouponCount >= coupon.per_limit) {
+                throw new common_1.BadRequestException('已达到领取上限');
+            }
+            const userCoupon = this.userCouponRepository.create({
+                user_id: userId,
+                coupon_id: couponId,
+                status: coupon_constants_1.USER_COUPON_STATUS.UNUSED,
+                claimed_at: now,
+            });
+            await queryRunner.manager.save(userCoupon);
+            await queryRunner.manager.increment(coupon_entity_1.Coupon, { id: couponId }, 'used_count', 1);
+            await queryRunner.commitTransaction();
+            return { success: true };
         }
-        const userCoupon = this.userCouponRepository.create({
-            user_id: userId,
-            coupon_id: couponId,
-            status: 'unused',
-            claimed_at: now,
-        });
-        await this.userCouponRepository.save(userCoupon);
-        await this.couponRepository.increment({ id: couponId }, 'used_count', 1);
-        return { success: true };
+        catch (err) {
+            await queryRunner.rollbackTransaction();
+            throw err;
+        }
+        finally {
+            await queryRunner.release();
+        }
     }
     async getMyCouponCount(userId) {
-        return this.userCouponRepository.count({ where: { user_id: userId, status: 'unused' } });
+        return this.userCouponRepository.count({ where: { user_id: userId, status: coupon_constants_1.USER_COUPON_STATUS.UNUSED } });
     }
     async getMyCoupons(userId, status) {
         const qb = this.userCouponRepository
@@ -108,8 +255,8 @@ let CouponService = class CouponService {
             total_count: dto.total_count,
             per_limit: dto.per_limit || 1,
             start_time: dto.start_time ? new Date(dto.start_time) : new Date(),
-            end_time: dto.end_time ? new Date(dto.end_time) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-            status: 1,
+            end_time: dto.end_time ? new Date(dto.end_time) : new Date(Date.now() + coupon_constants_1.ONE_YEAR_MS),
+            status: coupon_constants_1.COUPON_STATUS.ACTIVE,
             used_count: 0,
         });
         return this.couponRepository.save(coupon);
@@ -141,6 +288,7 @@ exports.CouponService = CouponService = __decorate([
     __param(0, (0, typeorm_1.InjectRepository)(coupon_entity_1.Coupon)),
     __param(1, (0, typeorm_1.InjectRepository)(coupon_entity_1.UserCoupon)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
-        typeorm_2.Repository])
+        typeorm_2.Repository,
+        typeorm_2.DataSource])
 ], CouponService);
 //# sourceMappingURL=coupon.service.js.map

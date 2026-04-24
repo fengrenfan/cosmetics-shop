@@ -18,10 +18,12 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const product_recommend_entity_1 = require("./product-recommend.entity");
 const product_entity_1 = require("../product/product.entity");
+const product_sku_entity_1 = require("../product/product-sku.entity");
 let ProductRecommendService = class ProductRecommendService {
-    constructor(recommendRepository, productRepository) {
+    constructor(recommendRepository, productRepository, skuRepository) {
         this.recommendRepository = recommendRepository;
         this.productRepository = productRepository;
+        this.skuRepository = skuRepository;
     }
     async getRecommendProducts(type = 'home') {
         return this.recommendRepository.find({
@@ -43,6 +45,19 @@ let ProductRecommendService = class ProductRecommendService {
             .where('product.id IN (:...ids)', { ids: productIds })
             .andWhere('product.status = :status', { status: 1 })
             .getMany();
+        for (const product of products) {
+            product.skus = await this.skuRepository.find({
+                where: { product_id: product.id, status: 1 },
+            });
+            if (product.images) {
+                try {
+                    product.images = JSON.parse(product.images);
+                }
+                catch {
+                    product.images = [];
+                }
+            }
+        }
         const productMap = new Map(products.map(p => [p.id, p]));
         const list = productIds.map(id => productMap.get(id)).filter(Boolean);
         return { list, total: list.length };
@@ -96,7 +111,9 @@ exports.ProductRecommendService = ProductRecommendService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(product_recommend_entity_1.ProductRecommend)),
     __param(1, (0, typeorm_1.InjectRepository)(product_entity_1.Product)),
+    __param(2, (0, typeorm_1.InjectRepository)(product_sku_entity_1.ProductSku)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository])
 ], ProductRecommendService);
 //# sourceMappingURL=product-recommend.service.js.map

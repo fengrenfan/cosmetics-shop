@@ -56,10 +56,12 @@ const typeorm_2 = require("typeorm");
 const bcrypt = __importStar(require("bcryptjs"));
 const axios_1 = __importDefault(require("axios"));
 const user_entity_1 = require("../user/user.entity");
+const coupon_service_1 = require("../coupon/coupon.service");
 let AuthService = class AuthService {
-    constructor(userRepository, jwtService) {
+    constructor(userRepository, jwtService, couponService) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
+        this.couponService = couponService;
     }
     async wxLogin(code) {
         const openid = await this.getWxOpenid(code);
@@ -71,6 +73,7 @@ let AuthService = class AuthService {
                 status: 1,
             });
             await this.userRepository.save(user);
+            await this.couponService.autoGrant(user.id, 1);
         }
         const token = this.generateToken(user);
         return {
@@ -145,6 +148,7 @@ let AuthService = class AuthService {
                 status: 1,
             });
             await this.userRepository.save(user);
+            await this.couponService.autoGrant(user.id, 1);
         }
         if (user.status === 0) {
             throw new common_1.UnauthorizedException('账号已被禁用');
@@ -213,6 +217,7 @@ exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
-        jwt_1.JwtService])
+        jwt_1.JwtService,
+        coupon_service_1.CouponService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

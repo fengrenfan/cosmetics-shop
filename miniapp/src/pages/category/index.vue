@@ -200,6 +200,15 @@
         </view>
       </scroll-view>
     </view>
+
+    <!-- SKU 选择弹窗 -->
+    <SkuSelectModal
+      :show="showSkuModal"
+      :product="currentProduct"
+      actionType="cart"
+      @close="showSkuModal = false"
+      @confirm="onSkuConfirm"
+    />
   </view>
 </template>
 
@@ -207,6 +216,7 @@
 import { ref, computed, onMounted, nextTick } from 'vue';
 import request from '@/utils/request.js';
 import { useCartStore } from '@/stores/cart.js';
+import SkuSelectModal from '@/components/SkuSelectModal.vue';
 
 // 常量配置
 const PAGE_SIZE = 10;
@@ -238,6 +248,8 @@ const refreshing = ref(false);
 const noMore = ref(false);
 const categoriesLoading = ref(false);
 const showFilter = ref(false);
+const showSkuModal = ref(false);
+const currentProduct = ref(null);
 
 // 分页
 const page = ref(1);
@@ -460,10 +472,17 @@ async function addToCart(item) {
     return;
   }
 
+  // 有规格的商品弹出规格选择弹窗
+  if (item.skus?.length > 0) {
+    currentProduct.value = item;
+    showSkuModal.value = true;
+    return;
+  }
+
   try {
     await cartStore.addItem({
       product_id: item.id,
-      sku_id: item.sku_id || null,
+      sku_id: null,
       title: item.title,
       cover_image: item.cover_image,
       price: item.price,
@@ -471,6 +490,27 @@ async function addToCart(item) {
       stock: item.stock,
     });
     uni.showToast({ title: '已加入购物车', icon: 'success' });
+  } catch (e) {
+    console.error('加入购物车失败', e);
+    uni.showToast({ title: '加入购物车失败', icon: 'none' });
+  }
+}
+
+async function onSkuConfirm({ sku_id, quantity }) {
+  const product = currentProduct.value;
+  const sku = product.skus?.find(s => s.id === sku_id);
+  try {
+    await cartStore.addItem({
+      product_id: product.id,
+      sku_id: sku_id,
+      title: product.title,
+      cover_image: product.cover_image,
+      price: sku?.price || product.price,
+      quantity: quantity,
+      stock: product.stock,
+    });
+    uni.showToast({ title: '已加入购物车', icon: 'success' });
+    showSkuModal.value = false;
   } catch (e) {
     console.error('加入购物车失败', e);
     uni.showToast({ title: '加入购物车失败', icon: 'none' });

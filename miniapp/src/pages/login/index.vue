@@ -25,6 +25,15 @@
         <view class="divider-line"></view>
       </view>
       
+      <!-- 开发模式登录 -->
+      <view class="dev-login" v-if="isDevMode">
+        <view class="dev-title">开发模式</view>
+        <view class="btn-dev-login" @click="handleDevLogin">
+          <text class="iconfont fa-flask"></text>
+          <text>模拟登录（测试用户）</text>
+        </view>
+      </view>
+
       <!-- 手机号登录 -->
       <view class="phone-login">
         <button class="btn-phone" @click="showPhoneLogin = true">
@@ -102,6 +111,9 @@ const agreementTitle = ref('');
 const agreementContent = ref('');
 const countdown = ref(0);
 let countdownTimer = null;
+
+// 开发模式标志（可根据环境变量动态控制）
+const isDevMode = ref(true);
 
 const phoneForm = ref({
   phone: '',
@@ -182,7 +194,7 @@ async function handlePhoneLogin() {
       phone: phoneForm.value.phone,
       code: phoneForm.value.code,
     });
-    
+
     request.setToken(res.token);
     uni.setStorageSync('userInfo', res.user);
     uni.showToast({ title: '登录成功', icon: 'success', duration: 800 });
@@ -192,6 +204,26 @@ async function handlePhoneLogin() {
     }, 500);
   } catch (e) {
     uni.showToast({ title: e?.message || '登录失败', icon: 'none' });
+  }
+}
+
+// 开发模式模拟登录（调用真实接口获取 JWT token）
+async function handleDevLogin() {
+  try {
+    // 调用后端手机号登录接口（开发环境验证码固定为 1234）
+    const res = await request.post('/auth/phone-login', {
+      phone: '13800138000',
+      code: '1234',
+    });
+
+    request.setToken(res.token);
+    uni.setStorageSync('userInfo', res.user);
+    uni.showToast({ title: '模拟登录成功', icon: 'success' });
+    setTimeout(() => {
+      uni.switchTab({ url: '/pages/index/index' });
+    }, 800);
+  } catch (e) {
+    uni.showToast({ title: '模拟登录失败: ' + (e?.message || '未知错误'), icon: 'none' });
   }
 }
 
@@ -349,6 +381,36 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   margin: 60rpx 0;
+}
+
+// 开发模式
+.dev-login {
+  margin-bottom: 40rpx;
+}
+
+.dev-title {
+  font-size: 24rpx;
+  color: #ff4a8d;
+  text-align: center;
+  margin-bottom: 20rpx;
+  font-weight: bold;
+}
+
+.btn-dev-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 96rpx;
+  background: #fff;
+  color: #ff4a8d;
+  border-radius: 48rpx;
+  font-size: 32rpx;
+  border: 2rpx dashed #ff4a8d;
+
+  .iconfont {
+    font-size: 40rpx;
+    margin-right: 12rpx;
+  }
 }
 
 .divider-line {

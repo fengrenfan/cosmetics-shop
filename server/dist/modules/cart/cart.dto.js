@@ -30,6 +30,7 @@ __decorate([
     __metadata("design:type", String)
 ], AddCartDto.prototype, "device_id", void 0);
 __decorate([
+    (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], AddCartDto.prototype, "product_id", void 0);

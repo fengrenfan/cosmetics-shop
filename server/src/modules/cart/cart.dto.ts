@@ -11,6 +11,7 @@ export class AddCartDto {
   @IsString()
   device_id?: string;
 
+  @Type(() => Number)
   @IsNumber()
   product_id: number;
 

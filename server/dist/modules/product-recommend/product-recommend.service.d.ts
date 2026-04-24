@@ -1,10 +1,12 @@
 import { Repository } from 'typeorm';
 import { ProductRecommend } from './product-recommend.entity';
 import { Product } from '../product/product.entity';
+import { ProductSku } from '../product/product-sku.entity';
 export declare class ProductRecommendService {
     private readonly recommendRepository;
     private readonly productRepository;
-    constructor(recommendRepository: Repository<ProductRecommend>, productRepository: Repository<Product>);
+    private readonly skuRepository;
+    constructor(recommendRepository: Repository<ProductRecommend>, productRepository: Repository<Product>, skuRepository: Repository<ProductSku>);
     getRecommendProducts(type?: string): Promise<ProductRecommend[]>;
     getRecommendProductsWithDetail(type?: string): Promise<{
         list: Product[];

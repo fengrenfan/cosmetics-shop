@@ -110,6 +110,19 @@ let ProductService = class ProductService {
             .skip((page - 1) * pageSize)
             .take(pageSize)
             .getMany();
+        for (const product of list) {
+            product.skus = await this.skuRepository.find({
+                where: { product_id: product.id, status: 1 },
+            });
+            if (product.images) {
+                try {
+                    product.images = JSON.parse(product.images);
+                }
+                catch {
+                    product.images = [];
+                }
+            }
+        }
         return {
             list,
             pagination: { page, pageSize, total },
@@ -137,11 +150,25 @@ let ProductService = class ProductService {
         return product;
     }
     async getHot(limit = 10) {
-        return this.productRepository.find({
+        const products = await this.productRepository.find({
             where: { status: 1, is_hot: 1 },
             order: { sales_count: 'DESC' },
             take: limit,
         });
+        for (const product of products) {
+            product.skus = await this.skuRepository.find({
+                where: { product_id: product.id, status: 1 },
+            });
+            if (product.images) {
+                try {
+                    product.images = JSON.parse(product.images);
+                }
+                catch {
+                    product.images = [];
+                }
+            }
+        }
+        return products;
     }
     async getDetail(id) {
         const product = await this.productRepository.findOne({

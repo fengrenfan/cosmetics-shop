@@ -148,6 +148,7 @@ import { ref, computed } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
 import request from '@/utils/request.js';
 import { useCartStore } from '@/stores/cart.js';
+import { checkLogin } from '@/utils/auth.js';
 
 const cartStore = useCartStore();
 const loading = ref(false);
@@ -171,7 +172,11 @@ const totalPrice = computed(() => {
 });
 
 onShow(async () => {
-  await loadCartList();
+  if (checkLogin()) {
+    await loadCartList();
+  } else {
+    cartList.value = [];
+  }
   await loadRecommend();
 });
 
@@ -231,7 +236,19 @@ async function syncCartCheck() {
 }
 
 function decrease(index) {
-  if (cartList.value[index].quantity <= 1) return;
+  if (cartList.value[index].quantity <= 1) {
+    uni.showModal({
+      title: '提示',
+      content: '确定要删除该商品吗？',
+      confirmColor: '#bb0004',
+      success: (res) => {
+        if (res.confirm) {
+          removeItem(index);
+        }
+      }
+    });
+    return;
+  }
   updateQuantity(index, cartList.value[index].quantity - 1);
 }
 

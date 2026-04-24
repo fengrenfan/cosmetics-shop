@@ -26,7 +26,32 @@
       "Bash(lsof -ti:3001)",
       "Bash(order)",
       "Bash(shop_order)",
-      "Bash(mysql -u cosmetics -pcosmetics123 cosmetics_shop -e \"RENAME TABLE `order` TO `shop_order`\")"
+      "Bash(mysql -u cosmetics -pcosmetics123 cosmetics_shop -e \"RENAME TABLE `order` TO `shop_order`\")",
+      "Bash(lsof -ti:3000)",
+      "Bash(base64 -d ls -la /Users/fengrenfan/feng_pro/cosmetics-shop/miniapp/static/images/*.png)",
+      "WebFetch(domain:www.iconfont.cn)",
+      "Bash(npm list *)",
+      "Bash(kill 26507)",
+      "Bash(pkill -f \"nest start --watch\")",
+      "Bash(kill -9 42590)",
+      "Bash(pkill -f \"npm run start:prod\")",
+      "Bash(pkill -f \"redwood-broker\")",
+      "Bash(kill -9 50802)",
+      "Bash(pkill -f \"node.*cosmetics\")",
+      "Bash(pkill -9 -f \"node dist/main\")",
+      "Bash(sqlite3 *)",
+      "Bash(ps *)",
+      "Bash(/Users/fengrenfan/.nvm/versions/node/v18.20.8/bin/node node_modules/.bin/nest build)",
+      "Bash(kill 26413)",
+      "Bash(DB_HOST=118.25.192.73 DB_PORT=3306 DB_USER=cosmetics DB_PASSWORD=cosmetics123 DB_NAME=cosmetics_shop DB_PORT=3306 JWT_SECRET=cosmetics-shop-secret-2024 PORT=3001 /Users/fengrenfan/.nvm/versions/node/v18.20.8/bin/node *)",
+      "Bash(git restore *)",
+      "Bash(DB_HOST=118.25.192.73 DB_PORT=3306 DB_USER=cosmetics DB_PASSWORD=cosmetics123 DB_NAME=cosmetics_shop JWT_SECRET=cosmetics-shop-secret-2024 PORT=3001 /Users/fengrenfan/.nvm/versions/node/v18.20.8/bin/node *)",
+      "Bash(git commit *)",
+      "Bash(git add *)",
+      "Bash(PORT=3001 DB_HOST=118.25.192.73 DB_PORT=3306 DB_USER=cosmetics DB_PASSWORD=cosmetics123 DB_NAME=cosmetics_shop JWT_SECRET=cosmetics-shop-secret-2024 node dist/main.js)",
+      "Bash(npx ts-jest *)",
+      "Bash(npx jest *)",
+      "Bash(kill -9 26132 77781)"
     ]
   }
 }

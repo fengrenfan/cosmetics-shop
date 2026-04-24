@@ -9,5 +9,7 @@ export declare class CreateOrderDto {
     items: OrderItemDto[];
     remark?: string;
     coupon_id?: number;
+    points_amount?: number;
+    points_money?: number;
     user_id: number;
 }

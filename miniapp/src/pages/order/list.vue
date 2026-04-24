@@ -80,6 +80,7 @@ import { ref, onMounted } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
 import { onShow } from '@dcloudio/uni-app';
 import request from '@/utils/request.js';
+import { checkLogin } from '@/utils/auth.js';
 
 const currentTab = ref('');
 const orderList = ref([]);
@@ -103,6 +104,11 @@ onLoad((options) => {
 });
 
 onShow(() => {
+  if (!checkLogin()) {
+    orderList.value = [];
+    tabs.value.forEach(tab => tab.count = 0);
+    return;
+  }
   resetData();
   loadData();
   loadOrderCount();

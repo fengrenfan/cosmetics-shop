@@ -4,14 +4,20 @@ import { OrderItem } from './order-item.entity';
 import { ProductService } from '../product/product.service';
 import { AddressService } from '../address/address.service';
 import { CartService } from '../cart/cart.service';
+import { PointsService } from '../points/points.service';
+import { CouponService } from '../coupon/coupon.service';
+import { UserCoupon } from '../coupon/coupon.entity';
 import { CreateOrderDto } from './order.dto';
 export declare class OrderService {
     private readonly orderRepository;
     private readonly orderItemRepository;
+    private readonly userCouponRepository;
     private readonly productService;
     private readonly addressService;
     private readonly cartService;
-    constructor(orderRepository: Repository<Order>, orderItemRepository: Repository<OrderItem>, productService: ProductService, addressService: AddressService, cartService: CartService);
+    private readonly pointsService;
+    private readonly couponService;
+    constructor(orderRepository: Repository<Order>, orderItemRepository: Repository<OrderItem>, userCouponRepository: Repository<UserCoupon>, productService: ProductService, addressService: AddressService, cartService: CartService, pointsService: PointsService, couponService: CouponService);
     create(dto: CreateOrderDto): Promise<{
         id: number;
         order_no: string;
