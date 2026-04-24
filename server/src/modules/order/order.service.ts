@@ -8,6 +8,8 @@ import { ProductService } from '../product/product.service';
 import { AddressService } from '../address/address.service';
 import { CartService } from '../cart/cart.service';
 import { PointsService } from '../points/points.service';
+import { CouponService } from '../coupon/coupon.service';
+import { UserCoupon } from '../coupon/coupon.entity';
 import { CreateOrderDto } from './order.dto';
 
 @Injectable()
@@ -17,10 +19,13 @@ export class OrderService {
     private readonly orderRepository: Repository<Order>,
     @InjectRepository(OrderItem)
     private readonly orderItemRepository: Repository<OrderItem>,
+    @InjectRepository(UserCoupon)
+    private readonly userCouponRepository: Repository<UserCoupon>,
     private readonly productService: ProductService,
     private readonly addressService: AddressService,
     private readonly cartService: CartService,
     private readonly pointsService: PointsService,
+    private readonly couponService: CouponService,
   ) {}
 
   /**
@@ -86,10 +91,34 @@ export class OrderService {
     // 计算运费（满99免运费）
     const freightAmount = totalAmount >= 99 ? 0 : 10;
 
+    // 如果使用了优惠券，验证并计算优惠
+    let discountAmount = 0;
+    let userCouponId = null;
+
+    if (coupon_id) {
+      const validation = await this.couponService.validateForOrder(
+        user_id,
+        coupon_id,
+        totalAmount,
+      );
+
+      if (!validation.valid) {
+        throw new BadRequestException(validation.error);
+      }
+
+      const discount = await this.couponService.applyToOrder(coupon_id, totalAmount);
+      discountAmount = discount.discountAmount;
+
+      // 获取用户优惠券 ID
+      const userCoupon = await this.userCouponRepository.findOne({
+        where: { user_id, coupon_id, status: 'unused' },
+      });
+      userCouponId = userCoupon?.id;
+    }
+
     // 计算实付金额
-    const couponAmount = 0; // TODO: 优惠券计算
     const pointsMoney = points_money || 0;
-    const payAmount = totalAmount + freightAmount - couponAmount - pointsMoney;
+    const payAmount = totalAmount + freightAmount - discountAmount - pointsMoney;
 
     // 生成订单号
     const orderNo = this.generateOrderNo();
@@ -100,7 +129,7 @@ export class OrderService {
       user_id,
       total_amount: totalAmount,
       freight_amount: freightAmount,
-      coupon_amount: couponAmount,
+      coupon_amount: discountAmount,
       pay_amount: payAmount,
       status: 'pending',
       address_snapshot: {
@@ -115,6 +144,11 @@ export class OrderService {
     });
 
     const savedOrder = await this.orderRepository.save(order);
+
+    // 标记优惠券已使用
+    if (userCouponId) {
+      await this.couponService.markAsUsed(userCouponId, savedOrder.id);
+    }
 
     // 处理积分抵扣
     if (points_amount && points_amount > 0) {
