@@ -94,6 +94,12 @@
       }
     },
     {
+      "path": "pages/coupon/select",
+      "style": {
+        "navigationBarTitleText": "选择优惠券"
+      }
+    },
+    {
       "path": "pages/login/index",
       "style": {
         "navigationBarTitleText": "登录",
