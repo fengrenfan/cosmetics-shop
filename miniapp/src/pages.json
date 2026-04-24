@@ -82,6 +82,12 @@
       }
     },
     {
+      "path": "pages/coupon/list",
+      "style": {
+        "navigationBarTitleText": "领券中心"
+      }
+    },
+    {
       "path": "pages/login/index",
       "style": {
         "navigationBarTitleText": "登录",
