@@ -95,16 +95,29 @@
         </view>
       </view>
 
-      <!-- 积分提示 -->
-      <view class="points-section">
+      <!-- 积分抵扣 -->
+      <view class="points-section" v-if="userPoints >= 500">
         <view class="points-left">
           <text class="iconfont fa-star" style="font-size: 36rpx; color: #7c5800;"></text>
           <view class="points-text">
-            <text class="points-label">可用积分</text>
-            <text class="points-desc">本次订单可获得 {{ Math.floor(actualPrice) }} 积分</text>
+            <text class="points-label">使用积分</text>
+            <text class="points-desc">可用 {{ userPoints }} 积分（满500可用，100积分=1元）</text>
           </view>
         </view>
-        <text class="iconfont fa-circle-question" style="font-size: 32rpx; color: #7c5800;"></text>
+        <view class="points-input-wrap">
+          <input
+            class="points-input"
+            type="number"
+            :value="usePoints"
+            :max="maxUsePoints"
+            placeholder="0"
+            @input="onPointsInput"
+          />
+          <text class="points-unit">积分</text>
+        </view>
+      </view>
+      <view class="points-deduction" v-if="usePoints > 0">
+        <text>可抵扣 ¥{{ pointsMoney.toFixed(2) }}</text>
       </view>
 
       <!-- 底部占位 -->
@@ -131,12 +144,17 @@
 import { ref, computed, onMounted } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
 import request from '@/utils/request.js';
+import { checkLogin } from '@/utils/auth.js';
 
 const settlementItems = ref([]);
 const selectedAddress = ref(null);
 const payMethod = ref('wechat');
 const remark = ref('');
 const submitting = ref(false);
+const userPoints = ref(0);
+const usePoints = ref(0);
+const maxUsePoints = ref(0);
+const pointsMoney = ref(0);
 
 const totalPrice = computed(() => {
   return settlementItems.value.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
@@ -155,7 +173,9 @@ const totalCount = computed(() => {
 });
 
 const actualPrice = computed(() => {
-  return (parseFloat(totalPrice.value) + freight.value - shopDiscount.value).toFixed(2);
+  const base = parseFloat(totalPrice.value) + freight.value - shopDiscount.value;
+  const afterPoints = base - pointsMoney.value;
+  return Math.max(0, afterPoints).toFixed(2);
 });
 
 const canSubmit = computed(() => {
@@ -163,6 +183,11 @@ const canSubmit = computed(() => {
 });
 
 onMounted(() => {
+  if (!checkLogin()) {
+    uni.showToast({ title: '请先登录', icon: 'none' });
+    uni.navigateTo({ url: '/pages/login/index' });
+    return;
+  }
   loadData();
 });
 
@@ -183,6 +208,38 @@ async function loadData() {
   } catch (e) {
     console.error('加载地址失败', e);
   }
+
+  // 加载用户积分
+  loadPoints();
+}
+
+async function loadPoints() {
+  try {
+    const res = await request.get('/points');
+    userPoints.value = res.points || 0;
+    await calculateMaxPoints();
+  } catch (e) {
+    console.error('获取积分失败', e);
+  }
+}
+
+async function calculateMaxPoints() {
+  try {
+    const res = await request.post('/points/calculate', {
+      total_amount: parseFloat(totalPrice.value) + freight.value,
+    });
+    maxUsePoints.value = res.maxPoints || 0;
+  } catch (e) {
+    console.error('计算积分失败', e);
+  }
+}
+
+function onPointsInput(e) {
+  let val = parseInt(e.detail.value) || 0;
+  val = Math.floor(val / 100) * 100;
+  val = Math.min(val, maxUsePoints.value);
+  usePoints.value = val;
+  pointsMoney.value = val / 100;
 }
 
 function goBack() {
@@ -215,6 +272,8 @@ async function handleSubmit() {
       address_id: selectedAddress.value.id,
       items,
       remark: remark.value,
+      points_amount: usePoints.value,
+      points_money: pointsMoney.value,
     });
 
     uni.redirectTo({
@@ -576,6 +635,38 @@ $tabbar-height: 100rpx;
 .points-desc {
   font-size: 22rpx;
   color: rgba($secondary, 0.8);
+}
+
+.points-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.points-input {
+  width: 140rpx;
+  height: 56rpx;
+  background: $surface-lowest;
+  border-radius: $radius-sm;
+  padding: 0 12rpx;
+  font-size: 26rpx;
+  text-align: right;
+}
+
+.points-unit {
+  font-size: 24rpx;
+  color: $secondary;
+}
+
+.points-deduction {
+  margin: 0 24rpx 24rpx;
+  background: $secondary-fixed;
+  border-radius: $radius-lg;
+  padding: 16rpx 24rpx;
+  text-align: right;
+  font-size: 26rpx;
+  color: $secondary;
+  font-weight: 600;
 }
 
 // ── 底部占位 ──

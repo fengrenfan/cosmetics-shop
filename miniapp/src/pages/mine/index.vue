@@ -234,7 +234,7 @@ function goMyCoupons() {
 }
 
 function goPoints() {
-  uni.showToast({ title: '积分功能开发中', icon: 'none' });
+  checkAuthAndNavigate('/pages/points/logs');
 }
 
 function goBalance() {

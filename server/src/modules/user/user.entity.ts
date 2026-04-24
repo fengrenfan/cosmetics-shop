@@ -35,6 +35,9 @@ export class User {
   @Column({ length: 45, nullable: true })
   last_login_ip: string;
 
+  @Column({ type: 'int', default: 0, name: 'points' })
+  points: number;
+
   @CreateDateColumn()
   created_at: Date;
 

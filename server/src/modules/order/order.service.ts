@@ -7,6 +7,7 @@ import { OrderItem } from './order-item.entity';
 import { ProductService } from '../product/product.service';
 import { AddressService } from '../address/address.service';
 import { CartService } from '../cart/cart.service';
+import { PointsService } from '../points/points.service';
 import { CreateOrderDto } from './order.dto';
 
 @Injectable()
@@ -19,13 +20,14 @@ export class OrderService {
     private readonly productService: ProductService,
     private readonly addressService: AddressService,
     private readonly cartService: CartService,
+    private readonly pointsService: PointsService,
   ) {}
 
   /**
    * 创建订单
    */
   async create(dto: CreateOrderDto) {
-    const { user_id, address_id, items, remark, coupon_id } = dto;
+    const { user_id, address_id, items, remark, coupon_id, points_amount, points_money } = dto;
 
     // 获取收货地址快照
     const address = await this.addressService.getById(address_id, user_id);
@@ -86,7 +88,8 @@ export class OrderService {
 
     // 计算实付金额
     const couponAmount = 0; // TODO: 优惠券计算
-    const payAmount = totalAmount + freightAmount - couponAmount;
+    const pointsMoney = points_money || 0;
+    const payAmount = totalAmount + freightAmount - couponAmount - pointsMoney;
 
     // 生成订单号
     const orderNo = this.generateOrderNo();
@@ -112,6 +115,18 @@ export class OrderService {
     });
 
     const savedOrder = await this.orderRepository.save(order);
+
+    // 处理积分抵扣
+    if (points_amount && points_amount > 0) {
+      try {
+        await this.pointsService.deductPoints(user_id, points_amount, savedOrder.id);
+        savedOrder.points_amount = points_amount;
+        savedOrder.points_money = pointsMoney;
+        await this.orderRepository.save(savedOrder);
+      } catch (e) {
+        throw new BadRequestException('积分扣减失败：' + e.message);
+      }
+    }
 
     // 创建订单明细
     for (const item of orderItems) {
@@ -236,6 +251,15 @@ export class OrderService {
     order.complete_time = new Date();
 
     await this.orderRepository.save(order);
+
+    // 返积分
+    const points = this.pointsService.calculateOrderPoints(order.pay_amount);
+    await this.pointsService.addPoints(
+      order.user_id,
+      points,
+      order.id,
+      `订单 ${order.order_no} 完成返积分`,
+    );
 
     return { success: true };
   }

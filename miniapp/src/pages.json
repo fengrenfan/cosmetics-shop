@@ -99,6 +99,12 @@
       "style": {
         "navigationBarTitleText": "浏览历史"
       }
+    },
+    {
+      "path": "pages/points/logs",
+      "style": {
+        "navigationBarTitleText": "积分明细"
+      }
     }
   ],
   "globalStyle": {

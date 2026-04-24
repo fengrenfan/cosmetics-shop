@@ -22,6 +22,7 @@ import { DictModule } from './modules/dict/dict.module';
 import { ProductRecommendModule } from './modules/product-recommend/product-recommend.module';
 import { QuickEntryModule } from './modules/quick-entry/quick-entry.module';
 import { BrowseHistoryModule } from './modules/browse-history/browse-history.module';
+import { PointsModule } from './modules/points/points.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { BrowseHistoryModule } from './modules/browse-history/browse-history.mod
     ProductRecommendModule,
     QuickEntryModule,
     BrowseHistoryModule,
+    PointsModule,
   ],
   providers: [
     {

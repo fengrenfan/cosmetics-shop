@@ -6,6 +6,7 @@ import { User } from './user.entity';
 import { FavoriteModule } from '../favorite/favorite.module';
 import { CouponModule } from '../coupon/coupon.module';
 import { OrderModule } from '../order/order.module';
+import { PointsModule } from '../points/points.module';
 
 @Module({
   imports: [
@@ -13,9 +14,10 @@ import { OrderModule } from '../order/order.module';
     FavoriteModule,
     CouponModule,
     OrderModule,
+    PointsModule,
   ],
   controllers: [UserController],
   providers: [UserService],
-  exports: [UserService],
+  exports: [UserService, PointsModule],
 })
 export class UserModule {}

@@ -34,6 +34,14 @@ export class CreateOrderDto {
   @IsNumber()
   coupon_id?: number;
 
+  @IsOptional()
+  @IsNumber()
+  points_amount?: number;
+
+  @IsOptional()
+  @IsNumber()
+  points_money?: number;
+
   @IsNumber()
   user_id: number;
 }

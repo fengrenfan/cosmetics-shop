@@ -63,6 +63,12 @@ export class Order {
   @Column({ length: 255, nullable: true, name: 'cancel_reason' })
   cancel_reason: string;
 
+  @Column({ type: 'int', default: 0, name: 'points_amount' })
+  points_amount: number; // 使用积分抵扣的积分数量
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0, name: 'points_money' })
+  points_money: number; // 使用积分抵扣的金额
+
   @CreateDateColumn({ name: 'created_at' })
   created_at: Date;
 
