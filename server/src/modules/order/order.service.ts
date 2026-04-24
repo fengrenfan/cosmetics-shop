@@ -10,6 +10,7 @@ import { CartService } from '../cart/cart.service';
 import { PointsService } from '../points/points.service';
 import { CouponService } from '../coupon/coupon.service';
 import { UserCoupon } from '../coupon/coupon.entity';
+import { USER_COUPON_STATUS } from '../coupon/coupon.constants';
 import { CreateOrderDto } from './order.dto';
 
 @Injectable()
@@ -111,7 +112,7 @@ export class OrderService {
 
       // 获取用户优惠券 ID
       const userCoupon = await this.userCouponRepository.findOne({
-        where: { user_id, coupon_id, status: 'unused' },
+        where: { user_id, coupon_id, status: USER_COUPON_STATUS.UNUSED },
       });
       userCouponId = userCoupon?.id;
     }
