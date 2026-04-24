@@ -18,12 +18,14 @@ export function calculateDiscount(coupon: Coupon, orderAmount: number): Discount
   switch (coupon.type) {
     case COUPON_TYPE.CASH:
       // 满减券: 直接减免，上限 max_discount
-      discountAmount = Math.min(coupon.value, coupon.max_discount || coupon.value);
+      const cashMax = coupon.max_discount ?? coupon.value;
+      discountAmount = Math.min(coupon.value, cashMax);
       break;
 
     case COUPON_TYPE.DISCOUNT:
       // 折扣券: 订单金额 * (1 - 折扣率)，上限 max_discount
-      discountAmount = orderAmount * (1 - Number(coupon.value));
+      const discountRate = Number(coupon.value) || 0;
+      discountAmount = orderAmount * (1 - discountRate);
       if (coupon.max_discount) {
         discountAmount = Math.min(discountAmount, Number(coupon.max_discount));
       }
@@ -31,7 +33,8 @@ export function calculateDiscount(coupon: Coupon, orderAmount: number): Discount
 
     case COUPON_TYPE.NO_THRESHOLD:
       // 无门槛券: 直接减免，上限 max_discount
-      discountAmount = Math.min(coupon.value, coupon.max_discount || coupon.value);
+      const noThresholdMax = coupon.max_discount ?? coupon.value;
+      discountAmount = Math.min(coupon.value, noThresholdMax);
       break;
 
     default:
@@ -41,8 +44,11 @@ export function calculateDiscount(coupon: Coupon, orderAmount: number): Discount
   // 确保优惠金额不超过订单金额
   discountAmount = Math.min(discountAmount, orderAmount);
 
+  // 保留两位小数
+  discountAmount = Math.round(discountAmount * 100) / 100;
+
   return {
-    discountAmount: Math.round(discountAmount * 100) / 100, // 保留两位小数
+    discountAmount,
     finalAmount: Math.round((orderAmount - discountAmount) * 100) / 100,
   };
 }
