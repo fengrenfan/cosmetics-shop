@@ -34,7 +34,7 @@ export class CouponCron {
         .update(UserCoupon)
         .set({ status: USER_COUPON_STATUS.EXPIRED })
         .where('status = :status', { status: USER_COUPON_STATUS.UNUSED })
-        .andWhere('coupon_id IN (SELECT id FROM coupon WHERE end_time < :now)', { now })
+        .andWhere(`coupon_id IN (SELECT id FROM ${this.couponRepository.metadata.tableName} WHERE end_time < :now)`, { now: now.toISOString() })
         .execute();
 
       this.logger.log(`[Coupon Expiration] Success: ${result.affected || 0} coupons expired`);
@@ -69,6 +69,7 @@ export class CouponCron {
       }
     } catch (error) {
       this.logger.error(`[Coupon Stock Sync] Failed: ${error.message}`);
+      throw error;
     }
   }
 }
