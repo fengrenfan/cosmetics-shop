@@ -120,6 +120,7 @@ export class PointsService {
       order: { expired_at: 'ASC' }, // 过期时间早的先扣
     });
 
+    const initialBalance = user.points; // 记录初始余额用于计算
     let remainingPoints = points;
     for (const log of availableLogs) {
       if (remainingPoints <= 0) break;
@@ -132,7 +133,7 @@ export class PointsService {
           user_id: userId,
           type: 2, // 支出
           points: deductFromThis,
-          balance: user.points - (points - remainingPoints + deductFromThis),
+          balance: initialBalance - (points - remainingPoints + deductFromThis),
           source: 'exchange',
           order_id: orderId,
           remark: '积分兑换',

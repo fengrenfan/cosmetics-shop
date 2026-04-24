@@ -231,6 +231,16 @@ export class OrderService {
       await this.productService.incrementStock(item.product_id, item.sku_id, item.quantity);
     }
 
+    // 返还积分（如果使用了积分抵扣）
+    if (order.points_amount && order.points_amount > 0) {
+      await this.pointsService.addPoints(
+        order.user_id,
+        order.points_amount,
+        order.id,
+        `订单取消返还积分`,
+      );
+    }
+
     return { success: true };
   }
 
@@ -356,6 +366,16 @@ export class OrderService {
     const items = await this.orderItemRepository.find({ where: { order_id: id } });
     for (const item of items) {
       await this.productService.incrementStock(item.product_id, item.sku_id, item.quantity);
+    }
+
+    // 返还积分（如果使用了积分抵扣）
+    if (order.points_amount && order.points_amount > 0) {
+      await this.pointsService.addPoints(
+        order.user_id,
+        order.points_amount,
+        order.id,
+        `订单退款返还积分`,
+      );
     }
 
     return { success: true };
