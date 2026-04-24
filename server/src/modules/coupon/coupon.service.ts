@@ -2,6 +2,14 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
 import { Coupon, UserCoupon } from './coupon.entity';
+import { COUPON_TYPE, USER_COUPON_STATUS, USER_COUPON_SOURCE, VALIDATION_ERROR_CODE } from './coupon.constants';
+import { calculateDiscount, DiscountResult } from './coupon.utils';
+
+export interface ValidationResult {
+  valid: boolean;
+  error?: string;
+  code?: string;
+}
 
 @Injectable()
 export class CouponService {
@@ -11,6 +19,158 @@ export class CouponService {
     @InjectRepository(UserCoupon)
     private readonly userCouponRepository: Repository<UserCoupon>,
   ) {}
+
+  /**
+   * 核销前验证（被 OrderService 调用）
+   */
+  async validateForOrder(userId: number, couponId: number, orderAmount: number): Promise<ValidationResult> {
+    // 1. 检查优惠券是否存在
+    const coupon = await this.couponRepository.findOne({ where: { id: couponId } });
+    if (!coupon) {
+      return { valid: false, error: '优惠券不存在', code: 'NOT_FOUND' };
+    }
+
+    // 2. 库存验证
+    if (coupon.used_count >= coupon.total_count) {
+      return { valid: false, error: '优惠券已领完', code: VALIDATION_ERROR_CODE.NO_STOCK };
+    }
+
+    // 3. 有效期验证
+    const now = new Date();
+    if (now < coupon.start_time || now > coupon.end_time) {
+      return { valid: false, error: '优惠券已过期', code: VALIDATION_ERROR_CODE.EXPIRED };
+    }
+
+    // 4. 门槛验证
+    if (orderAmount < Number(coupon.min_amount)) {
+      return {
+        valid: false,
+        error: `订单金额需满 ${coupon.min_amount} 元`,
+        code: VALIDATION_ERROR_CODE.BELOW_MIN_AMOUNT,
+      };
+    }
+
+    // 5. 用户领取验证
+    const userCoupon = await this.userCouponRepository.findOne({
+      where: { user_id: userId, coupon_id: couponId },
+    });
+    if (!userCoupon) {
+      return { valid: false, error: '您还未领取该优惠券', code: VALIDATION_ERROR_CODE.NOT_CLAIMED };
+    }
+
+    // 6. 使用次数验证
+    if (userCoupon.status === USER_COUPON_STATUS.USED) {
+      return { valid: false, error: '该优惠券已使用', code: VALIDATION_ERROR_CODE.ALREADY_USED };
+    }
+
+    if (userCoupon.status === USER_COUPON_STATUS.EXPIRED) {
+      return { valid: false, error: '该优惠券已过期', code: VALIDATION_ERROR_CODE.EXPIRED };
+    }
+
+    // 7. 限次验证
+    const usedCount = await this.userCouponRepository.count({
+      where: { user_id: userId, coupon_id: couponId, status: USER_COUPON_STATUS.USED },
+    });
+    if (usedCount >= coupon.per_limit) {
+      return { valid: false, error: '已达到使用上限', code: VALIDATION_ERROR_CODE.CLAIM_EXCEEDED };
+    }
+
+    return { valid: true };
+  }
+
+  /**
+   * 计算优惠金额（被 OrderService 调用）
+   */
+  async applyToOrder(couponId: number, orderAmount: number): Promise<DiscountResult> {
+    const coupon = await this.couponRepository.findOne({ where: { id: couponId } });
+    if (!coupon) {
+      return { discountAmount: 0, finalAmount: orderAmount };
+    }
+    return calculateDiscount(coupon, orderAmount);
+  }
+
+  /**
+   * 标记为已使用
+   */
+  async markAsUsed(userCouponId: number, orderId: number): Promise<void> {
+    const userCoupon = await this.userCouponRepository.findOne({
+      where: { id: userCouponId },
+    });
+    if (!userCoupon) {
+      throw new NotFoundException('用户优惠券不存在');
+    }
+
+    userCoupon.status = USER_COUPON_STATUS.USED;
+    userCoupon.used_at = new Date();
+    userCoupon.order_id = orderId;
+    await this.userCouponRepository.save(userCoupon);
+
+    // 更新已使用数量
+    await this.couponRepository.increment({ id: userCoupon.coupon_id }, 'used_count', 1);
+  }
+
+  /**
+   * 管理员发放优惠券给用户
+   */
+  async grantToUser(userId: number, couponId: number): Promise<UserCoupon> {
+    const coupon = await this.couponRepository.findOne({ where: { id: couponId } });
+    if (!coupon) {
+      throw new NotFoundException('优惠券不存在');
+    }
+
+    const userCoupon = this.userCouponRepository.create({
+      user_id: userId,
+      coupon_id: couponId,
+      status: USER_COUPON_STATUS.UNUSED,
+      claimed_at: new Date(),
+      source: USER_COUPON_SOURCE.ADMIN,
+    });
+
+    await this.userCouponRepository.save(userCoupon);
+    await this.couponRepository.increment({ id: couponId }, 'used_count', 1);
+
+    return userCoupon;
+  }
+
+  /**
+   * 自动发放优惠券（新用户注册/首单触发）
+   */
+  async autoGrant(userId: number, trigger: number): Promise<UserCoupon[]> {
+    const coupons = await this.couponRepository.find({
+      where: { auto_grant: trigger, status: 1 },
+    });
+
+    if (coupons.length === 0) {
+      return [];
+    }
+
+    const results: UserCoupon[] = [];
+    const now = new Date();
+
+    for (const coupon of coupons) {
+      // 检查是否已发放过
+      const existing = await this.userCouponRepository.findOne({
+        where: { user_id: userId, coupon_id: coupon.id },
+      });
+      if (existing) {
+        continue;
+      }
+
+      const userCoupon = this.userCouponRepository.create({
+        user_id: userId,
+        coupon_id: coupon.id,
+        status: USER_COUPON_STATUS.UNUSED,
+        claimed_at: now,
+        source: USER_COUPON_SOURCE.AUTO,
+      });
+
+      await this.userCouponRepository.save(userCoupon);
+      await this.couponRepository.increment({ id: coupon.id }, 'used_count', 1);
+      results.push(userCoupon);
+    }
+
+    return results;
+  }
 
   /**
    * 获取可领取的优惠券
@@ -39,7 +199,8 @@ export class CouponService {
       return {
         ...c,
         is_claimed: !!userCoupon,
-        is_expired: userCoupon?.status === 'expired',
+        is_expired: userCoupon?.status === USER_COUPON_STATUS.EXPIRED,
+        is_used: userCoupon?.status === USER_COUPON_STATUS.USED,
         can_claim: !userCoupon && (c.total_count - c.used_count) > 0,
       };
     });
