@@ -25,12 +25,21 @@ export const USER_COUPON_SOURCE = {
 
 export type UserCouponSource = typeof USER_COUPON_SOURCE[keyof typeof USER_COUPON_SOURCE];
 
+// 优惠券状态
+export const COUPON_STATUS = {
+  ACTIVE: 1,
+  INACTIVE: 0,
+} as const;
+
 // 自动发放触发类型
 export const AUTO_GRANT_TRIGGER = {
   NONE: 0,          // 不自动发放
   NEW_USER: 1,      // 新用户注册
   FIRST_ORDER: 2,   // 首单
 } as const;
+
+// 时间常量
+export const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
 // 验证错误码
 export const VALIDATION_ERROR_CODE = {
