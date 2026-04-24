@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CouponService } from './coupon.service';
+import { CreateCouponDto, UpdateCouponDto, ValidateCouponDto, GrantCouponDto } from './coupon.dto';
 
 @Controller('coupon')
 export class CouponController {
@@ -23,6 +24,15 @@ export class CouponController {
   @Post('claim/:id')
   async claim(@Param('id') id: string, @Body('user_id') userId: number) {
     return this.couponService.claim(+id, userId);
+  }
+
+  /**
+   * 验证优惠券是否可用（结算页调用）
+   * POST /api/coupon/validate
+   */
+  @Post('validate')
+  async validate(@Body() dto: ValidateCouponDto) {
+    return this.couponService.validateForOrder(dto.user_id, dto.coupon_id, dto.order_amount);
   }
 
   /**
@@ -53,16 +63,7 @@ export class CouponController {
    */
   @UseGuards(JwtAuthGuard)
   @Post('admin')
-  async create(@Body() dto: {
-    title: string;
-    type: string;
-    value: number;
-    min_amount?: number;
-    total_count: number;
-    per_limit?: number;
-    start_time?: string;
-    end_time?: string;
-  }) {
+  async create(@Body() dto: CreateCouponDto) {
     return this.couponService.create(dto);
   }
 
@@ -72,8 +73,18 @@ export class CouponController {
    */
   @UseGuards(JwtAuthGuard)
   @Put('admin/:id')
-  async update(@Param('id') id: number, @Body() dto: any) {
+  async update(@Param('id') id: number, @Body() dto: UpdateCouponDto) {
     return this.couponService.update(id, dto);
+  }
+
+  /**
+   * 发放优惠券给用户 (管理员)
+   * POST /api/coupon/admin/grant
+   */
+  @UseGuards(JwtAuthGuard)
+  @Post('admin/grant')
+  async grant(@Body() dto: GrantCouponDto) {
+    return this.couponService.grantToUser(dto.user_id, dto.coupon_id);
   }
 
   /**
