@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import axios from 'axios';
 import { User } from '../user/user.entity';
+import { CouponService } from '../coupon/coupon.service';
 
 @Injectable()
 export class AuthService {
@@ -12,6 +13,7 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
+    private readonly couponService: CouponService,
   ) {}
 
   /**
@@ -32,6 +34,8 @@ export class AuthService {
         status: 1,
       });
       await this.userRepository.save(user);
+      // 新用户注册自动发券（trigger = 1）
+      await this.couponService.autoGrant(user.id, 1);
     }
 
     // 3. 生成 Token
@@ -136,6 +140,8 @@ export class AuthService {
         status: 1,
       });
       await this.userRepository.save(user);
+      // 新用户注册自动发券（trigger = 1）
+      await this.couponService.autoGrant(user.id, 1);
     }
 
     if (user.status === 0) {

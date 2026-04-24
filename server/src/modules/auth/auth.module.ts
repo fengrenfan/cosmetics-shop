@@ -6,6 +6,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { User } from '../user/user.entity';
+import { CouponModule } from '../coupon/coupon.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { User } from '../user/user.entity';
       secret: process.env.JWT_SECRET || 'cosmetics-shop-secret-2024',
       signOptions: { expiresIn: '7d' },
     }),
+    CouponModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
