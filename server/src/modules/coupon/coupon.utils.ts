@@ -18,22 +18,29 @@ export function calculateDiscount(coupon: Coupon, orderAmount: number): Discount
   switch (coupon.type) {
     case COUPON_TYPE.CASH:
       // 满减券: 直接减免，上限 max_discount
-      const cashMax = coupon.max_discount ?? coupon.value;
+      // max_discount = null/undefined 表示无上限，0 表示无上限
+      const cashMax = coupon.max_discount == null ? coupon.value : (coupon.max_discount === 0 ? coupon.value : coupon.max_discount);
       discountAmount = Math.min(coupon.value, cashMax);
       break;
 
     case COUPON_TYPE.DISCOUNT:
       // 折扣券: 订单金额 * (1 - 折扣率)，上限 max_discount
-      const discountRate = Number(coupon.value) || 0;
-      discountAmount = orderAmount * (1 - discountRate);
-      if (coupon.max_discount) {
-        discountAmount = Math.min(discountAmount, Number(coupon.max_discount));
+      // value = 0.8 表示 8 折 (收 80%，减 20%)
+      // value = null/undefined/NaN 表示无效，等同于无折扣
+      const discountRate = Number(coupon.value);
+      if (isNaN(discountRate) || discountRate <= 0 || discountRate >= 1) {
+        discountAmount = 0;
+      } else {
+        discountAmount = orderAmount * (1 - discountRate);
+        if (coupon.max_discount != null && coupon.max_discount > 0) {
+          discountAmount = Math.min(discountAmount, Number(coupon.max_discount));
+        }
       }
       break;
 
     case COUPON_TYPE.NO_THRESHOLD:
       // 无门槛券: 直接减免，上限 max_discount
-      const noThresholdMax = coupon.max_discount ?? coupon.value;
+      const noThresholdMax = coupon.max_discount == null ? coupon.value : (coupon.max_discount === 0 ? coupon.value : coupon.max_discount);
       discountAmount = Math.min(coupon.value, noThresholdMax);
       break;
 
