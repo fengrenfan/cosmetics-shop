@@ -40,4 +40,12 @@ export declare class UserController {
             totalPages: number;
         };
     }>;
+    search(phone: string): Promise<{
+        data: {
+            id: number;
+            nickname: string;
+            phone: string;
+            avatar: string;
+        };
+    }>;
 }

@@ -103,6 +103,7 @@ let OrderService = class OrderService {
             total_amount: totalAmount,
             freight_amount: freightAmount,
             coupon_amount: discountAmount,
+            coupon_id: coupon_id || null,
             pay_amount: payAmount,
             status: 'pending',
             address_snapshot: {

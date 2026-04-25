@@ -28,7 +28,7 @@ let CouponService = class CouponService {
     async validateForOrder(userId, couponId, orderAmount) {
         const coupon = await this.couponRepository.findOne({ where: { id: couponId } });
         if (!coupon) {
-            return { valid: false, error: '优惠券不存在', code: 'NOT_FOUND' };
+            return { valid: false, error: '优惠券不存在', code: coupon_constants_1.VALIDATION_ERROR_CODE.NOT_FOUND };
         }
         if (coupon.used_count >= coupon.total_count) {
             return { valid: false, error: '优惠券已领完', code: coupon_constants_1.VALIDATION_ERROR_CODE.NO_STOCK };
@@ -266,11 +266,17 @@ let CouponService = class CouponService {
         if (!coupon) {
             throw new common_1.NotFoundException('优惠券不存在');
         }
-        Object.assign(coupon, dto);
-        if (dto.start_time)
-            coupon.start_time = new Date(dto.start_time);
-        if (dto.end_time)
-            coupon.end_time = new Date(dto.end_time);
+        const updateData = {};
+        for (const [key, value] of Object.entries(dto)) {
+            if (value !== undefined) {
+                updateData[key] = value;
+            }
+        }
+        if (updateData.start_time)
+            coupon.start_time = new Date(updateData.start_time);
+        if (updateData.end_time)
+            coupon.end_time = new Date(updateData.end_time);
+        Object.assign(coupon, updateData);
         return this.couponRepository.save(coupon);
     }
     async delete(id) {

@@ -21,17 +21,23 @@ let CouponController = class CouponController {
     constructor(couponService) {
         this.couponService = couponService;
     }
-    async getAvailable(userId) {
-        return this.couponService.getAvailable(userId);
+    async getAvailable(userId, req) {
+        const uid = userId && userId !== 'undefined' ? Number(userId) : (req?.user?.id ?? null);
+        return this.couponService.getAvailable(uid);
     }
-    async claim(id, userId) {
-        return this.couponService.claim(+id, userId);
+    async claim(id, userId, req) {
+        const uid = userId && userId !== 'undefined' ? Number(userId) : (req?.user?.id ?? null);
+        return this.couponService.claim(+id, uid);
     }
     async validate(dto) {
         return this.couponService.validateForOrder(dto.user_id, dto.coupon_id, dto.order_amount);
     }
-    async getMyCoupons(userId, status) {
-        return this.couponService.getMyCoupons(userId, status);
+    async apply(dto) {
+        return this.couponService.applyToOrder(dto.coupon_id, dto.order_amount);
+    }
+    async getMyCoupons(userId, status, req) {
+        const uid = userId && userId !== 'undefined' ? Number(userId) : (req?.user?.id ?? null);
+        return this.couponService.getMyCoupons(uid, status);
     }
     async getAdminList() {
         return this.couponService.getAll();
@@ -53,8 +59,9 @@ exports.CouponController = CouponController;
 __decorate([
     (0, common_1.Get)('available'),
     __param(0, (0, common_1.Query)('user_id')),
+    __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], CouponController.prototype, "getAvailable", null);
 __decorate([
@@ -62,8 +69,9 @@ __decorate([
     (0, common_1.Post)('claim/:id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)('user_id')),
+    __param(2, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Number]),
+    __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", Promise)
 ], CouponController.prototype, "claim", null);
 __decorate([
@@ -74,12 +82,20 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CouponController.prototype, "validate", null);
 __decorate([
+    (0, common_1.Post)('apply'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [coupon_dto_1.ApplyCouponDto]),
+    __metadata("design:returntype", Promise)
+], CouponController.prototype, "apply", null);
+__decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Get)('my'),
     __param(0, (0, common_1.Query)('user_id')),
     __param(1, (0, common_1.Query)('status')),
+    __param(2, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, String]),
+    __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", Promise)
 ], CouponController.prototype, "getMyCoupons", null);
 __decorate([

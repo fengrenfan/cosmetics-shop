@@ -11,5 +11,5 @@ export declare class CreateOrderDto {
     coupon_id?: number;
     points_amount?: number;
     points_money?: number;
-    user_id: number;
+    user_id?: number;
 }

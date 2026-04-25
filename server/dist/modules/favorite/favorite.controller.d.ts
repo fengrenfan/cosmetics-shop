@@ -11,6 +11,6 @@ export declare class FavoriteController {
         created_at: Date;
     }[]>;
     toggle(req: any, productId: number): Promise<{
-        is_favorited: boolean;
+        is_favorite: boolean;
     }>;
 }

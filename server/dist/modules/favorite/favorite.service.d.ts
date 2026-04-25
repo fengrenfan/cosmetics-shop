@@ -13,6 +13,6 @@ export declare class FavoriteService {
     }[]>;
     getCount(userId: number): Promise<number>;
     toggle(userId: number, productId: number): Promise<{
-        is_favorited: boolean;
+        is_favorite: boolean;
     }>;
 }

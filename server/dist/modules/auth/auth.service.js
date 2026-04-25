@@ -41,9 +41,6 @@ var __importStar = (this && this.__importStar) || (function () {
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -51,29 +48,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
-const typeorm_1 = require("@nestjs/typeorm");
-const typeorm_2 = require("typeorm");
 const bcrypt = __importStar(require("bcryptjs"));
 const axios_1 = __importDefault(require("axios"));
-const user_entity_1 = require("../user/user.entity");
-const coupon_service_1 = require("../coupon/coupon.service");
+const user_service_1 = require("../user/user.service");
 let AuthService = class AuthService {
-    constructor(userRepository, jwtService, couponService) {
-        this.userRepository = userRepository;
+    constructor(userService, jwtService) {
+        this.userService = userService;
         this.jwtService = jwtService;
-        this.couponService = couponService;
     }
     async wxLogin(code) {
         const openid = await this.getWxOpenid(code);
-        let user = await this.userRepository.findOne({ where: { openid } });
+        let user = await this.userService.getProfileByOpenid(openid);
         if (!user) {
-            user = this.userRepository.create({
-                openid,
-                nickname: `用户${Date.now().toString().slice(-6)}`,
-                status: 1,
-            });
-            await this.userRepository.save(user);
-            await this.couponService.autoGrant(user.id, 1);
+            user = await this.userService.create({ openid }, 1);
         }
         const token = this.generateToken(user);
         return {
@@ -88,16 +75,14 @@ let AuthService = class AuthService {
     }
     async adminLogin(username, password) {
         if (username === 'admin' && password === 'admin123') {
-            let user = await this.userRepository.findOne({ where: { phone: 'admin' } });
+            let user = await this.userService.getProfileByPhone('admin');
             if (!user) {
                 const passwordHash = await bcrypt.hash('admin123', 10);
-                user = this.userRepository.create({
+                user = await this.userService.create({
                     nickname: '管理员',
                     phone: 'admin',
                     password_hash: passwordHash,
-                    status: 1,
                 });
-                await this.userRepository.save(user);
             }
             const token = this.generateToken(user);
             return {
@@ -110,9 +95,7 @@ let AuthService = class AuthService {
                 },
             };
         }
-        const user = await this.userRepository.findOne({
-            where: { phone: username }
-        });
+        const user = await this.userService.getProfileByPhone(username);
         if (!user || !user.password_hash) {
             throw new common_1.UnauthorizedException('账号或密码错误');
         }
@@ -123,8 +106,7 @@ let AuthService = class AuthService {
         if (user.status === 0) {
             throw new common_1.UnauthorizedException('账号已被禁用');
         }
-        user.last_login_at = new Date();
-        await this.userRepository.save(user);
+        await this.userService.updateLastLogin(user.id);
         const token = this.generateToken(user);
         return {
             token,
@@ -140,21 +122,14 @@ let AuthService = class AuthService {
         if (code !== '1234') {
             throw new common_1.UnauthorizedException('验证码错误');
         }
-        let user = await this.userRepository.findOne({ where: { phone } });
+        let user = await this.userService.getProfileByPhone(phone);
         if (!user) {
-            user = this.userRepository.create({
-                phone,
-                nickname: `用户${phone.slice(-4)}`,
-                status: 1,
-            });
-            await this.userRepository.save(user);
-            await this.couponService.autoGrant(user.id, 1);
+            user = await this.userService.create({ phone }, 1);
         }
         if (user.status === 0) {
             throw new common_1.UnauthorizedException('账号已被禁用');
         }
-        user.last_login_at = new Date();
-        await this.userRepository.save(user);
+        await this.userService.updateLastLogin(user.id);
         const token = this.generateToken(user);
         return {
             token,
@@ -167,20 +142,14 @@ let AuthService = class AuthService {
         };
     }
     async getProfile(userId) {
-        const user = await this.userRepository.findOne({ where: { id: userId } });
+        const user = await this.userService.getProfile(userId);
         if (!user) {
             throw new common_1.UnauthorizedException('用户不存在');
         }
-        return {
-            id: user.id,
-            nickname: user.nickname,
-            avatar: user.avatar,
-            phone: user.phone,
-            gender: user.gender,
-        };
+        return user;
     }
     async refreshToken(user) {
-        const userEntity = await this.userRepository.findOne({ where: { id: user.id } });
+        const userEntity = await this.userService.getProfile(user.id);
         if (!userEntity) {
             throw new common_1.UnauthorizedException('用户不存在');
         }
@@ -215,9 +184,7 @@ let AuthService = class AuthService {
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
-    __metadata("design:paramtypes", [typeorm_2.Repository,
-        jwt_1.JwtService,
-        coupon_service_1.CouponService])
+    __metadata("design:paramtypes", [user_service_1.UserService,
+        jwt_1.JwtService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

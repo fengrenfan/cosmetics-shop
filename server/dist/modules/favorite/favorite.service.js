@@ -47,14 +47,14 @@ let FavoriteService = class FavoriteService {
         });
         if (exist) {
             await this.favoriteRepository.delete(exist.id);
-            return { is_favorited: false };
+            return { is_favorite: false };
         }
         const favorite = this.favoriteRepository.create({
             user_id: userId,
             product_id: productId,
         });
         await this.favoriteRepository.save(favorite);
-        return { is_favorited: true };
+        return { is_favorite: true };
     }
 };
 exports.FavoriteService = FavoriteService;

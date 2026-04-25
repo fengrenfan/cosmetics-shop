@@ -67,6 +67,7 @@ __decorate([
     __metadata("design:type", Number)
 ], CreateOrderDto.prototype, "points_money", void 0);
 __decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CreateOrderDto.prototype, "user_id", void 0);

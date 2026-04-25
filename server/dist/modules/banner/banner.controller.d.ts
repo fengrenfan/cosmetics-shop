@@ -6,6 +6,8 @@ export declare class BannerController {
     getAdminList(): Promise<import("./banner.entity").Banner[]>;
     create(dto: {
         title: string;
+        subtitle?: string;
+        tag?: string;
         image: string;
         link_type?: string;
         link_id?: string;
@@ -13,6 +15,8 @@ export declare class BannerController {
     }): Promise<import("./banner.entity").Banner>;
     update(id: number, dto: {
         title?: string;
+        subtitle?: string;
+        tag?: string;
         image?: string;
         link_type?: string;
         link_id?: string;

@@ -51,7 +51,12 @@
       "Bash(PORT=3001 DB_HOST=118.25.192.73 DB_PORT=3306 DB_USER=cosmetics DB_PASSWORD=cosmetics123 DB_NAME=cosmetics_shop JWT_SECRET=cosmetics-shop-secret-2024 node dist/main.js)",
       "Bash(npx ts-jest *)",
       "Bash(npx jest *)",
-      "Bash(kill -9 26132 77781)"
+      "Bash(kill -9 26132 77781)",
+      "Bash(kill -9 23280 23597 63172)",
+      "Bash(ls /Users/fengrenfan/feng_pro/cosmetics-shop/admin/package.json)",
+      "Bash(mysql -h 118.25.192.73 -u cosmetics_shop -pcosmetics_shop_2024 cosmetics_shop -e \"DESCRIBE coupon;\")",
+      "Bash(mysql *)",
+      "Bash(kill -9 74321)"
     ]
   }
 }

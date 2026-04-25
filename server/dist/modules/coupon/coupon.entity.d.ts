@@ -12,6 +12,7 @@ export declare class Coupon {
     end_time: Date;
     status: number;
     auto_grant: number;
+    description: string;
     created_at: Date;
     updated_at: Date;
 }

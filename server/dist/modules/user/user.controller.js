@@ -33,6 +33,23 @@ let UserController = class UserController {
     getAdminList(page, pageSize) {
         return this.userService.getAdminList(page || 1, pageSize || 20);
     }
+    async search(phone) {
+        if (!phone) {
+            return { data: null };
+        }
+        const user = await this.userService.getProfileByPhone(phone);
+        if (!user) {
+            return { data: null };
+        }
+        return {
+            data: {
+                id: user.id,
+                nickname: user.nickname,
+                phone: user.phone,
+                avatar: user.avatar,
+            }
+        };
+    }
 };
 exports.UserController = UserController;
 __decorate([
@@ -69,6 +86,14 @@ __decorate([
     __metadata("design:paramtypes", [Number, Number]),
     __metadata("design:returntype", void 0)
 ], UserController.prototype, "getAdminList", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Get)('admin/search'),
+    __param(0, (0, common_1.Query)('phone')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "search", null);
 exports.UserController = UserController = __decorate([
     (0, common_1.Controller)('user'),
     __metadata("design:paramtypes", [user_service_1.UserService])

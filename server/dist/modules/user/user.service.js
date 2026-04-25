@@ -27,6 +27,27 @@ let UserService = class UserService {
         this.couponService = couponService;
         this.orderService = orderService;
     }
+    async create(data, autoGrantTrigger) {
+        const user = this.userRepository.create({
+            nickname: data.nickname || `用户${Date.now().toString().slice(-6)}`,
+            status: 1,
+            ...data,
+        });
+        await this.userRepository.save(user);
+        if (autoGrantTrigger) {
+            await this.couponService.autoGrant(user.id, autoGrantTrigger);
+        }
+        return user;
+    }
+    async getProfileByOpenid(openid) {
+        return this.userRepository.findOne({ where: { openid } });
+    }
+    async getProfileByPhone(phone) {
+        return this.userRepository.findOne({ where: { phone } });
+    }
+    async updateLastLogin(userId) {
+        await this.userRepository.update(userId, { last_login_at: new Date() });
+    }
     async getProfile(userId) {
         const user = await this.userRepository.findOne({ where: { id: userId } });
         if (!user)

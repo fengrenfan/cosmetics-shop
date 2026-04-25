@@ -1,12 +1,9 @@
 import { JwtService } from '@nestjs/jwt';
-import { Repository } from 'typeorm';
-import { User } from '../user/user.entity';
-import { CouponService } from '../coupon/coupon.service';
+import { UserService } from '../user/user.service';
 export declare class AuthService {
-    private readonly userRepository;
+    private readonly userService;
     private readonly jwtService;
-    private readonly couponService;
-    constructor(userRepository: Repository<User>, jwtService: JwtService, couponService: CouponService);
+    constructor(userService: UserService, jwtService: JwtService);
     wxLogin(code: string): Promise<{
         token: string;
         user: {

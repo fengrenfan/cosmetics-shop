@@ -30,6 +30,7 @@ export declare class CreateProductDto {
     sort_order?: number;
     skus?: {
         sku_name: string;
+        sku_code?: string;
         sku_attrs?: Record<string, string>;
         price: number;
         stock: number;

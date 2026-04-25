@@ -9,6 +9,10 @@ export declare class UserService {
     private readonly couponService;
     private readonly orderService;
     constructor(userRepository: Repository<User>, favoriteService: FavoriteService, couponService: CouponService, orderService: OrderService);
+    create(data: Partial<User>, autoGrantTrigger?: number): Promise<User>;
+    getProfileByOpenid(openid: string): Promise<User | null>;
+    getProfileByPhone(phone: string): Promise<User | null>;
+    updateLastLogin(userId: number): Promise<void>;
     getProfile(userId: number): Promise<{
         id: number;
         nickname: string;

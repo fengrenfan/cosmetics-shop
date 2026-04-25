@@ -1,9 +1,9 @@
 import { CouponService } from './coupon.service';
-import { CreateCouponDto, UpdateCouponDto, ValidateCouponDto, GrantCouponDto } from './coupon.dto';
+import { CreateCouponDto, UpdateCouponDto, ValidateCouponDto, ApplyCouponDto, GrantCouponDto } from './coupon.dto';
 export declare class CouponController {
     private readonly couponService;
     constructor(couponService: CouponService);
-    getAvailable(userId: number): Promise<{
+    getAvailable(userId?: string, req?: any): Promise<{
         is_claimed: boolean;
         is_expired: boolean;
         is_used: boolean;
@@ -21,14 +21,16 @@ export declare class CouponController {
         end_time: Date;
         status: number;
         auto_grant: number;
+        description: string;
         created_at: Date;
         updated_at: Date;
     }[]>;
-    claim(id: string, userId: number): Promise<{
+    claim(id: string, userId?: string, req?: any): Promise<{
         success: boolean;
     }>;
     validate(dto: ValidateCouponDto): Promise<import("./coupon.service").ValidationResult>;
-    getMyCoupons(userId: number, status: string): Promise<{
+    apply(dto: ApplyCouponDto): Promise<import("./coupon.utils").DiscountResult>;
+    getMyCoupons(userId?: string, status?: string, req?: any): Promise<{
         id: number;
         status: string;
         claimed_at: Date;
