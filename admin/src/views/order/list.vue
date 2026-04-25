@@ -13,6 +13,17 @@
             <el-option label="已退款" value="refunded" />
           </el-select>
         </el-form-item>
+        <el-form-item label="支付状态">
+          <el-select v-model="queryForm.pay_status" placeholder="全部" clearable>
+            <el-option label="未支付" value="unpaid" />
+            <el-option label="支付中" value="paying" />
+            <el-option label="已支付" value="paid" />
+            <el-option label="支付失败" value="failed" />
+            <el-option label="已关闭" value="closed" />
+            <el-option label="退款中" value="refunding" />
+            <el-option label="已退款" value="refunded" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="订单号">
           <el-input v-model="queryForm.order_no" placeholder="请输入订单号" clearable />
         </el-form-item>
@@ -60,6 +71,16 @@
             <el-tag :type="getStatusType(row.status)">{{ getStatusText(row.status) }}</el-tag>
           </template>
         </el-table-column>
+        <el-table-column prop="pay_status" label="支付状态" width="110">
+          <template #default="{ row }">
+            <el-tag :type="getPayStatusType(row.pay_status)">{{ getPayStatusText(row.pay_status) }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="pay_channel" label="支付渠道" width="100">
+          <template #default="{ row }">
+            {{ getPayChannelText(row.pay_channel) }}
+          </template>
+        </el-table-column>
         <el-table-column prop="created_at" label="下单时间" width="160">
           <template #default="{ row }">
             {{ formatTime(row.created_at) }}
@@ -70,6 +91,7 @@
             <el-button type="primary" link @click.stop="handleDetail(row)">详情</el-button>
             <el-button type="primary" link @click.stop="handleShip(row)" v-if="row.status === 'paid'">发货</el-button>
             <el-button type="danger" link @click.stop="handleRefund(row)" v-if="['paid', 'shipped'].includes(row.status)">退款</el-button>
+            <el-button type="warning" link @click.stop="handleMockPaid(row)" v-if="row.status === 'pending' && row.out_trade_no">模拟回调</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -101,7 +123,12 @@
             <el-descriptions-item label="下单时间">{{ formatTime(currentOrder.created_at) }}</el-descriptions-item>
             <el-descriptions-item label="用户ID">{{ currentOrder.user_id }}</el-descriptions-item>
             <el-descriptions-item label="支付方式">{{ currentOrder.pay_method || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="支付渠道">{{ getPayChannelText(currentOrder.pay_channel) }}</el-descriptions-item>
+            <el-descriptions-item label="支付状态">{{ getPayStatusText(currentOrder.pay_status) }}</el-descriptions-item>
             <el-descriptions-item label="支付时间">{{ formatTime(currentOrder.pay_time) }}</el-descriptions-item>
+            <el-descriptions-item label="商户单号">{{ currentOrder.out_trade_no || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="交易号">{{ currentOrder.third_trade_no || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="回调时间">{{ formatTime(currentOrder.notify_at) }}</el-descriptions-item>
           </el-descriptions>
         </el-card>
 
@@ -227,6 +254,7 @@ const pagination = reactive({
 
 const queryForm = reactive({
   status: '',
+  pay_status: '',
   order_no: ''
 });
 
@@ -264,6 +292,7 @@ function handleSearch() {
 
 function handleReset() {
   queryForm.status = '';
+  queryForm.pay_status = '';
   queryForm.order_no = '';
   pagination.page = 1;
   loadData();
@@ -298,6 +327,19 @@ async function confirmShip() {
     loadData();
   } catch (e) {
     console.error('发货失败', e);
+  }
+}
+
+async function handleMockPaid(row) {
+  try {
+    await request.post('/payment/mock/success', {
+      out_trade_no: row.out_trade_no,
+      pay_channel: row.pay_channel || 'wechat',
+    });
+    ElMessage.success('模拟支付回调成功');
+    loadData();
+  } catch (e) {
+    console.error('模拟支付回调失败', e);
   }
 }
 
@@ -337,6 +379,40 @@ function getStatusText(status) {
     refunded: '已退款'
   };
   return map[status] || status;
+}
+
+function getPayStatusType(status) {
+  const map = {
+    unpaid: 'info',
+    paying: 'warning',
+    paid: 'success',
+    failed: 'danger',
+    closed: 'info',
+    refunding: 'warning',
+    refunded: 'danger',
+  };
+  return map[status] || 'info';
+}
+
+function getPayStatusText(status) {
+  const map = {
+    unpaid: '未支付',
+    paying: '支付中',
+    paid: '已支付',
+    failed: '支付失败',
+    closed: '已关闭',
+    refunding: '退款中',
+    refunded: '已退款',
+  };
+  return map[status] || '-';
+}
+
+function getPayChannelText(channel) {
+  const map = {
+    wechat: '微信',
+    alipay: '支付宝',
+  };
+  return map[channel] || '-';
 }
 
 function formatTime(time) {

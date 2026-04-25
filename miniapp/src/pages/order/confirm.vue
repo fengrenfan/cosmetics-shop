@@ -338,6 +338,8 @@ async function handleSubmit() {
       address_id: selectedAddress.value.id,
       items,
       remark: remark.value,
+      pay_channel: payMethod.value,
+      pay_scene: process.env.UNI_PLATFORM === 'h5' ? 'h5' : 'miniapp',
       coupon_id: selectedCouponId.value || undefined,
       points_amount: usePoints.value,
       points_money: pointsMoney.value,

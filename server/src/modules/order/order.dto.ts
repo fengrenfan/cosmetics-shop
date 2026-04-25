@@ -45,4 +45,12 @@ export class CreateOrderDto {
   @IsOptional()
   @IsNumber()
   user_id?: number;
+
+  @IsOptional()
+  @IsString()
+  pay_channel?: string; // wechat | alipay
+
+  @IsOptional()
+  @IsString()
+  pay_scene?: string; // miniapp | h5
 }

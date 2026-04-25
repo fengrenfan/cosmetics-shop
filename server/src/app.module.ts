@@ -23,6 +23,7 @@ import { ProductRecommendModule } from './modules/product-recommend/product-reco
 import { QuickEntryModule } from './modules/quick-entry/quick-entry.module';
 import { BrowseHistoryModule } from './modules/browse-history/browse-history.module';
 import { PointsModule } from './modules/points/points.module';
+import { PaymentModule } from './modules/payment/payment.module';
 
 @Module({
   imports: [
@@ -36,8 +37,10 @@ import { PointsModule } from './modules/points/points.module';
       password: process.env.DB_PASSWORD || 'cosmetics123',
       database: process.env.DB_NAME || 'cosmetics_shop',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
+      synchronize: false,
       logging: false,
+      connectTimeout: 60000,
+      acquireTimeout: 60000,
     }),
 
     // JWT 配置
@@ -65,6 +68,7 @@ import { PointsModule } from './modules/points/points.module';
     QuickEntryModule,
     BrowseHistoryModule,
     PointsModule,
+    PaymentModule,
   ],
   providers: [
     {

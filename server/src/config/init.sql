@@ -159,10 +159,19 @@ CREATE TABLE `order` (
   `order_no` VARCHAR(64) NOT NULL COMMENT '订单号',
   `user_id` BIGINT UNSIGNED NOT NULL,
   `status` VARCHAR(20) DEFAULT 'pending' COMMENT 'pending/paid/shipped/completed/cancelled',
+  `pay_status` VARCHAR(20) DEFAULT 'unpaid' COMMENT 'unpaid/paying/paid/failed/closed/refunding/refunded',
+  `pay_channel` VARCHAR(20) DEFAULT NULL COMMENT 'wechat/alipay',
+  `pay_scene` VARCHAR(20) DEFAULT NULL COMMENT 'miniapp/h5',
+  `out_trade_no` VARCHAR(64) DEFAULT NULL COMMENT '商户支付单号',
+  `third_trade_no` VARCHAR(64) DEFAULT NULL COMMENT '第三方交易号',
   `total_amount` DECIMAL(10,2) NOT NULL COMMENT '商品总价',
   `freight_amount` DECIMAL(10,2) DEFAULT 0 COMMENT '运费',
   `pay_amount` DECIMAL(10,2) NOT NULL COMMENT '实付金额',
   `pay_time` DATETIME DEFAULT NULL,
+  `paid_at` DATETIME DEFAULT NULL COMMENT '支付成功时间',
+  `notify_at` DATETIME DEFAULT NULL COMMENT '回调时间',
+  `pay_fail_reason` VARCHAR(255) DEFAULT NULL COMMENT '支付失败原因',
+  `notify_payload` TEXT DEFAULT NULL COMMENT '回调原始数据',
   `ship_time` DATETIME DEFAULT NULL,
   `receive_time` DATETIME DEFAULT NULL,
   `address_id` BIGINT UNSIGNED DEFAULT NULL,
@@ -171,7 +180,9 @@ CREATE TABLE `order` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_order_no` (`order_no`),
   KEY `idx_user` (`user_id`),
-  KEY `idx_status` (`status`)
+  KEY `idx_status` (`status`),
+  KEY `idx_pay_status` (`pay_status`),
+  KEY `idx_out_trade_no` (`out_trade_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单表';
 
 -- ============================================
@@ -278,3 +289,29 @@ CREATE TABLE `upload` (
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='上传记录表';
+
+-- ============================================
+-- 14. 支付记录表
+-- ============================================
+CREATE TABLE `payment_record` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `order_id` BIGINT UNSIGNED NOT NULL,
+  `order_no` VARCHAR(64) NOT NULL,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `pay_channel` VARCHAR(20) NOT NULL COMMENT 'wechat/alipay',
+  `pay_scene` VARCHAR(20) NOT NULL COMMENT 'miniapp/h5',
+  `status` VARCHAR(20) DEFAULT 'paying' COMMENT 'paying/paid/failed/closed',
+  `out_trade_no` VARCHAR(64) NOT NULL,
+  `third_trade_no` VARCHAR(64) DEFAULT NULL,
+  `amount` DECIMAL(10,2) NOT NULL,
+  `client_payload` TEXT DEFAULT NULL,
+  `notify_payload` TEXT DEFAULT NULL,
+  `paid_at` DATETIME DEFAULT NULL,
+  `notify_at` DATETIME DEFAULT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_out_trade_no` (`out_trade_no`),
+  KEY `idx_order` (`order_id`),
+  KEY `idx_user` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='支付记录表';

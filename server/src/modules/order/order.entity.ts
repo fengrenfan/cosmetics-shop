@@ -1,7 +1,9 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany, Index } from 'typeorm';
 import { OrderItem } from './order-item.entity';
 
 @Entity('order')
+@Index('idx_pay_status', ['pay_status'])
+@Index('idx_out_trade_no', ['out_trade_no'])
 export class Order {
   @PrimaryGeneratedColumn()
   id: number;
@@ -26,6 +28,33 @@ export class Order {
 
   @Column({ type: 'datetime', nullable: true, name: 'pay_time' })
   pay_time: Date;
+
+  @Column({ length: 20, nullable: true, name: 'pay_channel' })
+  pay_channel: string; // wechat | alipay
+
+  @Column({ length: 20, nullable: true, name: 'pay_scene' })
+  pay_scene: string; // miniapp | h5
+
+  @Column({ length: 20, default: 'unpaid', name: 'pay_status' })
+  pay_status: string; // unpaid | paying | paid | failed | closed | refunding | refunded
+
+  @Column({ length: 64, nullable: true, name: 'out_trade_no' })
+  out_trade_no: string;
+
+  @Column({ length: 64, nullable: true, name: 'third_trade_no' })
+  third_trade_no: string;
+
+  @Column({ type: 'datetime', nullable: true, name: 'paid_at' })
+  paid_at: Date;
+
+  @Column({ type: 'datetime', nullable: true, name: 'notify_at' })
+  notify_at: Date;
+
+  @Column({ length: 255, nullable: true, name: 'pay_fail_reason' })
+  pay_fail_reason: string;
+
+  @Column({ type: 'text', nullable: true, name: 'notify_payload' })
+  notify_payload: string;
 
   @Column({ type: 'datetime', nullable: true, name: 'ship_time' })
   ship_time: Date;

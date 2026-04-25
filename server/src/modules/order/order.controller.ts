@@ -13,7 +13,8 @@ export class OrderController {
    */
   @UseGuards(JwtAuthGuard)
   @Post('create')
-  async create(@Body() dto: CreateOrderDto) {
+  async create(@Request() req, @Body() dto: CreateOrderDto) {
+    dto.user_id = dto.user_id || req.user?.id;
     return this.orderService.create(dto);
   }
 
@@ -23,7 +24,8 @@ export class OrderController {
    */
   @UseGuards(JwtAuthGuard)
   @Get('list')
-  async getList(@Query() query: any) {
+  async getList(@Request() req, @Query() query: any) {
+    query.user_id = query.user_id || req.user?.id;
     return this.orderService.getList(query);
   }
 
