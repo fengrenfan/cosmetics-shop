@@ -12,7 +12,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.OrderService = void 0;
+exports.OrderService = exports.ORDER_PAY_STATUS = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
@@ -25,6 +25,15 @@ const points_service_1 = require("../points/points.service");
 const coupon_service_1 = require("../coupon/coupon.service");
 const coupon_entity_1 = require("../coupon/coupon.entity");
 const coupon_constants_1 = require("../coupon/coupon.constants");
+exports.ORDER_PAY_STATUS = {
+    UNPAID: 'unpaid',
+    PAYING: 'paying',
+    PAID: 'paid',
+    FAILED: 'failed',
+    CLOSED: 'closed',
+    REFUNDING: 'refunding',
+    REFUNDED: 'refunded',
+};
 let OrderService = class OrderService {
     constructor(orderRepository, orderItemRepository, userCouponRepository, productService, addressService, cartService, pointsService, couponService) {
         this.orderRepository = orderRepository;
@@ -37,7 +46,7 @@ let OrderService = class OrderService {
         this.couponService = couponService;
     }
     async create(dto) {
-        const { user_id, address_id, items, remark, coupon_id, points_amount, points_money } = dto;
+        const { user_id, address_id, items, remark, coupon_id, points_amount, points_money, pay_channel, pay_scene } = dto;
         const address = await this.addressService.getById(address_id, user_id);
         if (!address) {
             throw new common_1.NotFoundException('收货地址不存在');
@@ -106,6 +115,9 @@ let OrderService = class OrderService {
             coupon_id: coupon_id || null,
             pay_amount: payAmount,
             status: 'pending',
+            pay_status: exports.ORDER_PAY_STATUS.UNPAID,
+            pay_channel: pay_channel || null,
+            pay_scene: pay_scene || null,
             address_snapshot: {
                 name: address.name,
                 phone: address.phone,
@@ -147,7 +159,79 @@ let OrderService = class OrderService {
             id: savedOrder.id,
             order_no: orderNo,
             pay_amount: payAmount,
+            pay_status: savedOrder.pay_status,
         };
+    }
+    async getById(id) {
+        const order = await this.orderRepository.findOne({ where: { id } });
+        if (!order) {
+            throw new common_1.NotFoundException('订单不存在');
+        }
+        return order;
+    }
+    async markPaying(orderId, params) {
+        const order = await this.getById(orderId);
+        if (!['pending'].includes(order.status)) {
+            throw new common_1.BadRequestException('当前订单状态不允许发起支付');
+        }
+        if (order.pay_status === exports.ORDER_PAY_STATUS.PAID) {
+            return order;
+        }
+        order.pay_channel = params.pay_channel;
+        order.pay_scene = params.pay_scene;
+        order.out_trade_no = params.out_trade_no;
+        order.pay_status = exports.ORDER_PAY_STATUS.PAYING;
+        return this.orderRepository.save(order);
+    }
+    async markPaid(orderId, params) {
+        const order = await this.getById(orderId);
+        if (order.pay_status === exports.ORDER_PAY_STATUS.PAID && order.status === 'paid') {
+            return order;
+        }
+        if (order.status !== 'pending') {
+            throw new common_1.BadRequestException('当前订单状态不允许标记支付成功');
+        }
+        const now = new Date();
+        order.status = 'paid';
+        order.pay_status = exports.ORDER_PAY_STATUS.PAID;
+        order.pay_time = now;
+        order.paid_at = now;
+        order.third_trade_no = params.third_trade_no || order.third_trade_no;
+        order.notify_payload = params.notify_payload || order.notify_payload;
+        order.notify_at = params.notify_at || now;
+        order.pay_fail_reason = null;
+        return this.orderRepository.save(order);
+    }
+    async markPayFailed(orderId, reason, notifyPayload) {
+        const order = await this.getById(orderId);
+        if (order.pay_status === exports.ORDER_PAY_STATUS.PAID) {
+            return order;
+        }
+        order.pay_status = exports.ORDER_PAY_STATUS.FAILED;
+        order.pay_fail_reason = reason || '支付失败';
+        order.notify_payload = notifyPayload || order.notify_payload;
+        order.notify_at = new Date();
+        return this.orderRepository.save(order);
+    }
+    async markClosed(orderId, reason) {
+        const order = await this.getById(orderId);
+        if (order.pay_status === exports.ORDER_PAY_STATUS.PAID) {
+            throw new common_1.BadRequestException('已支付订单不可关闭');
+        }
+        if (order.status === 'cancelled' && order.pay_status === exports.ORDER_PAY_STATUS.CLOSED) {
+            return order;
+        }
+        order.status = 'cancelled';
+        order.cancel_time = new Date();
+        order.cancel_reason = reason || order.cancel_reason || '支付关闭';
+        order.pay_status = exports.ORDER_PAY_STATUS.CLOSED;
+        return this.orderRepository.save(order);
+    }
+    async markRefunded(orderId) {
+        const order = await this.getById(orderId);
+        order.status = 'refunded';
+        order.pay_status = exports.ORDER_PAY_STATUS.REFUNDED;
+        return this.orderRepository.save(order);
     }
     async getList(query) {
         const { user_id, status, page = 1, pageSize = 10 } = query;
@@ -199,6 +283,7 @@ let OrderService = class OrderService {
         order.status = 'cancelled';
         order.cancel_time = new Date();
         order.cancel_reason = reason || '用户取消';
+        order.pay_status = exports.ORDER_PAY_STATUS.CLOSED;
         await this.orderRepository.save(order);
         const items = await this.orderItemRepository.find({ where: { order_id: id } });
         for (const item of items) {
@@ -237,10 +322,16 @@ let OrderService = class OrderService {
         };
     }
     async getAdminList(query) {
-        const { status, page = 1, pageSize = 10 } = query;
+        const { status, pay_status, order_no, page = 1, pageSize = 10 } = query;
         const qb = this.orderRepository.createQueryBuilder('order');
         if (status) {
             qb.andWhere('order.status = :status', { status });
+        }
+        if (pay_status) {
+            qb.andWhere('order.pay_status = :pay_status', { pay_status });
+        }
+        if (order_no) {
+            qb.andWhere('order.order_no LIKE :order_no', { order_no: `%${order_no}%` });
         }
         const total = await qb.getCount();
         const list = await qb
@@ -281,8 +372,7 @@ let OrderService = class OrderService {
         if (!['paid', 'shipped'].includes(order.status)) {
             throw new common_1.BadRequestException('当前状态不允许退款');
         }
-        order.status = 'refunded';
-        await this.orderRepository.save(order);
+        await this.markRefunded(order.id);
         const items = await this.orderItemRepository.find({ where: { order_id: id } });
         for (const item of items) {
             await this.productService.incrementStock(item.product_id, item.sku_id, item.quantity);

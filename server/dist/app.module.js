@@ -31,6 +31,7 @@ const product_recommend_module_1 = require("./modules/product-recommend/product-
 const quick_entry_module_1 = require("./modules/quick-entry/quick-entry.module");
 const browse_history_module_1 = require("./modules/browse-history/browse-history.module");
 const points_module_1 = require("./modules/points/points.module");
+const payment_module_1 = require("./modules/payment/payment.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -46,8 +47,10 @@ exports.AppModule = AppModule = __decorate([
                 password: process.env.DB_PASSWORD || 'cosmetics123',
                 database: process.env.DB_NAME || 'cosmetics_shop',
                 entities: [__dirname + '/**/*.entity{.ts,.js}'],
-                synchronize: true,
+                synchronize: false,
                 logging: false,
+                connectTimeout: 60000,
+                acquireTimeout: 60000,
             }),
             passport_1.PassportModule.register({ defaultStrategy: 'jwt' }),
             jwt_1.JwtModule.register({
@@ -71,6 +74,7 @@ exports.AppModule = AppModule = __decorate([
             quick_entry_module_1.QuickEntryModule,
             browse_history_module_1.BrowseHistoryModule,
             points_module_1.PointsModule,
+            payment_module_1.PaymentModule,
         ],
         providers: [
             {

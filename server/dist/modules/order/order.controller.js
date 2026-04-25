@@ -21,10 +21,12 @@ let OrderController = class OrderController {
     constructor(orderService) {
         this.orderService = orderService;
     }
-    async create(dto) {
+    async create(req, dto) {
+        dto.user_id = dto.user_id || req.user?.id;
         return this.orderService.create(dto);
     }
-    async getList(query) {
+    async getList(req, query) {
+        query.user_id = query.user_id || req.user?.id;
         return this.orderService.getList(query);
     }
     async getCount(req) {
@@ -56,17 +58,19 @@ exports.OrderController = OrderController;
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Post)('create'),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [order_dto_1.CreateOrderDto]),
+    __metadata("design:paramtypes", [Object, order_dto_1.CreateOrderDto]),
     __metadata("design:returntype", Promise)
 ], OrderController.prototype, "create", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Get)('list'),
-    __param(0, (0, common_1.Query)()),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], OrderController.prototype, "getList", null);
 __decorate([

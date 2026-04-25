@@ -8,6 +8,15 @@ export declare class Order {
     freight_amount: number;
     pay_amount: number;
     pay_time: Date;
+    pay_channel: string;
+    pay_scene: string;
+    pay_status: string;
+    out_trade_no: string;
+    third_trade_no: string;
+    paid_at: Date;
+    notify_at: Date;
+    pay_fail_reason: string;
+    notify_payload: string;
     ship_time: Date;
     receive_time: Date;
     complete_time: Date;

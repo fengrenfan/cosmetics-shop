@@ -8,6 +8,15 @@ import { PointsService } from '../points/points.service';
 import { CouponService } from '../coupon/coupon.service';
 import { UserCoupon } from '../coupon/coupon.entity';
 import { CreateOrderDto } from './order.dto';
+export declare const ORDER_PAY_STATUS: {
+    readonly UNPAID: "unpaid";
+    readonly PAYING: "paying";
+    readonly PAID: "paid";
+    readonly FAILED: "failed";
+    readonly CLOSED: "closed";
+    readonly REFUNDING: "refunding";
+    readonly REFUNDED: "refunded";
+};
 export declare class OrderService {
     private readonly orderRepository;
     private readonly orderItemRepository;
@@ -22,7 +31,22 @@ export declare class OrderService {
         id: number;
         order_no: string;
         pay_amount: number;
+        pay_status: string;
     }>;
+    getById(id: number): Promise<Order>;
+    markPaying(orderId: number, params: {
+        pay_channel: string;
+        pay_scene: string;
+        out_trade_no: string;
+    }): Promise<Order>;
+    markPaid(orderId: number, params: {
+        third_trade_no?: string;
+        notify_payload?: string;
+        notify_at?: Date;
+    }): Promise<Order>;
+    markPayFailed(orderId: number, reason: string, notifyPayload?: string): Promise<Order>;
+    markClosed(orderId: number, reason?: string): Promise<Order>;
+    markRefunded(orderId: number): Promise<Order>;
     getList(query: {
         user_id: number;
         status?: string;
@@ -52,6 +76,8 @@ export declare class OrderService {
     }>;
     getAdminList(query: {
         status?: string;
+        pay_status?: string;
+        order_no?: string;
         page?: number;
         pageSize?: number;
     }): Promise<{

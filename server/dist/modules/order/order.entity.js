@@ -48,6 +48,42 @@ __decorate([
     __metadata("design:type", Date)
 ], Order.prototype, "pay_time", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ length: 20, nullable: true, name: 'pay_channel' }),
+    __metadata("design:type", String)
+], Order.prototype, "pay_channel", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 20, nullable: true, name: 'pay_scene' }),
+    __metadata("design:type", String)
+], Order.prototype, "pay_scene", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 20, default: 'unpaid', name: 'pay_status' }),
+    __metadata("design:type", String)
+], Order.prototype, "pay_status", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 64, nullable: true, name: 'out_trade_no' }),
+    __metadata("design:type", String)
+], Order.prototype, "out_trade_no", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 64, nullable: true, name: 'third_trade_no' }),
+    __metadata("design:type", String)
+], Order.prototype, "third_trade_no", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'datetime', nullable: true, name: 'paid_at' }),
+    __metadata("design:type", Date)
+], Order.prototype, "paid_at", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'datetime', nullable: true, name: 'notify_at' }),
+    __metadata("design:type", Date)
+], Order.prototype, "notify_at", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 255, nullable: true, name: 'pay_fail_reason' }),
+    __metadata("design:type", String)
+], Order.prototype, "pay_fail_reason", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text', nullable: true, name: 'notify_payload' }),
+    __metadata("design:type", String)
+], Order.prototype, "notify_payload", void 0);
+__decorate([
     (0, typeorm_1.Column)({ type: 'datetime', nullable: true, name: 'ship_time' }),
     __metadata("design:type", Date)
 ], Order.prototype, "ship_time", void 0);
@@ -116,6 +152,8 @@ __decorate([
     __metadata("design:type", Array)
 ], Order.prototype, "items", void 0);
 exports.Order = Order = __decorate([
-    (0, typeorm_1.Entity)('order')
+    (0, typeorm_1.Entity)('order'),
+    (0, typeorm_1.Index)('idx_pay_status', ['pay_status']),
+    (0, typeorm_1.Index)('idx_out_trade_no', ['out_trade_no'])
 ], Order);
 //# sourceMappingURL=order.entity.js.map

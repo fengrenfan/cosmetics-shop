@@ -3,12 +3,13 @@ import { CreateOrderDto } from './order.dto';
 export declare class OrderController {
     private readonly orderService;
     constructor(orderService: OrderService);
-    create(dto: CreateOrderDto): Promise<{
+    create(req: any, dto: CreateOrderDto): Promise<{
         id: number;
         order_no: string;
         pay_amount: number;
+        pay_status: string;
     }>;
-    getList(query: any): Promise<{
+    getList(req: any, query: any): Promise<{
         list: import("./order.entity").Order[];
         pagination: {
             page: number;

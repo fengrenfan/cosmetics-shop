@@ -12,4 +12,6 @@ export declare class CreateOrderDto {
     points_amount?: number;
     points_money?: number;
     user_id?: number;
+    pay_channel?: string;
+    pay_scene?: string;
 }
