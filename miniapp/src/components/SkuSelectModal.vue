@@ -214,7 +214,7 @@ function close() {
 
 function confirm() {
   // 有规格但未选择
-  if (product?.skus?.length > 0) {
+  if (props.product?.skus?.length > 0) {
     if (skuSpecList.value.length > 0) {
       // 多规格模式
       if (Object.keys(selectedSpecs.value).length < skuSpecList.value.length) {

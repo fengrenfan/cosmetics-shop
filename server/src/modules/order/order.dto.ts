@@ -42,6 +42,7 @@ export class CreateOrderDto {
   @IsNumber()
   points_money?: number;
 
+  @IsOptional()
   @IsNumber()
-  user_id: number;
+  user_id?: number;
 }

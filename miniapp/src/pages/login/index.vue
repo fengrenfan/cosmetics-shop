@@ -148,6 +148,7 @@ async function handleWxLogin() {
     // 保存 token 和用户信息
     request.setToken(res.token);
     uni.setStorageSync('userInfo', res.user);
+    uni.setStorageSync('user_id', res.user.id);
     
     uni.showToast({ title: '登录成功', icon: 'success' });
     // 返回上一页或跳转到首页
@@ -197,6 +198,7 @@ async function handlePhoneLogin() {
 
     request.setToken(res.token);
     uni.setStorageSync('userInfo', res.user);
+    uni.setStorageSync('user_id', res.user.id);
     uni.showToast({ title: '登录成功', icon: 'success', duration: 800 });
     showPhoneLogin.value = false;
     setTimeout(() => {
@@ -218,6 +220,7 @@ async function handleDevLogin() {
 
     request.setToken(res.token);
     uni.setStorageSync('userInfo', res.user);
+    uni.setStorageSync('user_id', res.user.id);
     uni.showToast({ title: '模拟登录成功', icon: 'success' });
     setTimeout(() => {
       uni.switchTab({ url: '/pages/index/index' });

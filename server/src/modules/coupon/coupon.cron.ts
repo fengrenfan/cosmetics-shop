@@ -2,7 +2,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, LessThan } from 'typeorm';
 import { UserCoupon, Coupon } from './coupon.entity';
 import { USER_COUPON_STATUS } from './coupon.constants';
 
@@ -29,12 +29,26 @@ export class CouponCron {
       const now = new Date();
 
       // 查找所有已过期但状态仍为 unused 的用户券
+      // 先找出过期的优惠券ID
+      const expiredCoupons = await this.couponRepository.find({
+        select: ['id'],
+        where: { end_time: LessThan(now) },
+      });
+
+      if (expiredCoupons.length === 0) {
+        this.logger.log('[Coupon Expiration] No expired coupons found');
+        return;
+      }
+
+      const expiredCouponIds = expiredCoupons.map(c => c.id);
+
+      // 更新这些优惠券下状态为 unused 的用户券为过期
       const result = await this.userCouponRepository
         .createQueryBuilder('uc')
         .update(UserCoupon)
         .set({ status: USER_COUPON_STATUS.EXPIRED })
         .where('status = :status', { status: USER_COUPON_STATUS.UNUSED })
-        .andWhere(`coupon_id IN (SELECT id FROM ${this.couponRepository.metadata.tableName} WHERE end_time < :now)`, { now: now.toISOString() })
+        .andWhere('coupon_id IN (:...couponIds)', { couponIds: expiredCouponIds })
         .execute();
 
       this.logger.log(`[Coupon Expiration] Success: ${result.affected || 0} coupons expired`);
@@ -69,7 +83,6 @@ export class CouponCron {
       }
     } catch (error) {
       this.logger.error(`[Coupon Stock Sync] Failed: ${error.message}`);
-      throw error;
     }
   }
 }

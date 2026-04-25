@@ -29,7 +29,7 @@ export class CouponService {
     // 1. 检查优惠券是否存在
     const coupon = await this.couponRepository.findOne({ where: { id: couponId } });
     if (!coupon) {
-      return { valid: false, error: '优惠券不存在', code: 'NOT_FOUND' };
+      return { valid: false, error: '优惠券不存在', code: VALIDATION_ERROR_CODE.NOT_FOUND };
     }
 
     // 2. 库存验证
@@ -365,9 +365,17 @@ export class CouponService {
     if (!coupon) {
       throw new NotFoundException('优惠券不存在');
     }
-    Object.assign(coupon, dto);
-    if (dto.start_time) coupon.start_time = new Date(dto.start_time);
-    if (dto.end_time) coupon.end_time = new Date(dto.end_time);
+    // 过滤掉 undefined 的值，避免覆盖现有数据
+    const updateData: Partial<Coupon> = {};
+    for (const [key, value] of Object.entries(dto)) {
+      if (value !== undefined) {
+        (updateData as any)[key] = value;
+      }
+    }
+    // 处理日期转换
+    if (updateData.start_time) coupon.start_time = new Date(updateData.start_time as any);
+    if (updateData.end_time) coupon.end_time = new Date(updateData.end_time as any);
+    Object.assign(coupon, updateData);
     return this.couponRepository.save(coupon);
   }
 

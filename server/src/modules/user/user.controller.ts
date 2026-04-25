@@ -36,4 +36,28 @@ export class UserController {
   getAdminList(@Query('page') page: number, @Query('pageSize') pageSize: number) {
     return this.userService.getAdminList(page || 1, pageSize || 20);
   }
+
+  /**
+   * 搜索用户 (管理员)
+   * GET /api/user/admin/search?phone=xxx
+   */
+  @UseGuards(JwtAuthGuard)
+  @Get('admin/search')
+  async search(@Query('phone') phone: string) {
+    if (!phone) {
+      return { data: null };
+    }
+    const user = await this.userService.getProfileByPhone(phone);
+    if (!user) {
+      return { data: null };
+    }
+    return {
+      data: {
+        id: user.id,
+        nickname: user.nickname,
+        phone: user.phone,
+        avatar: user.avatar,
+      }
+    };
+  }
 }

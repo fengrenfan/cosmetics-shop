@@ -31,7 +31,7 @@ export class BannerController {
    */
   @UseGuards(JwtAuthGuard)
   @Post()
-  async create(@Body() dto: { title: string; image: string; link_type?: string; link_id?: string; sort_order?: number }) {
+  async create(@Body() dto: { title: string; subtitle?: string; tag?: string; image: string; link_type?: string; link_id?: string; sort_order?: number }) {
     return this.bannerService.create(dto);
   }
 
@@ -41,7 +41,7 @@ export class BannerController {
    */
   @UseGuards(JwtAuthGuard)
   @Put(':id')
-  async update(@Param('id') id: number, @Body() dto: { title?: string; image?: string; link_type?: string; link_id?: string; sort_order?: number; status?: number }) {
+  async update(@Param('id') id: number, @Body() dto: { title?: string; subtitle?: string; tag?: string; image?: string; link_type?: string; link_id?: string; sort_order?: number; status?: number }) {
     return this.bannerService.update(id, dto);
   }
 

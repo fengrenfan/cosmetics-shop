@@ -50,6 +50,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
+import { onMounted } from '@dcloudio/uni-app';
 import { request } from '@/utils/request';
 
 const tabs = [
@@ -64,8 +65,8 @@ const myCoupons = ref([]);
 
 async function fetchMyCoupons() {
   const userId = uni.getStorageSync('user_id');
-  const res = await request.get('/api/coupon/my', { user_id: userId });
-  myCoupons.value = res.data || [];
+  const res = await request.get('/coupon/my', { user_id: userId });
+    myCoupons.value = res || [];
 }
 
 const filteredCoupons = computed(() => {

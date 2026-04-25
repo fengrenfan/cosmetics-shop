@@ -43,6 +43,7 @@ export const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
 // 验证错误码
 export const VALIDATION_ERROR_CODE = {
+  NOT_FOUND: 'NOT_FOUND',
   NO_STOCK: 'NO_STOCK',
   EXPIRED: 'EXPIRED',
   NOT_CLAIMED: 'NOT_CLAIMED',

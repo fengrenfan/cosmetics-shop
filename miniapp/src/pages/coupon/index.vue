@@ -100,7 +100,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
+import { onShow } from '@dcloudio/uni-app';
 import request from '@/utils/request.js';
 
 const currentTab = ref('available');
@@ -115,9 +116,10 @@ onShow(() => {
 async function loadData() {
   loading.value = true;
   try {
+    const userId = uni.getStorageSync('user_id');
     const [availableRes, myRes] = await Promise.all([
-      request.get('/coupon/available'),
-      request.get('/coupon/my')
+      request.get('/coupon/available', { user_id: userId }),
+      request.get('/coupon/my', { user_id: userId })
     ]);
     availableList.value = availableRes || [];
     myCouponList.value = myRes || [];
@@ -134,7 +136,7 @@ function onTabChange(tab) {
 
 async function claimCoupon(item) {
   try {
-    await request.post(`/coupon/claim/${item.id}`);
+    await request.post(`/coupon/claim/${item.id}`, { user_id: uni.getStorageSync('user_id') });
     uni.showToast({ title: '领取成功', icon: 'success' });
     
     // 更新列表状态
@@ -145,7 +147,7 @@ async function claimCoupon(item) {
     }
     
     // 刷新我的优惠券
-    const myRes = await request.get('/coupon/my');
+    const myRes = await request.get('/coupon/my', { user_id: uni.getStorageSync('user_id') });
     myCouponList.value = myRes || [];
   } catch (e) {
     console.error('领取失败', e);
@@ -179,18 +181,19 @@ function formatTime(time) {
   align-items: center;
   justify-content: center;
   padding: 30rpx 0;
-  
+  position: relative;
+
   text {
     font-size: 28rpx;
     color: #666;
   }
-  
+
   &.active {
     text {
       color: #ff4a8d;
       font-weight: bold;
     }
-    
+
     &::after {
       content: '';
       position: absolute;

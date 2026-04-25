@@ -16,6 +16,48 @@ export class UserService {
     private readonly orderService: OrderService,
   ) {}
 
+  /**
+   * 创建用户（新用户注册触发自动发券）
+   * @param data 用户数据
+   * @param autoGrantTrigger 自动发券触发类型（1: 新用户注册, 2: 首单）
+   */
+  async create(data: Partial<User>, autoGrantTrigger?: number): Promise<User> {
+    const user = this.userRepository.create({
+      nickname: data.nickname || `用户${Date.now().toString().slice(-6)}`,
+      status: 1,
+      ...data,
+    });
+    await this.userRepository.save(user);
+
+    // 新用户注册自动发券
+    if (autoGrantTrigger) {
+      await this.couponService.autoGrant(user.id, autoGrantTrigger);
+    }
+
+    return user;
+  }
+
+  /**
+   * 根据 openid 查找用户
+   */
+  async getProfileByOpenid(openid: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { openid } });
+  }
+
+  /**
+   * 根据手机号查找用户
+   */
+  async getProfileByPhone(phone: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { phone } });
+  }
+
+  /**
+   * 更新最后登录时间
+   */
+  async updateLastLogin(userId: number): Promise<void> {
+    await this.userRepository.update(userId, { last_login_at: new Date() });
+  }
+
   async getProfile(userId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) return null;

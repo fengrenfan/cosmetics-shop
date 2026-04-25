@@ -69,12 +69,13 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="250" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
             <el-button :type="row.status === 1 ? 'warning' : 'success'" link @click="toggleStatus(row)">
               {{ row.status === 1 ? '下架' : '上架' }}
             </el-button>
+            <el-button type="success" link @click="handleGrant(row)">发放</el-button>
             <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -175,6 +176,36 @@
         <el-button type="primary" @click="handleSubmit" :loading="submitLoading">确定</el-button>
       </template>
     </el-dialog>
+
+    <!-- 发放优惠券弹窗 -->
+    <el-dialog v-model="grantDialogVisible" title="发放优惠券" width="500px">
+      <el-form :model="grantForm" label-width="100px">
+        <el-form-item label="优惠券">
+          <span class="grant-coupon-name">{{ grantForm.couponTitle }}</span>
+        </el-form-item>
+        <el-form-item label="用户ID" prop="userId">
+          <el-input v-model="grantForm.userId" placeholder="请输入用户ID" />
+        </el-form-item>
+        <el-form-item label="手机号" prop="phone">
+          <el-input v-model="grantForm.phone" placeholder="输入手机号查找用户" clearable @clear="grantForm.userId = ''">
+            <template #append>
+              <el-button @click="searchUser">查找</el-button>
+            </template>
+          </el-input>
+        </el-form-item>
+        <el-form-item label="用户信息" v-if="grantForm.userInfo">
+          <el-tag type="success">{{ grantForm.userInfo.nickname }}</el-tag>
+          <span style="margin-left: 10px; color: #666;">ID: {{ grantForm.userInfo.id }}</span>
+        </el-form-item>
+        <el-form-item label="发放数量">
+          <el-input-number v-model="grantForm.count" :min="1" :max="10" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="grantDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmGrant" :loading="grantLoading">确认发放</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -189,6 +220,16 @@ const dialogVisible = ref(false);
 const isEdit = ref(false);
 const submitLoading = ref(false);
 const formRef = ref(null);
+const grantDialogVisible = ref(false);
+const grantLoading = ref(false);
+const grantForm = reactive({
+  couponId: null,
+  couponTitle: '',
+  userId: '',
+  phone: '',
+  count: 1,
+  userInfo: null
+});
 
 const pagination = reactive({
   page: 1,
@@ -237,54 +278,12 @@ async function loadData() {
       pageSize: pagination.pageSize,
       ...queryForm
     };
-    // 暂时使用模拟数据
-    tableData.value = [
-      {
-        id: 1,
-        title: '新人专享券',
-        description: '新用户首单满99元减20元',
-        type: 1,
-        value: 20,
-        min_amount: 99,
-        total_count: 1000,
-        claimed_count: 523,
-        used_count: 312,
-        start_time: new Date('2026-01-01'),
-        end_time: new Date('2026-12-31'),
-        status: 1
-      },
-      {
-        id: 2,
-        title: '限时折扣券',
-        description: '全场商品9折优惠',
-        type: 2,
-        value: 9,
-        min_amount: 0,
-        total_count: 500,
-        claimed_count: 200,
-        used_count: 89,
-        start_time: new Date('2026-04-01'),
-        end_time: new Date('2026-04-30'),
-        status: 1
-      },
-      {
-        id: 3,
-        title: '无门槛券',
-        description: '无门槛使用减10元',
-        type: 3,
-        value: 10,
-        min_amount: 0,
-        total_count: 200,
-        claimed_count: 200,
-        used_count: 180,
-        start_time: new Date('2026-03-01'),
-        end_time: new Date('2026-03-31'),
-        status: 0
-      }
-    ];
-    pagination.total = 3;
+    const res = await request.get('/coupon/admin/list', { params });
+    tableData.value = res.data || res || [];
+    pagination.total = tableData.value.length;
   } catch (e) {
     console.error('加载优惠券失败', e);
+    ElMessage.error('加载优惠券失败');
   } finally {
     loading.value = false;
   }
@@ -331,7 +330,7 @@ function handleDelete(row) {
     type: 'warning'
   }).then(async () => {
     try {
-      // await request.delete(`/coupon/${row.id}`);
+      await request.delete(`/coupon/admin/${row.id}`);
       const index = tableData.value.findIndex(item => item.id === row.id);
       if (index > -1) {
         tableData.value.splice(index, 1);
@@ -339,17 +338,20 @@ function handleDelete(row) {
       ElMessage.success('删除成功');
     } catch (e) {
       console.error('删除失败', e);
+      ElMessage.error('删除失败');
     }
   }).catch(() => {});
 }
 
 async function toggleStatus(row) {
   try {
-    // await request.put(`/coupon/${row.id}/status`, { status: row.status === 1 ? 0 : 1 });
-    row.status = row.status === 1 ? 0 : 1;
+    const newStatus = row.status === 1 ? 0 : 1;
+    await request.put(`/coupon/admin/${row.id}`, { status: newStatus });
+    row.status = newStatus;
     ElMessage.success(row.status === 1 ? '上架成功' : '下架成功');
   } catch (e) {
     console.error('更新状态失败', e);
+    ElMessage.error('更新状态失败');
   }
 }
 
@@ -379,26 +381,33 @@ async function handleSubmit() {
       formData.end_time = formData.dateRange[1];
     }
 
+    // 构建提交数据，确保数字类型
+    const typeMap = { 1: 'cash', 2: 'discount', 3: 'noThreshold' };
+    const submitData = {
+      title: formData.title,
+      type: typeMap[formData.type] || formData.type,
+      value: Number(formData.value),
+      min_amount: Number(formData.min_amount),
+      total_count: Number(formData.total_count),
+      per_limit: Number(formData.per_limit),
+      start_time: formData.start_time,
+      end_time: formData.end_time,
+      description: formData.description,
+      status: Number(formData.status),
+    };
+
     if (isEdit.value) {
-      // await request.put(`/coupon/${formData.id}`, formData);
-      const index = tableData.value.findIndex(item => item.id === formData.id);
-      if (index > -1) {
-        tableData.value[index] = { ...formData };
-      }
+      await request.put(`/coupon/admin/${formData.id}`, submitData);
       ElMessage.success('更新成功');
     } else {
-      // await request.post('/coupon', formData);
-      tableData.value.unshift({
-        ...formData,
-        id: Date.now(),
-        claimed_count: 0,
-        used_count: 0
-      });
+      await request.post('/coupon/admin', submitData);
       ElMessage.success('创建成功');
     }
     dialogVisible.value = false;
+    loadData();
   } catch (e) {
     console.error('提交失败', e);
+    ElMessage.error('提交失败');
   } finally {
     submitLoading.value = false;
   }
@@ -426,6 +435,59 @@ function formatDate(date) {
   const d = new Date(date);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
+
+function handleGrant(row) {
+  grantForm.couponId = row.id;
+  grantForm.couponTitle = row.title;
+  grantForm.userId = '';
+  grantForm.phone = '';
+  grantForm.count = 1;
+  grantForm.userInfo = null;
+  grantDialogVisible.value = true;
+}
+
+async function searchUser() {
+  if (!grantForm.phone) {
+    ElMessage.warning('请输入手机号');
+    return;
+  }
+  try {
+    const res = await request.get('/user/admin/search', { params: { phone: grantForm.phone } });
+    if (res.data) {
+      grantForm.userInfo = res.data;
+      grantForm.userId = res.data.id;
+    } else {
+      ElMessage.warning('未找到该用户');
+      grantForm.userInfo = null;
+    }
+  } catch (e) {
+    console.error('查找用户失败', e);
+    ElMessage.error('查找用户失败');
+  }
+}
+
+async function confirmGrant() {
+  if (!grantForm.userId) {
+    ElMessage.warning('请先查找并确认用户');
+    return;
+  }
+  grantLoading.value = true;
+  try {
+    for (let i = 0; i < grantForm.count; i++) {
+      await request.post('/coupon/admin/grant', {
+        user_id: Number(grantForm.userId),
+        coupon_id: grantForm.couponId
+      });
+    }
+    ElMessage.success(`成功发放 ${grantForm.count} 张优惠券`);
+    grantDialogVisible.value = false;
+  } catch (e) {
+    console.error('发放失败', e);
+    ElMessage.error('发放失败');
+  } finally {
+    grantLoading.value = false;
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -438,6 +500,10 @@ function formatDate(date) {
 
   .filter-form {
     margin-bottom: 20px;
+
+    :deep(.el-select) {
+      width: 100%;
+    }
   }
 
   .coupon-info {
@@ -446,7 +512,7 @@ function formatDate(date) {
       color: #333;
       font-weight: bold;
     }
-    
+
     .coupon-desc {
       font-size: 12px;
       color: #999;
@@ -460,5 +526,18 @@ function formatDate(date) {
       font-weight: bold;
     }
   }
+}
+
+:deep(.el-select) {
+  width: 100%;
+}
+
+:deep(.el-form-item__content) {
+  width: 100%;
+}
+
+.grant-coupon-name {
+  color: #ff4a8d;
+  font-weight: bold;
 }
 </style>

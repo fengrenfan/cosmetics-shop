@@ -43,19 +43,20 @@
 
 <script setup>
 import { ref } from 'vue';
+import { onMounted } from '@dcloudio/uni-app';
 import { request } from '@/utils/request';
 
 const availableCoupons = ref([]);
 
 async function fetchAvailableCoupons() {
   const userId = uni.getStorageSync('user_id');
-  const res = await request.get('/api/coupon/available', { user_id: userId });
-  availableCoupons.value = res.data || [];
+  const res = await request.get('/coupon/available', { user_id: userId });
+  availableCoupons.value = res.data || res || [];
 }
 
 async function handleClaim(couponId) {
   try {
-    await request.post(`/api/coupon/claim/${couponId}`, { user_id: uni.getStorageSync('user_id') });
+    await request.post(`/coupon/claim/${couponId}`, { user_id: uni.getStorageSync('user_id') });
     uni.showToast({ title: '领取成功', icon: 'success' });
     fetchAvailableCoupons();
   } catch (e) {

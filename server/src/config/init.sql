@@ -207,9 +207,13 @@ CREATE TABLE `coupon` (
   `start_time` DATETIME NOT NULL,
   `end_time` DATETIME NOT NULL,
   `status` TINYINT UNSIGNED DEFAULT 1,
+  `auto_grant` TINYINT UNSIGNED DEFAULT 0 COMMENT '0:否 1:新用户注册 2:首单',
+  `description` TEXT DEFAULT NULL,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='优惠券表';
+
+ALTER TABLE `coupon` ADD COLUMN IF NOT EXISTS `description` TEXT DEFAULT NULL AFTER `auto_grant`;
 
 INSERT INTO `coupon` (`title`, `type`, `value`, `min_amount`, `total_count`, `start_time`, `end_time`) VALUES
 ('新人专享券', 'fixed', 20.00, 100.00, 10000, '2024-01-01 00:00:00', '2027-12-31 23:59:59'),

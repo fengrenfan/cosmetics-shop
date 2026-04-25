@@ -114,6 +114,7 @@ export class CreateProductDto {
   @IsArray()
   skus?: {
     sku_name: string;
+    sku_code?: string;
     sku_attrs?: Record<string, string>;
     price: number;
     stock: number;

@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CouponService } from './coupon.service';
-import { CreateCouponDto, UpdateCouponDto, ValidateCouponDto, GrantCouponDto } from './coupon.dto';
+import { CreateCouponDto, UpdateCouponDto, ValidateCouponDto, ApplyCouponDto, GrantCouponDto } from './coupon.dto';
 
 @Controller('coupon')
 export class CouponController {
@@ -12,8 +12,9 @@ export class CouponController {
    * GET /api/coupon/available
    */
   @Get('available')
-  async getAvailable(@Query('user_id') userId: number) {
-    return this.couponService.getAvailable(userId);
+  async getAvailable(@Query('user_id') userId?: string, @Request() req?: any) {
+    const uid = userId && userId !== 'undefined' ? Number(userId) : (req?.user?.id ?? null);
+    return this.couponService.getAvailable(uid);
   }
 
   /**
@@ -22,8 +23,9 @@ export class CouponController {
    */
   @UseGuards(JwtAuthGuard)
   @Post('claim/:id')
-  async claim(@Param('id') id: string, @Body('user_id') userId: number) {
-    return this.couponService.claim(+id, userId);
+  async claim(@Param('id') id: string, @Body('user_id') userId?: string, @Request() req?: any) {
+    const uid = userId && userId !== 'undefined' ? Number(userId) : (req?.user?.id ?? null);
+    return this.couponService.claim(+id, uid);
   }
 
   /**
@@ -36,13 +38,23 @@ export class CouponController {
   }
 
   /**
+   * 计算优惠金额（结算页调用）
+   * POST /api/coupon/apply
+   */
+  @Post('apply')
+  async apply(@Body() dto: ApplyCouponDto) {
+    return this.couponService.applyToOrder(dto.coupon_id, dto.order_amount);
+  }
+
+  /**
    * 我的优惠券
    * GET /api/coupon/my
    */
   @UseGuards(JwtAuthGuard)
   @Get('my')
-  async getMyCoupons(@Query('user_id') userId: number, @Query('status') status: string) {
-    return this.couponService.getMyCoupons(userId, status);
+  async getMyCoupons(@Query('user_id') userId?: string, @Query('status') status?: string, @Request() req?: any) {
+    const uid = userId && userId !== 'undefined' ? Number(userId) : (req?.user?.id ?? null);
+    return this.couponService.getMyCoupons(uid, status);
   }
 
   // ========== 管理员接口 ==========

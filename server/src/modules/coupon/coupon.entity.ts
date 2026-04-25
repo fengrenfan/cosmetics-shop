@@ -41,6 +41,9 @@ export class Coupon {
   @Column({ default: 0, name: 'auto_grant' })
   auto_grant: number; // 0:否 1:新用户注册 2:首单
 
+  @Column({ type: 'text', nullable: true })
+  description: string;
+
   @CreateDateColumn({ name: 'created_at' })
   created_at: Date;
 

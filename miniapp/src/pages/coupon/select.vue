@@ -40,6 +40,7 @@
 
 <script setup>
 import { ref } from 'vue';
+import { onLoad } from '@dcloudio/uni-app';
 import { request } from '@/utils/request';
 
 const orderAmount = ref(0);
@@ -48,8 +49,8 @@ const availableCoupons = ref([]);
 
 async function fetchAvailableCoupons() {
   const userId = uni.getStorageSync('user_id');
-  const res = await request.get('/api/coupon/available', { user_id: userId });
-  const coupons = res.data || [];
+  const res = await request.get('/coupon/available', { user_id: userId });
+  const coupons = res || [];
 
   // 处理每个券是否可用
   availableCoupons.value = coupons.map(c => {

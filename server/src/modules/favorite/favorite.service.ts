@@ -49,7 +49,7 @@ export class FavoriteService {
 
     if (exist) {
       await this.favoriteRepository.delete(exist.id);
-      return { is_favorited: false };
+      return { is_favorite: false };
     }
 
     const favorite = this.favoriteRepository.create({
@@ -58,6 +58,6 @@ export class FavoriteService {
     });
 
     await this.favoriteRepository.save(favorite);
-    return { is_favorited: true };
+    return { is_favorite: true };
   }
 }

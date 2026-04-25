@@ -46,6 +46,16 @@ export class CreateCouponDto {
   @Max(2)
   @IsOptional()
   auto_grant?: number; // 0:否 1:新用户注册 2:首单
+
+  @IsString()
+  @IsOptional()
+  description?: string | null;
+
+  @IsNumber()
+  @Min(0)
+  @Max(1)
+  @IsOptional()
+  status?: number;
 }
 
 // 更新优惠券 DTO
@@ -97,17 +107,22 @@ export class UpdateCouponDto {
   @IsOptional()
   status?: number;
 
-  @IsNumber()
+ @IsNumber()
   @Min(0)
   @Max(2)
   @IsOptional()
-  auto_grant?: number;
+  auto_grant?: number | null;
+
+  @IsString()
+  @IsOptional()
+  description?: string | null;
 }
 
 // 核销验证 DTO
 export class ValidateCouponDto {
   @IsNumber()
-  user_id: number;
+  @IsOptional()
+  user_id?: number;
 
   @IsNumber()
   coupon_id: number;

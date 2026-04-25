@@ -191,7 +191,8 @@ interface DiscountResult {
 | GET | /api/coupon/available | 可领取优惠券列表 |
 | POST | /api/coupon/claim/:id | 领取优惠券 |
 | GET | /api/coupon/my | 我的优惠券列表 |
-| GET | /api/coupon/validate | 验证优惠券是否可用（结算页调用） |
+| POST | /api/coupon/validate | 验证优惠券是否可用（结算页调用） |
+| POST | /api/coupon/apply | 计算优惠金额（结算页调用） |
 
 ### 5.2 管理端 API
 
@@ -203,13 +204,13 @@ interface DiscountResult {
 | DELETE | /api/coupon/admin/:id | 删除优惠券 |
 | POST | /api/coupon/admin/grant | 发放优惠券给用户 |
 
-### 5.3 内部 API（OrderService 调用）
+### 5.3 模块内部调用（OrderService 调用）
 
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | /api/coupon/internal/validate | 核销前验证 |
-| POST | /api/coupon/internal/apply | 计算优惠金额 |
-| POST | /api/coupon/internal/mark-used | 标记已使用 |
+| 调用方式 | 说明 |
+|----------|------|
+| `CouponService.validateForOrder(userId, couponId, orderAmount)` | 核销前验证 |
+| `CouponService.applyToOrder(couponId, orderAmount)` | 计算优惠金额 |
+| `CouponService.markAsUsed(userCouponId, orderId)` | 标记已使用 |
 
 ---
 
@@ -231,7 +232,7 @@ interface DiscountResult {
 ### 6.3 我的优惠券页
 - Tab 切换：全部 / 待使用 / 已使用 / 已过期
 - 展示用户持有的优惠券
-- 待使用券显示"立即使用"按钮跳转购物车/商品
+- 待使用券支持后续扩展“立即使用”入口（一期以列表展示为主）
 
 ### 6.4 优惠券选择页
 - 结算页调起
@@ -273,7 +274,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
-    ScheduleModule.forRoot(),  // 全局注册一次
+    ScheduleModule.forRoot(),  // 当前实现注册在 CouponModule
     // ... 其他模块
   ],
 })
@@ -398,8 +399,7 @@ server/src/modules/coupon/
 server/src/modules/order/
 ├── order.service.ts         # 订单服务（核销时调用优惠券验证）
 ├── order.controller.ts      # 订单 API
-├── dto/
-│   └── create-order.dto.ts  # 创建订单时传入 couponId
+└── order.dto.ts             # 创建订单 DTO（含 coupon_id）
 ```
 
 ---

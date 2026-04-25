@@ -86,6 +86,17 @@
           <text class="summary-label">店铺优惠</text>
           <text class="summary-discount">- ¥{{ shopDiscount.toFixed(2) }}</text>
         </view>
+        <view class="summary-row summary-row-clickable" @click="chooseCoupon">
+          <text class="summary-label">优惠券</text>
+          <view class="summary-row-right">
+            <text class="summary-value">{{ selectedCouponTitle }}</text>
+            <text class="iconfont fa-chevron-right" style="font-size: 24rpx; color: #926f69;"></text>
+          </view>
+        </view>
+        <view class="summary-row" v-if="couponDiscount > 0">
+          <text class="summary-label">优惠券抵扣</text>
+          <text class="summary-discount">- ¥{{ couponDiscount.toFixed(2) }}</text>
+        </view>
         <view class="summary-total-row">
           <text class="summary-tip">共{{ totalCount }}件商品，合计:</text>
           <view class="total-price-wrap">
@@ -155,6 +166,10 @@ const userPoints = ref(0);
 const usePoints = ref(0);
 const maxUsePoints = ref(0);
 const pointsMoney = ref(0);
+const availableCoupons = ref([]);
+const selectedCouponId = ref(null);
+const couponDiscount = ref(0);
+const selectedCouponTitle = ref('不使用优惠券');
 
 const totalPrice = computed(() => {
   return settlementItems.value.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
@@ -174,7 +189,8 @@ const totalCount = computed(() => {
 
 const actualPrice = computed(() => {
   const base = parseFloat(totalPrice.value) + freight.value - shopDiscount.value;
-  const afterPoints = base - pointsMoney.value;
+  const afterCoupon = base - couponDiscount.value;
+  const afterPoints = afterCoupon - pointsMoney.value;
   return Math.max(0, afterPoints).toFixed(2);
 });
 
@@ -211,6 +227,19 @@ async function loadData() {
 
   // 加载用户积分
   loadPoints();
+  await loadCoupons();
+}
+
+async function loadCoupons() {
+  try {
+    const userId = uni.getStorageSync('user_id');
+    const res = await request.get('/coupon/my', { user_id: userId, status: 'unused' });
+    const list = res || [];
+    availableCoupons.value = list.filter((item) => Number(item?.coupon?.min_amount || 0) <= parseFloat(totalPrice.value));
+  } catch (e) {
+    console.error('获取优惠券失败', e);
+    availableCoupons.value = [];
+  }
 }
 
 async function loadPoints() {
@@ -240,6 +269,43 @@ function onPointsInput(e) {
   val = Math.min(val, maxUsePoints.value);
   usePoints.value = val;
   pointsMoney.value = val / 100;
+}
+
+async function applySelectedCoupon(couponId) {
+  if (!couponId) {
+    couponDiscount.value = 0;
+    return;
+  }
+  try {
+    const res = await request.post('/coupon/apply', {
+      coupon_id: couponId,
+      order_amount: parseFloat(totalPrice.value),
+    });
+    couponDiscount.value = Number(res?.discountAmount || 0);
+  } catch (e) {
+    console.error('计算优惠券金额失败', e);
+    couponDiscount.value = 0;
+  }
+}
+
+function chooseCoupon() {
+  const actions = ['不使用优惠券', ...availableCoupons.value.map((item) => item.coupon?.title || '优惠券')];
+  uni.showActionSheet({
+    itemList: actions,
+    success: async ({ tapIndex }) => {
+      if (tapIndex === 0) {
+        selectedCouponId.value = null;
+        selectedCouponTitle.value = '不使用优惠券';
+        await applySelectedCoupon(null);
+        return;
+      }
+
+      const coupon = availableCoupons.value[tapIndex - 1];
+      selectedCouponId.value = coupon?.coupon?.id || coupon?.coupon_id || null;
+      selectedCouponTitle.value = coupon?.coupon?.title || '已选择优惠券';
+      await applySelectedCoupon(selectedCouponId.value);
+    },
+  });
 }
 
 function goBack() {
@@ -272,6 +338,7 @@ async function handleSubmit() {
       address_id: selectedAddress.value.id,
       items,
       remark: remark.value,
+      coupon_id: selectedCouponId.value || undefined,
       points_amount: usePoints.value,
       points_money: pointsMoney.value,
     });
@@ -572,6 +639,16 @@ $tabbar-height: 100rpx;
   font-size: 26rpx;
   color: $on-surface-variant;
   padding: 12rpx 0;
+}
+
+.summary-row-clickable {
+  align-items: center;
+}
+
+.summary-row-right {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
 }
 
 .summary-value {
