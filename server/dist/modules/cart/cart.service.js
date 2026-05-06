@@ -18,10 +18,12 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const cart_entity_1 = require("./cart.entity");
 const product_entity_1 = require("../product/product.entity");
+const dict_service_1 = require("../dict/dict.service");
 let CartService = class CartService {
-    constructor(cartRepository, productRepository) {
+    constructor(cartRepository, productRepository, dictService) {
         this.cartRepository = cartRepository;
         this.productRepository = productRepository;
+        this.dictService = dictService;
     }
     async getList(userId, deviceId) {
         const where = {};
@@ -50,6 +52,7 @@ let CartService = class CartService {
             sku_name: cart.sku?.sku_name,
             quantity: cart.quantity,
             is_checked: cart.is_checked,
+            product_status: cart.product?.status,
         }));
     }
     async add(dto) {
@@ -219,6 +222,22 @@ let CartService = class CartService {
         }
         return products;
     }
+    async getShippingConfig() {
+        const threshold = 99;
+        try {
+            const dicts = await this.dictService.getAllDictsWithItems();
+            const shippingDict = dicts.find(d => d.dict_code === 'shipping');
+            if (shippingDict) {
+                const thresholdItem = shippingDict.items.find(i => i.item_value === 'free_shipping_threshold');
+                if (thresholdItem) {
+                    return { free_shipping_threshold: parseFloat(thresholdItem.item_label) || threshold };
+                }
+            }
+        }
+        catch (e) {
+        }
+        return { free_shipping_threshold: threshold };
+    }
 };
 exports.CartService = CartService;
 exports.CartService = CartService = __decorate([
@@ -226,6 +245,7 @@ exports.CartService = CartService = __decorate([
     __param(0, (0, typeorm_1.InjectRepository)(cart_entity_1.Cart)),
     __param(1, (0, typeorm_1.InjectRepository)(product_entity_1.Product)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
-        typeorm_2.Repository])
+        typeorm_2.Repository,
+        dict_service_1.DictService])
 ], CartService);
 //# sourceMappingURL=cart.service.js.map

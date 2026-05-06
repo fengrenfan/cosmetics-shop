@@ -1,0 +1,32 @@
+schema: spec-driven
+
+context: |
+  Tech stack: NestJS (backend), Vue 3 + Element Plus (admin), uni-app (miniapp)
+  Database: MySQL 8.x (prod) / SQLite (dev), TypeORM
+  Auth: JWT (7 days expiry), Passport
+  API prefix: /api
+  Image prefix: http://118.25.192.73
+
+  Domain: B2C e-commerce platform (Cosmetics Shop / 唯伊美妆)
+
+  Naming conventions:
+    - Class names: PascalCase (CouponService, OrderController)
+    - File names: kebab-case (coupon.service.ts, order.controller.ts)
+    - DB tables/columns: snake_case (created_at, user_id)
+    - API paths: kebab-case (/api/order/create)
+
+  API response format:
+    - Success: { "code": 0, "message": "success", "data": {...} }
+    - Error: { "code": 400, "message": "error message", "data": null }
+
+  Module structure: entity, dto, service, controller, module, constants, utils
+
+  Core modules: auth, user, product, category, cart, order, address, coupon, banner, favorite, upload, dashboard, dict, product-recommend, quick-entry, browse-history, points, payment
+
+rules:
+  tasks:
+    - Break tasks into max 2 hour chunks
+    - Always verify with tests when available
+  artifacts:
+    - Keep proposals under 500 words
+    - Include Non-goals section in proposals

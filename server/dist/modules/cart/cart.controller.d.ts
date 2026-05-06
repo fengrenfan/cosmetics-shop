@@ -14,6 +14,7 @@ export declare class CartController {
         sku_name: string;
         quantity: number;
         is_checked: number;
+        product_status: number;
     }[]>;
     add(dto: AddCartDto, req: any): Promise<{
         id: number;
@@ -32,4 +33,7 @@ export declare class CartController {
         success: boolean;
     }>;
     getRecommend(req: any): Promise<import("../product/product.entity").Product[]>;
+    getShippingConfig(): Promise<{
+        free_shipping_threshold: number;
+    }>;
 }

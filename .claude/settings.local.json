@@ -56,7 +56,8 @@
       "Bash(ls /Users/fengrenfan/feng_pro/cosmetics-shop/admin/package.json)",
       "Bash(mysql -h 118.25.192.73 -u cosmetics_shop -pcosmetics_shop_2024 cosmetics_shop -e \"DESCRIBE coupon;\")",
       "Bash(mysql *)",
-      "Bash(kill -9 74321)"
+      "Bash(kill -9 74321)",
+      "Bash(openspec new *)"
     ]
   }
 }

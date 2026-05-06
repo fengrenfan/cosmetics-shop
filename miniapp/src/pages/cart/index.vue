@@ -20,6 +20,7 @@
       </view>
       <text class="empty-text">购物车是空的</text>
       <view class="empty-btn" @click="goShopping">去逛逛</view>
+      <view class="empty-btn-fav" @click="goFavorites">从收藏夹添加</view>
     </view>
 
     <!-- 购物车列表 -->
@@ -27,8 +28,14 @@
       <!-- 进度提示条 -->
       <view class="cart-tip-bar">
         <text class="tip-count">购物车 ({{ cartList.length }})</text>
-        <view class="tip-badge">
-          <text>满¥99免运费</text>
+        <view class="tip-right">
+          <view class="tip-badge" v-if="invalidItems.length === 0">
+            <text>满¥99免运费</text>
+          </view>
+          <view class="tip-cleanup" v-else @click="confirmClearInvalid">
+            <text class="iconfont fa-trash-alt"></text>
+            <text>清理失效商品</text>
+          </view>
         </view>
       </view>
 
@@ -38,7 +45,7 @@
           v-for="(item, index) in cartList"
           :key="item.id || `${item.product_id}-${item.sku_id}`"
           class="cart-item"
-          :class="{ 'item-checked': item.is_checked }"
+          :class="{ 'item-checked': item.is_checked, 'item-invalid': isItemInvalid(item) }"
         >
           <!-- 圆形选择框 -->
           <view class="item-check" @click="toggleCheck(index)">
@@ -50,12 +57,15 @@
           <!-- 商品图片 -->
           <view class="item-img-wrap" @click="goDetail(item)">
             <image class="item-image" :src="item.cover_image" mode="aspectFill" />
+            <view class="invalid-badge" v-if="isItemInvalid(item)">
+              <text>{{ getInvalidLabel(item) }}</text>
+            </view>
           </view>
 
           <!-- 商品信息 -->
           <view class="item-info">
             <text class="item-title" @click="goDetail(item)">{{ item.title }}</text>
-            <view class="item-sku-row" v-if="item.sku_name">
+            <view class="item-sku-row" v-if="item.sku_name" @click="showSkuPopup(item, index)">
               <text class="item-sku">{{ item.sku_name }}</text>
               <text class="iconfont fa-chevron-down sku-arrow"></text>
             </view>
@@ -125,10 +135,21 @@
           <text class="select-all-text">全选</text>
         </view>
         <view class="total-info">
-          <text class="total-label">合计</text>
-          <view class="total-price-wrap">
-            <text class="price-symbol total-symbol">¥</text>
-            <text class="total-price">{{ totalPrice }}</text>
+          <view class="shipping-info" v-if="shippingGap > 0">
+            <text class="shipping-text">还差 ¥{{ shippingGap.toFixed(2) }} 免运费</text>
+            <view class="shipping-bar">
+              <view class="shipping-fill" :style="{ width: Math.min(100, (99 - shippingGap) / 99 * 100) + '%' }"></view>
+            </view>
+          </view>
+          <view class="shipping-info shipping-info-done" v-else>
+            <text class="shipping-text done">已满 ¥99，免运费</text>
+          </view>
+          <view class="price-row">
+            <text class="total-label">合计</text>
+            <view class="total-price-wrap">
+              <text class="price-symbol total-symbol">¥</text>
+              <text class="total-price">{{ totalPrice }}</text>
+            </view>
           </view>
         </view>
       </view>
@@ -171,6 +192,73 @@ const totalPrice = computed(() => {
     .toFixed(2);
 });
 
+const invalidItems = computed(() => {
+  return cartList.value.filter(item => {
+    const stock = item.stock || 0;
+    const status = item.product_status;
+    return stock === 0 || status === 0;
+  });
+});
+
+const shippingGap = computed(() => {
+  const threshold = 99;
+  const total = cartList.value
+    .filter(item => item.is_checked)
+    .reduce((sum, item) => sum + item.price * item.quantity, 0);
+  return Math.max(0, threshold - total);
+});
+
+function isItemInvalid(item) {
+  const stock = item.stock || 0;
+  const status = item.product_status;
+  return stock === 0 || status === 0;
+}
+
+function getInvalidLabel(item) {
+  const status = item.product_status;
+  if (status === 0) return '已下架';
+  return '缺货';
+}
+
+function confirmClearInvalid() {
+  uni.showModal({
+    title: '提示',
+    content: '确定要删除所有失效商品吗？',
+    confirmColor: '#bb0004',
+    success: (res) => {
+      if (res.confirm) {
+        clearInvalid();
+      }
+    }
+  });
+}
+
+async function clearInvalid() {
+  const invalid = cartList.value.filter(item => {
+    const stock = item.stock || 0;
+    const status = item.product_status;
+    return stock === 0 || status === 0;
+  });
+  if (invalid.length === 0) return;
+  try {
+    await request.delete('/cart/batch', {
+      ids: invalid.map(item => item.id),
+    });
+    cartList.value = cartList.value.filter(item => {
+      const stock = item.stock || 0;
+      const status = item.product_status;
+      return stock !== 0 && status !== 0;
+    });
+    cartStore.clearInvalidItems();
+  } catch (e) {
+    console.error('清理失效商品失败', e);
+  }
+}
+
+function goFavorites() {
+  uni.switchTab({ url: '/pages/user/index' });
+}
+
 onShow(async () => {
   if (checkLogin()) {
     await loadCartList();
@@ -211,8 +299,9 @@ function toggleEdit() {
 }
 
 function toggleCheck(index) {
-  cartList.value[index].is_checked = !cartList.value[index].is_checked;
-  syncCartCheck();
+  const item = cartList.value[index];
+  item.is_checked = !item.is_checked;
+  cartStore.syncCartCheck(item);
 }
 
 function toggleAllCheck() {
@@ -220,87 +309,7 @@ function toggleAllCheck() {
   cartList.value.forEach(item => {
     item.is_checked = checked;
   });
-  syncCartCheck();
-}
-
-async function syncCartCheck() {
-  try {
-    const checkedItems = cartList.value.filter(item => item.is_checked);
-    await request.put('/cart/checked', {
-      ids: checkedItems.map(item => item.id),
-      checked: 1,
-    });
-  } catch (e) {
-    console.error('同步选中状态失败', e);
-  }
-}
-
-function decrease(index) {
-  if (cartList.value[index].quantity <= 1) {
-    uni.showModal({
-      title: '提示',
-      content: '确定要删除该商品吗？',
-      confirmColor: '#bb0004',
-      success: (res) => {
-        if (res.confirm) {
-          removeItem(index);
-        }
-      }
-    });
-    return;
-  }
-  updateQuantity(index, cartList.value[index].quantity - 1);
-}
-
-function increase(index) {
-  updateQuantity(index, cartList.value[index].quantity + 1);
-}
-
-async function updateQuantity(index, quantity) {
-  const item = cartList.value[index];
-  try {
-    await request.put(`/cart/${item.id}`, { quantity });
-    cartList.value[index].quantity = quantity;
-    cartStore.updateQuantity(index, quantity);
-  } catch (e) {
-    console.error('更新数量失败', e);
-  }
-}
-
-async function removeItem(index) {
-  const item = cartList.value[index];
-  try {
-    await request.delete(`/cart/${item.id}`);
-    cartList.value.splice(index, 1);
-    cartStore.removeItem(index);
-  } catch (e) {
-    console.error('删除失败', e);
-  }
-}
-
-async function deleteChecked() {
-  const checkedItems = cartList.value.filter(item => item.is_checked);
-  if (checkedItems.length === 0) {
-    uni.showToast({ title: '请选择商品', icon: 'none' });
-    return;
-  }
-  try {
-    await request.delete('/cart/batch', {
-      ids: checkedItems.map(item => item.id),
-    });
-    cartList.value = cartList.value.filter(item => !item.is_checked);
-    cartStore.clearChecked();
-  } catch (e) {
-    console.error('批量删除失败', e);
-  }
-}
-
-function goShopping() {
-  uni.switchTab({ url: '/pages/index/index' });
-}
-
-function goDetail(item) {
-  uni.navigateTo({ url: `/pages/product/detail?id=${item.product_id}` });
+  cartStore.syncAllChecked();
 }
 
 function goSettlement() {
@@ -309,8 +318,26 @@ function goSettlement() {
     uni.showToast({ title: '请选择商品', icon: 'none' });
     return;
   }
+  const invalidChecked = checkedItems.filter(item => {
+    const stock = item.stock || 0;
+    const status = item.product_status;
+    return stock === 0 || status === 0;
+  });
+  if (invalidChecked.length > 0) {
+    uni.showModal({
+      title: '提示',
+      content: `您选中了 ${invalidChecked.length} 件失效商品，请先删除后再结算`,
+      confirmColor: '#bb0004',
+      showCancel: false,
+    });
+    return;
+  }
   uni.setStorageSync('settlement_items', JSON.stringify(checkedItems));
   uni.navigateTo({ url: '/pages/order/confirm' });
+}
+
+async function showSkuPopup(item, index) {
+  uni.navigateTo({ url: `/pages/product/detail?id=${item.product_id}` });
 }
 </script>
 
@@ -464,6 +491,17 @@ $tabbar-height: 100rpx;
   letter-spacing: 0.02em;
 }
 
+.empty-btn-fav {
+  margin-top: 24rpx;
+  padding: 22rpx 72rpx;
+  background: $surface-container-high;
+  color: $on-surface-variant;
+  border-radius: $radius-full;
+  font-size: 28rpx;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
 /* ── 购物车内容 ── */
 .cart-content {
   padding: 128rpx 32rpx 0;
@@ -487,6 +525,11 @@ $tabbar-height: 100rpx;
   color: $primary;
 }
 
+.tip-right {
+  display: flex;
+  align-items: center;
+}
+
 .tip-badge {
   background: $surface-container-highest;
   font-size: 22rpx;
@@ -494,6 +537,22 @@ $tabbar-height: 100rpx;
   padding: 8rpx 24rpx;
   border-radius: $radius-full;
   font-weight: 500;
+}
+
+.tip-cleanup {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  background: rgba($primary, 0.1);
+  font-size: 22rpx;
+  color: $primary;
+  padding: 8rpx 24rpx;
+  border-radius: $radius-full;
+  font-weight: 500;
+
+  .fa-trash-alt {
+    font-size: 20rpx;
+  }
 }
 
 /* ── 商品列表 ── */
@@ -519,6 +578,14 @@ $tabbar-height: 100rpx;
 
   &.item-checked {
     box-shadow: 0 4rpx 20rpx rgba($primary, 0.08);
+  }
+
+  &.item-invalid {
+    opacity: 0.6;
+
+    .item-title {
+      text-decoration: line-through;
+    }
   }
 }
 
@@ -569,11 +636,34 @@ $tabbar-height: 100rpx;
   overflow: hidden;
   background: $surface-container-low;
   flex-shrink: 0;
+  position: relative;
 }
 
 .item-image {
   width: 100%;
   height: 100%;
+}
+
+.invalid-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-lg;
+
+  text {
+    font-size: 20rpx;
+    color: #fff;
+    font-weight: 600;
+    background: $primary;
+    padding: 4rpx 12rpx;
+    border-radius: $radius-sm;
+  }
 }
 
 /* ── 商品信息 ── */
@@ -887,10 +977,46 @@ $tabbar-height: 100rpx;
   margin-left: 8rpx;
 }
 
+.shipping-info {
+  margin-bottom: 4rpx;
+}
+
+.shipping-text {
+  font-size: 20rpx;
+  color: $on-surface-variant;
+  font-weight: 500;
+}
+
+.shipping-text.done {
+  color: #52c41a;
+}
+
+.shipping-bar {
+  width: 120rpx;
+  height: 6rpx;
+  background: $surface-container-high;
+  border-radius: $radius-full;
+  margin-top: 4rpx;
+  overflow: hidden;
+}
+
+.shipping-fill {
+  height: 100%;
+  background: linear-gradient(135deg, $primary 0%, $primary-container 100%);
+  border-radius: $radius-full;
+  transition: width 0.3s ease;
+}
+
 .total-label {
   font-size: 22rpx;
   color: $on-surface-variant;
   font-weight: 500;
+}
+
+.price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
 }
 
 .total-price-wrap {

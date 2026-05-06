@@ -1,10 +1,12 @@
 import { Repository } from 'typeorm';
 import { Cart } from './cart.entity';
 import { Product } from '../product/product.entity';
+import { DictService } from '../dict/dict.service';
 export declare class CartService {
     private readonly cartRepository;
     private readonly productRepository;
-    constructor(cartRepository: Repository<Cart>, productRepository: Repository<Product>);
+    private readonly dictService;
+    constructor(cartRepository: Repository<Cart>, productRepository: Repository<Product>, dictService: DictService);
     getList(userId: number | null, deviceId: string | null): Promise<{
         id: number;
         product_id: number;
@@ -16,6 +18,7 @@ export declare class CartService {
         sku_name: string;
         quantity: number;
         is_checked: number;
+        product_status: number;
     }[]>;
     add(dto: {
         user_id?: number | null;
@@ -43,4 +46,7 @@ export declare class CartService {
     }>;
     getRecommend(userId: number | null, deviceId: string | null, limit?: number): Promise<Product[]>;
     private getHotProducts;
+    getShippingConfig(): Promise<{
+        free_shipping_threshold: number;
+    }>;
 }

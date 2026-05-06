@@ -27,6 +27,21 @@ export const useCartStore = defineStore('cart', {
     checkedCount: (state) => {
       return state.list.filter((item) => item.is_checked).reduce((sum, item) => sum + item.quantity, 0);
     },
+    invalidItems: (state) => {
+      return state.list.filter((item) => {
+        const stock = item.stock || 0;
+        const status = item.product_status;
+        return stock === 0 || status === 0;
+      });
+    },
+    shippingThreshold: () => 99,
+    shippingGap: (state) => {
+      const threshold = 99;
+      const total = state.list
+        .filter((item) => item.is_checked)
+        .reduce((sum, item) => sum + item.price * item.quantity, 0);
+      return Math.max(0, threshold - total);
+    },
   },
 
   actions: {
@@ -125,6 +140,28 @@ export const useCartStore = defineStore('cart', {
       }
     },
 
+    async syncCartCheck(item) {
+      try {
+        await request.put('/cart/checked', {
+          ids: [item.id],
+          checked: item.is_checked ? 1 : 0,
+        });
+      } catch (e) {
+        console.error('同步选中状态失败', e);
+      }
+    },
+
+    async syncAllChecked() {
+      try {
+        await request.put('/cart/checked', {
+          ids: this.list.map((item) => item.id),
+          checked: 1,
+        });
+      } catch (e) {
+        console.error('同步全选状态失败', e);
+      }
+    },
+
     async clearChecked() {
       const checkedItems = this.list.filter((item) => item.is_checked);
       if (checkedItems.length === 0) return;
@@ -157,6 +194,29 @@ export const useCartStore = defineStore('cart', {
     loadLocalCart() {
       const list = uni.getStorageSync('local_cart') || [];
       this.setList(list);
+    },
+
+    async clearInvalidItems() {
+      const invalidItems = this.list.filter((item) => {
+        const stock = item.stock || 0;
+        const status = item.product_status;
+        return stock === 0 || status === 0;
+      });
+      if (invalidItems.length === 0) return;
+      try {
+        await request.delete('/cart/batch', {
+          ids: invalidItems.map((item) => item.id),
+        });
+      } catch (e) {
+        // local cleanup
+      }
+      this.list = this.list.filter((item) => {
+        const stock = item.stock || 0;
+        const status = item.product_status;
+        return stock !== 0 && status !== 0;
+      });
+      this.updateBadge();
+      this.saveLocalCart();
     },
   },
 });
