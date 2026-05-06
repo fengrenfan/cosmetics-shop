@@ -4,9 +4,9 @@
     <view class="nav-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="nav-inner">
         <!-- 定位 -->
-        <view class="location">
+        <view class="location" @click="openCityModal">
           <text class="iconfont fa-location-dot" style="color: #bb0004; font-size: 32rpx;"></text>
-          <text class="city-name">上海</text>
+          <text class="city-name">{{ currentCity }}</text>
           <text class="iconfont fa-chevron-down" style="font-size: 20rpx; color: #5d3f3b;"></text>
         </view>
         <!-- 搜索栏 -->
@@ -140,23 +140,37 @@
       @close="showSkuModal = false"
       @confirm="onSkuConfirm"
     />
+
+    <CitySelectModal
+      :show="showCityModal"
+      :currentCity="selectedCityData"
+      @close="showCityModal = false"
+      @confirm="onCityConfirm"
+    />
   </view>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { login } from '@/utils/auth.js';
 import request from '@/utils/request.js';
 import { useCartStore } from '@/stores/cart.js';
+import { useLocationStore } from '@/stores/location.js';
 import SkuSelectModal from '@/components/SkuSelectModal.vue';
+import CitySelectModal from '@/components/CitySelectModal.vue';
 const cartStore = useCartStore();
+const locationStore = useLocationStore();
 
 const statusBarHeight = ref(20);
 const refreshing = ref(false);
 const loading = ref(false);
 const noMore = ref(false);
 const showSkuModal = ref(false);
+const showCityModal = ref(false);
 const currentProduct = ref(null);
+
+const currentCity = computed(() => locationStore.displayCity);
+const selectedCityData = computed(() => locationStore.currentCity);
 
 // 固定分类图标（Font Awesome 6 Free 图标）
 const categoryIcons = [
@@ -187,6 +201,8 @@ const pageSize = 10;
 onMounted(async () => {
   const systemInfo = uni.getSystemInfoSync();
   statusBarHeight.value = systemInfo.statusBarHeight || 20;
+
+  locationStore.init();
 
   try {
     await login();
@@ -313,6 +329,15 @@ async function onSkuConfirm({ sku_id, quantity }) {
     stock: product.stock,
   });
   showSkuModal.value = false;
+}
+
+function openCityModal() {
+  showCityModal.value = true;
+}
+
+function onCityConfirm(city) {
+  locationStore.setCity(city);
+  showCityModal.value = false;
 }
 
 function onBannerClick(item) {
