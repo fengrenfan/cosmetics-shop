@@ -42,9 +42,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { onMounted } from '@dcloudio/uni-app';
-import request from '@/utils/request';
+import { ref, onMounted } from 'vue';
+import { request } from '@/utils/request';
 
 const availableCoupons = ref([]);
 
