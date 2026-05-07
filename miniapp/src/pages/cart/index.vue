@@ -1,6 +1,5 @@
 <template>
   <view class="page">
-    <!-- 顶部导航 -->
     <header class="nav-header">
       <view class="nav-inner">
         <view class="nav-left">
@@ -13,7 +12,6 @@
       </view>
     </header>
 
-    <!-- 空购物车 -->
     <view class="empty-cart" v-if="cartList.length === 0 && !loading">
       <view class="empty-icon-wrap">
         <text class="iconfont fa-cart-shopping empty-icon"></text>
@@ -23,153 +21,53 @@
       <view class="empty-btn-fav" @click="goFavorites">从收藏夹添加</view>
     </view>
 
-    <!-- 购物车列表 -->
     <view class="cart-content" v-else>
-      <!-- 进度提示条 -->
-      <view class="cart-tip-bar">
-        <text class="tip-count">购物车 ({{ cartList.length }})</text>
-        <view class="tip-right">
-          <view class="tip-badge" v-if="invalidItems.length === 0">
-            <text>满¥99免运费</text>
-          </view>
-          <view class="tip-cleanup" v-else @click="confirmClearInvalid">
-            <text class="iconfont fa-trash-alt"></text>
-            <text>清理失效商品</text>
-          </view>
-        </view>
-      </view>
+      <CartTipBar :itemCount="cartList.length" :hasInvalid="invalidItems.length > 0" @clear-invalid="confirmClearInvalid" />
 
-      <!-- 商品列表 -->
       <view class="cart-list">
-        <view
+        <CartItemCard
           v-for="(item, index) in cartList"
           :key="item.id || `${item.product_id}-${item.sku_id}`"
-          class="cart-item"
-          :class="{ 'item-checked': item.is_checked, 'item-invalid': isItemInvalid(item) }"
-        >
-          <!-- 圆形选择框 -->
-          <view class="item-check" @click="toggleCheck(index)">
-            <view class="check-circle" :class="{ checked: item.is_checked }">
-              <text class="iconfont fa-check" v-if="item.is_checked"></text>
-            </view>
-          </view>
-
-          <!-- 商品图片 -->
-          <view class="item-img-wrap" @click="goDetail(item)">
-            <image class="item-image" :src="item.cover_image" mode="aspectFill" />
-            <view class="invalid-badge" v-if="isItemInvalid(item)">
-              <text>{{ getInvalidLabel(item) }}</text>
-            </view>
-          </view>
-
-          <!-- 商品信息 -->
-          <view class="item-info">
-            <text class="item-title" @click="goDetail(item)">{{ item.title }}</text>
-            <view class="item-sku-row" v-if="item.sku_name" @click="showSkuPopup(item, index)">
-              <text class="item-sku">{{ item.sku_name }}</text>
-              <text class="iconfont fa-chevron-down sku-arrow"></text>
-            </view>
-            <view class="item-bottom">
-              <view class="item-price-wrap">
-                <text class="price-symbol">¥</text>
-                <text class="price-int">{{ String(item.price).split('.')[0] }}</text>
-                <text class="price-dec">.{{ String(item.price).split('.')[1] || '00' }}</text>
-              </view>
-              <!-- 数量步进器 -->
-              <view class="qty-stepper">
-                <view class="qty-btn qty-minus" @click.stop="decrease(index)">
-                  <text class="qty-icon">−</text>
-                </view>
-                <text class="qty-num">{{ item.quantity }}</text>
-                <view class="qty-btn qty-plus" @click.stop="increase(index)">
-                  <text class="qty-icon">+</text>
-                </view>
-              </view>
-            </view>
-          </view>
-        </view>
+          :item="item"
+          @toggle-check="toggleCheck(index)"
+          @go-detail="goDetail(item)"
+          @change-sku="showSkuPopup(item, index)"
+          @update-quantity="updateQuantity(index, $event)"
+          @minus="decrease(index)"
+        />
       </view>
 
-      <!-- 猜你喜欢 -->
-      <view class="recommend-section">
-        <view class="recommend-header">
-          <view class="divider-line"></view>
-          <view class="recommend-title">
-            <text class="iconfont fa-heart heart-icon"></text>
-            <text>猜你喜欢</text>
-          </view>
-          <view class="divider-line"></view>
-        </view>
-        <view class="recommend-grid">
-          <view class="recommend-item" v-for="item in recommendList" :key="item.id" @click="goDetail(item)">
-            <view class="rec-img-wrap">
-              <image class="rec-img" :src="item.cover_image" mode="aspectFill" />
-            </view>
-            <view class="rec-info">
-              <text class="rec-title">{{ item.title }}</text>
-              <view class="rec-bottom">
-                <view class="rec-price-wrap">
-                  <text class="price-symbol rec-symbol">¥</text>
-                  <text class="rec-price">{{ item.price }}</text>
-                </view>
-                <view class="rec-add-btn">
-                  <text class="iconfont fa-cart-plus rec-cart-icon"></text>
-                </view>
-              </view>
-            </view>
-          </view>
-        </view>
-      </view>
+      <RecommendSection
+        :list="recommendList"
+        @go-detail="goDetail"
+        @add-cart="addToCart"
+      />
     </view>
 
-    <!-- 底部占位 -->
     <view class="bottom-placeholder" v-if="cartList.length > 0"></view>
 
-    <!-- 底部结算栏 -->
-    <view class="cart-footer" v-if="cartList.length > 0">
-      <view class="footer-left">
-        <view class="select-all" @click="toggleAllCheck">
-          <view class="check-circle" :class="{ checked: isAllChecked }">
-            <text class="iconfont fa-check" v-if="isAllChecked"></text>
-          </view>
-          <text class="select-all-text">全选</text>
-        </view>
-        <view class="total-info">
-          <view class="shipping-info" v-if="shippingGap > 0">
-            <text class="shipping-text">还差 ¥{{ shippingGap.toFixed(2) }} 免运费</text>
-            <view class="shipping-bar">
-              <view class="shipping-fill" :style="{ width: Math.min(100, (99 - shippingGap) / 99 * 100) + '%' }"></view>
-            </view>
-          </view>
-          <view class="shipping-info shipping-info-done" v-else>
-            <text class="shipping-text done">已满 ¥99，免运费</text>
-          </view>
-          <view class="price-row">
-            <text class="total-label">合计</text>
-            <view class="total-price-wrap">
-              <text class="price-symbol total-symbol">¥</text>
-              <text class="total-price">{{ totalPrice }}</text>
-            </view>
-          </view>
-        </view>
-      </view>
-      <view class="footer-right">
-        <view class="btn-settlement" :class="{ 'btn-delete': isEdit }" @click="isEdit ? deleteChecked() : goSettlement()">
-          <text v-if="!isEdit">去结算</text>
-          <text v-else>删除</text>
-          <text class="settlement-count" v-if="!isEdit && checkedCount">({{ checkedCount }}件)</text>
-        </view>
-      </view>
-    </view>
+    <CartFooter
+      v-if="cartList.length > 0"
+      :isAllChecked="isAllChecked"
+      :totalPrice="totalPrice"
+      :checkedCount="checkedCount"
+      :isEdit="isEdit"
+      @toggle-all="toggleAllCheck"
+      @checkout="isEdit ? deleteChecked() : goSettlement()"
+    />
   </view>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
 import request from '@/utils/request.js';
 import { useCartStore } from '@/stores/cart.js';
 import { checkLogin } from '@/utils/auth.js';
+import CartTipBar from '@/components/CartTipBar.vue';
+import CartItemCard from '@/components/CartItemCard.vue';
+import CartFooter from '@/components/CartFooter.vue';
+import RecommendSection from '@/components/RecommendSection.vue';
 
 const cartStore = useCartStore();
 const loading = ref(false);
@@ -177,47 +75,78 @@ const isEdit = ref(false);
 const cartList = ref([]);
 const recommendList = ref([]);
 
-const isAllChecked = computed(() => {
-  return cartList.value.length > 0 && cartList.value.every(item => item.is_checked);
-});
+const isAllChecked = computed(() => cartList.value.length > 0 && cartList.value.every(item => item.is_checked));
+const checkedCount = computed(() => cartList.value.filter(item => item.is_checked).reduce((sum, item) => sum + item.quantity, 0));
+const totalPrice = computed(() => cartList.value.filter(item => item.is_checked).reduce((sum, item) => sum + item.price * item.quantity, 0));
+const invalidItems = computed(() => cartList.value.filter(item => (item.stock || 0) === 0 || item.product_status === 0));
 
-const checkedCount = computed(() => {
-  return cartList.value.filter(item => item.is_checked).reduce((sum, item) => sum + item.quantity, 0);
-});
-
-const totalPrice = computed(() => {
-  return cartList.value
-    .filter(item => item.is_checked)
-    .reduce((sum, item) => sum + item.price * item.quantity, 0)
-    .toFixed(2);
-});
-
-const invalidItems = computed(() => {
-  return cartList.value.filter(item => {
-    const stock = item.stock || 0;
-    const status = item.product_status;
-    return stock === 0 || status === 0;
-  });
-});
-
-const shippingGap = computed(() => {
-  const threshold = 99;
-  const total = cartList.value
-    .filter(item => item.is_checked)
-    .reduce((sum, item) => sum + item.price * item.quantity, 0);
-  return Math.max(0, threshold - total);
-});
-
-function isItemInvalid(item) {
-  const stock = item.stock || 0;
-  const status = item.product_status;
-  return stock === 0 || status === 0;
+function toggleEdit() {
+  isEdit.value = !isEdit.value;
 }
 
-function getInvalidLabel(item) {
-  const status = item.product_status;
-  if (status === 0) return '已下架';
-  return '缺货';
+function toggleCheck(index) {
+  cartList.value[index].is_checked = !cartList.value[index].is_checked;
+  cartStore.syncCartCheck(cartList.value[index]);
+}
+
+function toggleAllCheck() {
+  const checked = !isAllChecked.value;
+  cartList.value.forEach(item => { item.is_checked = checked; });
+  cartStore.syncAllChecked(checked);
+}
+
+function decrease(index) {
+  if (cartList.value[index].quantity <= 1) {
+    uni.showModal({
+      title: '提示',
+      content: '确定要删除该商品吗？',
+      confirmColor: '#bb0004',
+      success: (res) => { if (res.confirm) removeItem(index); }
+    });
+    return;
+  }
+  updateQuantity(index, cartList.value[index].quantity - 1);
+}
+
+function increase(index) {
+  updateQuantity(index, cartList.value[index].quantity + 1);
+}
+
+async function updateQuantity(index, quantity) {
+  const item = cartList.value[index];
+  try {
+    await request.put(`/cart/${item.id}`, { quantity });
+    cartList.value[index].quantity = quantity;
+    cartStore.updateQuantity(index, quantity);
+  } catch (e) {
+    console.error('更新数量失败', e);
+  }
+}
+
+async function removeItem(index) {
+  const item = cartList.value[index];
+  try {
+    await request.delete(`/cart/${item.id}`);
+    cartList.value.splice(index, 1);
+    cartStore.removeItem(index);
+  } catch (e) {
+    console.error('删除失败', e);
+  }
+}
+
+async function deleteChecked() {
+  const checkedItems = cartList.value.filter(item => item.is_checked);
+  if (checkedItems.length === 0) {
+    uni.showToast({ title: '请选择商品', icon: 'none' });
+    return;
+  }
+  try {
+    await request.delete('/cart/batch', { ids: checkedItems.map(item => item.id) });
+    cartList.value = cartList.value.filter(item => !item.is_checked);
+    cartStore.clearChecked();
+  } catch (e) {
+    console.error('批量删除失败', e);
+  }
 }
 
 function confirmClearInvalid() {
@@ -225,38 +154,68 @@ function confirmClearInvalid() {
     title: '提示',
     content: '确定要删除所有失效商品吗？',
     confirmColor: '#bb0004',
-    success: (res) => {
-      if (res.confirm) {
-        clearInvalid();
-      }
-    }
+    success: (res) => { if (res.confirm) clearInvalid(); }
   });
 }
 
 async function clearInvalid() {
-  const invalid = cartList.value.filter(item => {
-    const stock = item.stock || 0;
-    const status = item.product_status;
-    return stock === 0 || status === 0;
-  });
+  const invalid = cartList.value.filter(item => (item.stock || 0) === 0 || item.product_status === 0);
   if (invalid.length === 0) return;
   try {
-    await request.delete('/cart/batch', {
-      ids: invalid.map(item => item.id),
-    });
-    cartList.value = cartList.value.filter(item => {
-      const stock = item.stock || 0;
-      const status = item.product_status;
-      return stock !== 0 && status !== 0;
-    });
+    await request.delete('/cart/batch', { ids: invalid.map(item => item.id) });
+    cartList.value = cartList.value.filter(item => (item.stock || 0) !== 0 && item.product_status !== 0);
     cartStore.setList(cartList.value);
   } catch (e) {
     console.error('清理失效商品失败', e);
   }
 }
 
+function goShopping() {
+  uni.switchTab({ url: '/pages/index/index' });
+}
+
 function goFavorites() {
   uni.navigateTo({ url: '/pages/favorite/index' });
+}
+
+function goDetail(item) {
+  uni.navigateTo({ url: `/pages/product/detail?id=${item.product_id}` });
+}
+
+function showSkuPopup(item, index) {
+  uni.navigateTo({ url: `/pages/product/detail?id=${item.product_id}` });
+}
+
+function goSettlement() {
+  const checkedItems = cartList.value.filter(item => item.is_checked);
+  if (checkedItems.length === 0) {
+    uni.showToast({ title: '请选择商品', icon: 'none' });
+    return;
+  }
+  const invalidChecked = checkedItems.filter(item => (item.stock || 0) === 0 || item.product_status === 0);
+  if (invalidChecked.length > 0) {
+    uni.showModal({
+      title: '提示',
+      content: `您选中了 ${invalidChecked.length} 件失效商品，请先删除后再结算`,
+      confirmColor: '#bb0004',
+      showCancel: false,
+    });
+    return;
+  }
+  uni.setStorageSync('settlement_items', JSON.stringify(checkedItems));
+  uni.navigateTo({ url: '/pages/order/confirm' });
+}
+
+function addToCart(item) {
+  cartStore.addItem({
+    product_id: item.id,
+    sku_id: null,
+    title: item.title,
+    cover_image: item.cover_image,
+    price: item.price,
+    quantity: 1,
+    stock: item.stock,
+  });
 }
 
 onShow(async () => {
@@ -293,87 +252,25 @@ async function loadRecommend() {
     console.error('加载推荐失败', e);
   }
 }
-
-function toggleEdit() {
-  isEdit.value = !isEdit.value;
-}
-
-function toggleCheck(index) {
-  const item = cartList.value[index];
-  item.is_checked = !item.is_checked;
-  cartStore.syncCartCheck(item);
-}
-
-function toggleAllCheck() {
-  const checked = !isAllChecked.value;
-  cartList.value.forEach(item => {
-    item.is_checked = checked;
-  });
-  cartStore.syncAllChecked(checked);
-}
-
-function goSettlement() {
-  const checkedItems = cartList.value.filter(item => item.is_checked);
-  if (checkedItems.length === 0) {
-    uni.showToast({ title: '请选择商品', icon: 'none' });
-    return;
-  }
-  const invalidChecked = checkedItems.filter(item => {
-    const stock = item.stock || 0;
-    const status = item.product_status;
-    return stock === 0 || status === 0;
-  });
-  if (invalidChecked.length > 0) {
-    uni.showModal({
-      title: '提示',
-      content: `您选中了 ${invalidChecked.length} 件失效商品，请先删除后再结算`,
-      confirmColor: '#bb0004',
-      showCancel: false,
-    });
-    return;
-  }
-  uni.setStorageSync('settlement_items', JSON.stringify(checkedItems));
-  uni.navigateTo({ url: '/pages/order/confirm' });
-}
-
-async function showSkuPopup(item, index) {
-  uni.navigateTo({ url: `/pages/product/detail?id=${item.product_id}` });
-}
 </script>
 
 <style lang="scss">
-/* ================================================================
-   购物车页面 - 参考 stitch_/_3 重构
-   设计关键词: glass blur / 圆角卡片 / 圆形选择框 / 悬浮感 / 渐变按钮
-   ================================================================ */
-
 $primary: #bb0004;
 $primary-container: #e1251b;
 $on-primary: #ffffff;
-$secondary-container: #feb700;
 $surface: #fbf9f9;
 $surface-lowest: #ffffff;
 $surface-low: #f5f3f3;
 $surface-high: #e9e8e7;
 $surface-highest: #e3e2e2;
-$surface-bright: #fbf9f9;
-$surface-variant: #e3e2e2;
-$surface-container: #efeded;
 $surface-container-low: #f5f3f3;
-$surface-container-lowest: #ffffff;
 $surface-container-high: #e9e8e7;
-$surface-container-highest: #e3e2e2;
 $on-surface: #1b1c1c;
 $on-surface-variant: #5d3f3b;
-$outline-variant: #e7bdb7;
-$radius-sm: 4rpx;
-$radius-md: 12rpx;
-$radius-lg: 16rpx;
 $radius-xl: 24rpx;
 $radius-full: 9999rpx;
 $tabbar-height: 100rpx;
 
-/* ── 页面容器 ── */
 .page {
   min-height: 100vh;
   background: $surface;
@@ -381,15 +278,6 @@ $tabbar-height: 100rpx;
   padding-top: env(safe-area-inset-top);
 }
 
-.page-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-}
-
-/* ── 顶部导航 (参考设计: fixed glass header) ── */
 .nav-header {
   position: fixed;
   top: 0;
@@ -430,18 +318,11 @@ $tabbar-height: 100rpx;
   font-size: 34rpx;
   font-weight: 800;
   color: $on-surface;
-  letter-spacing: -0.01em;
 }
 
 .nav-right {
   display: flex;
   align-items: center;
-  gap: 8rpx;
-}
-
-.nav-icon-sm {
-  font-size: 32rpx;
-  color: $on-surface-variant;
 }
 
 .nav-manage {
@@ -450,7 +331,6 @@ $tabbar-height: 100rpx;
   color: $on-surface-variant;
 }
 
-/* ── 空购物车 ── */
 .empty-cart {
   display: flex;
   flex-direction: column;
@@ -488,7 +368,6 @@ $tabbar-height: 100rpx;
   font-size: 28rpx;
   font-weight: 700;
   box-shadow: 0 8rpx 32rpx rgba($primary, 0.28);
-  letter-spacing: 0.02em;
 }
 
 .empty-btn-fav {
@@ -499,586 +378,19 @@ $tabbar-height: 100rpx;
   border-radius: $radius-full;
   font-size: 28rpx;
   font-weight: 700;
-  letter-spacing: 0.02em;
 }
 
-/* ── 购物车内容 ── */
 .cart-content {
   padding: 128rpx 32rpx 0;
 }
 
-/* ── 提示条 ── */
-.cart-tip-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: $surface-container-low;
-  border-radius: $radius-xl;
-  padding: 24rpx 28rpx;
-  margin-bottom: 24rpx;
-}
-
-.tip-count {
-  font-family: 'Manrope', sans-serif;
-  font-size: 30rpx;
-  font-weight: 800;
-  color: $primary;
-}
-
-.tip-right {
-  display: flex;
-  align-items: center;
-}
-
-.tip-badge {
-  background: $surface-container-highest;
-  font-size: 22rpx;
-  color: $on-surface-variant;
-  padding: 8rpx 24rpx;
-  border-radius: $radius-full;
-  font-weight: 500;
-}
-
-.tip-cleanup {
-  display: flex;
-  align-items: center;
-  gap: 6rpx;
-  background: rgba($primary, 0.1);
-  font-size: 22rpx;
-  color: $primary;
-  padding: 8rpx 24rpx;
-  border-radius: $radius-full;
-  font-weight: 500;
-
-  .fa-trash-alt {
-    font-size: 20rpx;
-  }
-}
-
-/* ── 商品列表 ── */
 .cart-list {
   display: flex;
   flex-direction: column;
   gap: 20rpx;
 }
 
-.cart-item {
-  display: flex;
-  align-items: flex-start;
-  padding: 28rpx;
-  background: $surface-container-lowest;
-  border-radius: $radius-xl;
-  gap: 20rpx;
-  transition: background 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.03);
-
-  &:active {
-    background: $surface-bright;
-  }
-
-  &.item-checked {
-    box-shadow: 0 4rpx 20rpx rgba($primary, 0.08);
-  }
-
-  &.item-invalid {
-    opacity: 0.6;
-
-    .item-title {
-      text-decoration: line-through;
-    }
-  }
-}
-
-/* ── 圆形选择框 (纯 CSS) ── */
-.item-check {
-  flex-shrink: 0;
-  padding-top: 56rpx;
-}
-
-.check-circle {
-  width: 44rpx;
-  height: 44rpx;
-  border: 3rpx solid $outline-variant;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  background: transparent;
-  position: relative;
-
-  &.checked {
-    background: $primary;
-    border-color: $primary;
-    box-shadow: 0 4rpx 12rpx rgba($primary, 0.3);
-
-    .fa-check {
-      color: $on-primary;
-      display: block;
-    }
-  }
-}
-
-.iconfont-check,
-.fa-check {
-  display: none;
-  font-size: 24rpx;
-  color: transparent;
-  line-height: 1;
-  font-weight: 700;
-}
-
-/* ── 商品图片 ── */
-.item-img-wrap {
-  width: 160rpx;
-  height: 160rpx;
-  border-radius: $radius-lg;
-  overflow: hidden;
-  background: $surface-container-low;
-  flex-shrink: 0;
-  position: relative;
-}
-
-.item-image {
-  width: 100%;
-  height: 100%;
-}
-
-.invalid-badge {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: $radius-lg;
-
-  text {
-    font-size: 20rpx;
-    color: #fff;
-    font-weight: 600;
-    background: $primary;
-    padding: 4rpx 12rpx;
-    border-radius: $radius-sm;
-  }
-}
-
-/* ── 商品信息 ── */
-.item-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.item-title {
-  font-size: 28rpx;
-  color: $on-surface;
-  font-weight: 600;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  line-height: 1.45;
-  margin-bottom: 12rpx;
-  letter-spacing: -0.01em;
-}
-
-.item-sku-row {
-  display: flex;
-  align-items: center;
-  gap: 4rpx;
-  margin-bottom: 16rpx;
-}
-
-.item-sku {
-  font-size: 22rpx;
-  color: $on-surface-variant;
-  background: $surface-container-high;
-  padding: 6rpx 18rpx;
-  border-radius: $radius-sm;
-  font-weight: 500;
-}
-
-.sku-arrow {
-  font-size: 22rpx;
-  color: $on-surface-variant;
-}
-
-.item-bottom {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-}
-
-/* ── 价格 ── */
-.item-price-wrap {
-  display: flex;
-  align-items: baseline;
-  gap: 2rpx;
-}
-
-.price-symbol {
-  font-size: 20rpx;
-  font-weight: 700;
-  color: $primary;
-  font-family: 'Manrope', sans-serif;
-}
-
-.price-int {
-  font-size: 36rpx;
-  font-weight: 800;
-  color: $primary;
-  font-family: 'Manrope', sans-serif;
-  letter-spacing: -0.02em;
-}
-
-.price-dec {
-  font-size: 20rpx;
-  font-weight: 700;
-  color: $primary;
-}
-
-/* ── 数量步进器 (圆形胶囊风格) ── */
-.qty-stepper {
-  display: flex;
-  align-items: center;
-  background: $surface-container-low;
-  border-radius: $radius-full;
-  padding: 4rpx;
-  gap: 0;
-}
-
-.qty-btn {
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
-
-  .qty-icon {
-    font-size: 30rpx;
-    color: $on-surface-variant;
-    font-weight: 600;
-    line-height: 1;
-    font-family: 'Manrope', sans-serif;
-  }
-
-  &:active {
-    background: $surface-container-high;
-
-    .qty-icon {
-      color: $primary;
-    }
-  }
-
-  &.qty-plus {
-    background: $primary;
-
-    .qty-icon {
-      color: $on-primary;
-    }
-
-    &:active {
-      background: $primary-container;
-      opacity: 0.9;
-    }
-  }
-}
-
-.qty-num {
-  min-width: 64rpx;
-  text-align: center;
-  font-size: 28rpx;
-  font-weight: 700;
-  color: $on-surface;
-  font-family: 'Manrope', sans-serif;
-  padding: 0 8rpx;
-}
-
-/* ── 猜你喜欢 ── */
-.recommend-section {
-  margin-top: 64rpx;
-  padding-bottom: 40rpx;
-}
-
-.recommend-header {
-  display: flex;
-  align-items: center;
-  gap: 24rpx;
-  margin-bottom: 36rpx;
-}
-
-.divider-line {
-  flex: 1;
-  height: 2rpx;
-  background: $outline-variant;
-}
-
-.recommend-title {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  font-family: 'Manrope', sans-serif;
-  font-size: 32rpx;
-  font-weight: 800;
-  color: $on-surface;
-  white-space: nowrap;
-  letter-spacing: -0.01em;
-}
-
-.heart-icon {
-  font-size: 32rpx;
-  color: $primary;
-}
-
-.recommend-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20rpx;
-}
-
-.recommend-item {
-  background: $surface-container-lowest;
-  border-radius: $radius-xl;
-  overflow: hidden;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
-  transition: all 0.2s ease;
-
-  &:active {
-    transform: scale(0.97);
-    box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
-  }
-}
-
-.rec-img-wrap {
-  height: 280rpx;
-  overflow: hidden;
-  background: $surface-container-low;
-}
-
-.rec-img {
-  width: 100%;
-  height: 100%;
-  transition: transform 0.3s ease;
-
-  &:active {
-    transform: scale(1.05);
-  }
-}
-
-.rec-info {
-  padding: 20rpx 24rpx 24rpx;
-}
-
-.rec-title {
-  font-size: 26rpx;
-  color: $on-surface;
-  font-weight: 500;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  line-height: 1.45;
-  margin-bottom: 16rpx;
-}
-
-.rec-bottom {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.rec-price-wrap {
-  display: flex;
-  align-items: baseline;
-  gap: 2rpx;
-}
-
-.rec-symbol {
-  font-size: 20rpx;
-}
-
-.rec-price {
-  font-size: 30rpx;
-  font-weight: 800;
-  color: $primary;
-  font-family: 'Manrope', sans-serif;
-  letter-spacing: -0.02em;
-}
-
-.rec-add-btn {
-  width: 60rpx;
-  height: 60rpx;
-  border-radius: 50%;
-  background: rgba($primary, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  .rec-cart-icon {
-    font-size: 28rpx;
-    color: $primary;
-  }
-}
-
-/* ── 底部占位 ── */
 .bottom-placeholder {
   height: calc(140rpx + 100rpx);
-}
-
-/* ── 底部结算栏 (玻璃模糊) ── */
-.cart-footer {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: calc(100rpx + env(safe-area-inset-bottom));
-  z-index: 100;
-  padding: 16rpx 32rpx;
-  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  box-shadow: 0 -8rpx 40rpx rgba(0, 0, 0, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 120rpx;
-}
-
-.footer-left {
-  display: flex;
-  align-items: center;
-  gap: 24rpx;
-}
-
-.select-all {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6rpx;
-}
-
-.select-all-text {
-  font-size: 20rpx;
-  font-weight: 700;
-  color: $on-surface-variant;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.total-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4rpx;
-  margin-left: 8rpx;
-}
-
-.shipping-info {
-  margin-bottom: 4rpx;
-}
-
-.shipping-text {
-  font-size: 20rpx;
-  color: $on-surface-variant;
-  font-weight: 500;
-}
-
-.shipping-text.done {
-  color: #52c41a;
-}
-
-.shipping-bar {
-  width: 120rpx;
-  height: 6rpx;
-  background: $surface-container-high;
-  border-radius: $radius-full;
-  margin-top: 4rpx;
-  overflow: hidden;
-}
-
-.shipping-fill {
-  height: 100%;
-  background: linear-gradient(135deg, $primary 0%, $primary-container 100%);
-  border-radius: $radius-full;
-  transition: width 0.3s ease;
-}
-
-.total-label {
-  font-size: 22rpx;
-  color: $on-surface-variant;
-  font-weight: 500;
-}
-
-.price-row {
-  display: flex;
-  align-items: baseline;
-  gap: 8rpx;
-}
-
-.total-price-wrap {
-  display: flex;
-  align-items: baseline;
-  gap: 2rpx;
-}
-
-.total-symbol {
-  font-size: 24rpx;
-}
-
-.total-price {
-  font-family: 'Manrope', sans-serif;
-  font-size: 36rpx;
-  font-weight: 800;
-  color: $primary;
-  letter-spacing: -0.03em;
-}
-
-.footer-right {
-  display: flex;
-  align-items: center;
-}
-
-/* ── 结算按钮 (渐变 kinetic-gradient) ── */
-.btn-settlement {
-  background: linear-gradient(135deg, $primary 0%, $primary-container 100%);
-  color: $on-primary;
-  font-size: 28rpx;
-  font-weight: 700;
-  padding: 0 40rpx;
-  height: 80rpx;
-  border-radius: $radius-full;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8rpx 32rpx rgba($primary, 0.3);
-  letter-spacing: 0.02em;
-  transition: all 0.2s ease;
-
-  .settlement-count {
-    font-size: 20rpx;
-    font-weight: 500;
-    opacity: 0.85;
-    margin-left: 4rpx;
-  }
-
-  &:active {
-    opacity: 0.88;
-    transform: scale(0.96);
-    box-shadow: 0 4rpx 16rpx rgba($primary, 0.25);
-  }
-
-  &.btn-delete {
-    background: $surface-container-high;
-    box-shadow: none;
-
-    &:active {
-      background: $surface-high;
-      opacity: 1;
-    }
-  }
 }
 </style>
