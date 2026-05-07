@@ -36,6 +36,7 @@ let QuickEntryService = class QuickEntryService {
         const quickEntry = this.quickEntryRepository.create({
             title: dto.title,
             icon: dto.icon,
+            bg_color: dto.bg_color,
             type: dto.type || 'none',
             target_id: dto.target_id,
             sort_order: dto.sort_order || 0,
@@ -52,6 +53,8 @@ let QuickEntryService = class QuickEntryService {
             quickEntry.title = dto.title;
         if (dto.icon !== undefined)
             quickEntry.icon = dto.icon;
+        if (dto.bg_color !== undefined)
+            quickEntry.bg_color = dto.bg_color;
         if (dto.type !== undefined)
             quickEntry.type = dto.type;
         if (dto.target_id !== undefined)

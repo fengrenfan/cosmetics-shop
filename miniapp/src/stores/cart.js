@@ -151,11 +151,11 @@ export const useCartStore = defineStore('cart', {
       }
     },
 
-    async syncAllChecked() {
+    async syncAllChecked(checked) {
       try {
         await request.put('/cart/checked', {
           ids: this.list.map((item) => item.id),
-          checked: 1,
+          checked: checked ? 1 : 0,
         });
       } catch (e) {
         console.error('同步全选状态失败', e);

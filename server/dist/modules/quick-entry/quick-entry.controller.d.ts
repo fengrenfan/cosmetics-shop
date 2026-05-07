@@ -7,6 +7,7 @@ export declare class QuickEntryController {
     create(dto: {
         title: string;
         icon?: string;
+        bg_color?: string;
         type?: string;
         target_id?: string;
         sort_order?: number;
@@ -14,6 +15,7 @@ export declare class QuickEntryController {
     update(id: number, dto: {
         title?: string;
         icon?: string;
+        bg_color?: string;
         type?: string;
         target_id?: string;
         sort_order?: number;

@@ -67,6 +67,11 @@
           <el-input v-model="formData.title" placeholder="请输入标题" />
         </el-form-item>
 
+        <el-form-item label="背景色">
+          <el-color-picker v-model="formData.bg_color" show-alpha />
+          <span style="margin-left: 8px; color: #999; font-size: 12px;">留空则使用默认浅灰 #F5F3F3</span>
+        </el-form-item>
+
         <el-form-item label="图标" prop="icon">
           <div class="image-uploader">
             <el-image 
@@ -148,6 +153,7 @@ const formData = reactive({
   id: null,
   title: '',
   icon: '',
+  bg_color: '',
   type: 'none',
   target_id: '',
   sort_order: 0,
@@ -198,6 +204,7 @@ function handleEdit(row) {
     id: row.id,
     title: row.title,
     icon: row.icon,
+    bg_color: row.bg_color || '',
     type: row.type,
     target_id: row.target_id,
     sort_order: row.sort_order,
@@ -240,6 +247,7 @@ async function handleSubmit() {
       await request.put(`/quick-entry/${formData.id}`, {
         title: formData.title,
         icon: formData.icon,
+        bg_color: formData.bg_color,
         type: formData.type,
         target_id: formData.target_id,
         sort_order: formData.sort_order,
@@ -250,6 +258,7 @@ async function handleSubmit() {
       await request.post('/quick-entry', {
         title: formData.title,
         icon: formData.icon,
+        bg_color: formData.bg_color,
         type: formData.type,
         target_id: formData.target_id,
         sort_order: formData.sort_order,
@@ -271,6 +280,7 @@ function resetForm() {
     id: null,
     title: '',
     icon: '',
+    bg_color: '',
     type: 'none',
     target_id: '',
     sort_order: 0,

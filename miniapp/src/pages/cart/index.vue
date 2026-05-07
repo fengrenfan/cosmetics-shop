@@ -249,14 +249,14 @@ async function clearInvalid() {
       const status = item.product_status;
       return stock !== 0 && status !== 0;
     });
-    cartStore.clearInvalidItems();
+    cartStore.setList(cartList.value);
   } catch (e) {
     console.error('清理失效商品失败', e);
   }
 }
 
 function goFavorites() {
-  uni.switchTab({ url: '/pages/user/index' });
+  uni.navigateTo({ url: '/pages/favorite/index' });
 }
 
 onShow(async () => {
@@ -309,7 +309,7 @@ function toggleAllCheck() {
   cartList.value.forEach(item => {
     item.is_checked = checked;
   });
-  cartStore.syncAllChecked();
+  cartStore.syncAllChecked(checked);
 }
 
 function goSettlement() {

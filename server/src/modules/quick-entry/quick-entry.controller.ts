@@ -31,7 +31,7 @@ export class QuickEntryController {
    */
   @UseGuards(JwtAuthGuard)
   @Post()
-  async create(@Body() dto: { title: string; icon?: string; type?: string; target_id?: string; sort_order?: number }) {
+  async create(@Body() dto: { title: string; icon?: string; bg_color?: string; type?: string; target_id?: string; sort_order?: number }) {
     return this.quickEntryService.create(dto);
   }
 
@@ -41,7 +41,7 @@ export class QuickEntryController {
    */
   @UseGuards(JwtAuthGuard)
   @Put(':id')
-  async update(@Param('id') id: number, @Body() dto: { title?: string; icon?: string; type?: string; target_id?: string; sort_order?: number; status?: number }) {
+  async update(@Param('id') id: number, @Body() dto: { title?: string; icon?: string; bg_color?: string; type?: string; target_id?: string; sort_order?: number; status?: number }) {
     return this.quickEntryService.update(id, dto);
   }
 

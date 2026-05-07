@@ -62,13 +62,13 @@
         </swiper>
       </view>
 
-      <!-- 分类图标网格 - 10个带颜色背景的图标 -->
-      <view class="category-grid">
-        <view class="grid-item" v-for="(item, idx) in categoryIcons" :key="idx" @click="onGridIconClick(item)">
-          <view class="grid-icon-bg" :style="{ background: item.bgColor }">
-            <text class="iconfont" :class="item.icon" :style="{ color: item.iconColor }"></text>
+      <!-- 快速入口图标网格 -->
+      <view class="category-grid" v-if="quickEntries.length > 0">
+        <view class="grid-item" v-for="(item, idx) in quickEntries" :key="item.id || idx" @click="onGridIconClick(item)">
+          <view class="grid-icon-bg" :style="item.bg_color ? { background: item.bg_color } : {}">
+            <image v-if="item.icon" class="grid-icon-img" :src="item.icon" mode="aspectFill" />
           </view>
-          <text class="grid-name">{{ item.name }}</text>
+          <text class="grid-name">{{ item.title }}</text>
         </view>
       </view>
 
@@ -112,9 +112,6 @@
               <text class="product-title">{{ item.title }}</text>
               <view class="product-bottom">
                 <text class="product-price">¥{{ item.price }}</text>
-                <view class="add-btn" @click.stop="addToCart(item)">
-                  <text class="iconfont fa-cart-plus add-cart-icon"></text>
-                </view>
               </view>
               <text class="product-sales">{{ item.rating || '5.0' }} ★ 已售 {{ item.sales_count || '0' }}</text>
             </view>
@@ -132,15 +129,6 @@
       <view class="bottom-safe"></view>
     </scroll-view>
 
-    <!-- SKU 选择弹窗 -->
-    <SkuSelectModal
-      :show="showSkuModal"
-      :product="currentProduct"
-      actionType="cart"
-      @close="showSkuModal = false"
-      @confirm="onSkuConfirm"
-    />
-
     <CitySelectModal
       :show="showCityModal"
       :currentCity="selectedCityData"
@@ -154,37 +142,25 @@
 import { ref, computed, onMounted } from 'vue';
 import { login } from '@/utils/auth.js';
 import request from '@/utils/request.js';
-import { useCartStore } from '@/stores/cart.js';
 import { useLocationStore } from '@/stores/location.js';
-import SkuSelectModal from '@/components/SkuSelectModal.vue';
 import CitySelectModal from '@/components/CitySelectModal.vue';
-const cartStore = useCartStore();
 const locationStore = useLocationStore();
 
 const statusBarHeight = ref(20);
 const refreshing = ref(false);
 const loading = ref(false);
 const noMore = ref(false);
-const showSkuModal = ref(false);
 const showCityModal = ref(false);
-const currentProduct = ref(null);
 
 const currentCity = computed(() => locationStore.displayCity);
 const selectedCityData = computed(() => locationStore.currentCity);
 
-// 固定分类图标（Font Awesome 6 Free 图标）
-const categoryIcons = [
-  { name: '每日特惠', icon: 'fa-tag', bgColor: '#FFE8E8', iconColor: '#E1251B' },
-  { name: '热销榜单', icon: 'fa-fire', bgColor: '#FFF4E0', iconColor: '#FF9500' },
-  { name: '新人专享', icon: 'fa-crown', bgColor: '#E8F3FF', iconColor: '#007AFF' },
-  { name: '积分商城', icon: 'fa-coins', bgColor: '#FFF0E5', iconColor: '#FF6B00' },
-  { name: '会员中心', icon: 'fa-id-card', bgColor: '#F5EBFF', iconColor: '#985EFF' },
-  { name: '全球直邮', icon: 'fa-globe', bgColor: '#E6F8FF', iconColor: '#00B2FF' },
-  { name: '肤质测试', icon: 'fa-face-smile', bgColor: '#FFEDF3', iconColor: '#FF2D78' },
-  { name: '有机系列', icon: 'fa-leaf', bgColor: '#ECF9F0', iconColor: '#34C759' },
-  { name: '超值套装', icon: 'fa-box-open', bgColor: '#FFF6E5', iconColor: '#FFCC00' },
-  { name: '专家咨询', icon: 'fa-headset', bgColor: '#F0F2F5', iconColor: '#636E72' },
-];
+const TAB_PAGES = new Set([
+  'pages/index/index',
+  'pages/category/index',
+  'pages/cart/index',
+  'pages/mine/index',
+]);
 
 // 数据
 const banners = ref([]);
@@ -215,12 +191,13 @@ onMounted(async () => {
 
 async function loadHomeData() {
   try {
-    const [bannerRes, categoryRes, featuredRes, hotRes, recommendRes] = await Promise.all([
+    const [bannerRes, categoryRes, featuredRes, hotRes, recommendRes, quickEntryRes] = await Promise.all([
       request.get('/banner/list'),
       request.get('/category/tree'),
       request.get('/product/featured'),
       request.get('/product-recommend/hot'),
       request.get('/product/recommend'),
+      request.get('/quick-entry/list'),
     ]);
 
     banners.value = (bannerRes || []).map(b => ({ ...b, image: request.fixImageUrl(b.image) }));
@@ -228,6 +205,7 @@ async function loadHomeData() {
     featured.value = featuredRes ? request.normalizeProduct(featuredRes) : null;
     hotProducts.value = (hotRes || []).map(p => request.normalizeProduct(p));
     recommendProducts.value = (recommendRes?.list || []).map(p => request.normalizeProduct(p));
+    quickEntries.value = quickEntryRes || [];
     noMore.value = true; // 推荐列表为后台配置，不支持分页
   } catch (e) {
     console.error('加载首页数据失败', e);
@@ -275,60 +253,22 @@ function goHotList() {
 }
 
 function onGridIconClick(item) {
-  uni.switchTab({ url: '/pages/category/index' });
+  if (item.type === 'product' && item.target_id) {
+    uni.navigateTo({ url: `/pages/product/detail?id=${item.target_id}` });
+  } else if (item.type === 'category' && item.target_id) {
+    uni.navigateTo({ url: `/pages/product/list?category_id=${item.target_id}` });
+  } else if (item.type === 'url' && item.target_id) {
+    const path = item.target_id.replace(/^\//, '');
+    if (TAB_PAGES.has(path)) {
+      uni.switchTab({ url: '/' + path });
+    } else {
+      uni.navigateTo({ url: '/' + path });
+    }
+  }
 }
 
 function goDetail(product) {
   uni.navigateTo({ url: `/pages/product/detail?id=${product.id}` });
-}
-
-async function addToCart(item) {
-  // 有规格的商品弹出规格选择弹窗
-  if (item.skus?.length > 0) {
-    currentProduct.value = item;
-    showSkuModal.value = true;
-    return;
-  }
-
-  // 如果没有 sku 字段，先调用详情接口检查是否有规格
-  if (!item.skus) {
-    try {
-      const detail = await request.get(`/product/${item.id}`);
-      if (detail.skus?.length > 0) {
-        currentProduct.value = { ...item, skus: detail.skus, price: detail.price };
-        showSkuModal.value = true;
-        return;
-      }
-    } catch (e) {
-      console.error('获取商品详情失败', e);
-    }
-  }
-
-  // 无规格直接加入购物车
-  await cartStore.addItem({
-    product_id: item.id,
-    sku_id: null,
-    title: item.title,
-    cover_image: item.cover_image,
-    price: item.price,
-    quantity: 1,
-    stock: item.stock,
-  });
-}
-
-async function onSkuConfirm({ sku_id, quantity }) {
-  const product = currentProduct.value;
-  const sku = product.skus?.find(s => s.id === sku_id);
-  await cartStore.addItem({
-    product_id: product.id,
-    sku_id: sku_id,
-    title: product.title,
-    cover_image: product.cover_image,
-    price: sku?.price || product.price,
-    quantity: quantity,
-    stock: product.stock,
-  });
-  showSkuModal.value = false;
 }
 
 function openCityModal() {
@@ -588,9 +528,12 @@ $radius-full: 9999rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: $surface-low;
 
-  .iconfont {
-    font-size: 44rpx;
+  .grid-icon-img {
+    width: 60rpx;
+    height: 60rpx;
+    border-radius: 8rpx;
   }
 }
 
@@ -804,27 +747,6 @@ $radius-full: 9999rpx;
   font-weight: 900;
   font-family: 'Manrope', sans-serif;
   letter-spacing: -0.02em;
-}
-
-.add-btn {
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: 50%;
-  background: $primary;
-  color: $on-primary;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4rpx 12rpx rgba($primary, 0.3);
-
-  &:active {
-    transform: scale(0.9);
-  }
-
-  .add-cart-icon {
-    font-size: 32rpx;
-    color: #fff;
-  }
 }
 
 .product-sales {

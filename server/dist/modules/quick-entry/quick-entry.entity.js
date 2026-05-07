@@ -27,6 +27,10 @@ __decorate([
     __metadata("design:type", String)
 ], QuickEntry.prototype, "icon", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ name: 'bg_color', length: 20, nullable: true }),
+    __metadata("design:type", String)
+], QuickEntry.prototype, "bg_color", void 0);
+__decorate([
     (0, typeorm_1.Column)({ name: 'type', length: 20, default: 'none' }),
     __metadata("design:type", String)
 ], QuickEntry.prototype, "type", void 0);

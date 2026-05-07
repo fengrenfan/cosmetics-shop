@@ -2,6 +2,7 @@ export declare class QuickEntry {
     id: number;
     title: string;
     icon: string;
+    bg_color: string;
     type: string;
     target_id: string;
     sort_order: number;

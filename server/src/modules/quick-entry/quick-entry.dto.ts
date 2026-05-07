@@ -1,6 +1,7 @@
 export class CreateQuickEntryDto {
   title: string;
   icon?: string;
+  bg_color?: string;
   type?: string;
   target_id?: string;
   sort_order?: number;
@@ -10,6 +11,7 @@ export class CreateQuickEntryDto {
 export class UpdateQuickEntryDto {
   title?: string;
   icon?: string;
+  bg_color?: string;
   type?: string;
   target_id?: string;
   sort_order?: number;

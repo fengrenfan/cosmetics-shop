@@ -11,6 +11,9 @@ export class QuickEntry {
   @Column({ length: 500, nullable: true })
   icon: string;
 
+  @Column({ name: 'bg_color', length: 20, nullable: true })
+  bg_color: string;
+
   @Column({ name: 'type', length: 20, default: 'none' })
   type: string;
 

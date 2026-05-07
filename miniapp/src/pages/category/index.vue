@@ -171,9 +171,6 @@
                     ¥{{ item.original_price }}
                   </text>
                 </view>
-                <view class="add-cart-btn" @click.stop="addToCart(item)">
-                  <text class="iconfont fa-cart-plus add-cart-icon"></text>
-                </view>
               </view>
             </view>
           </view>
@@ -201,22 +198,12 @@
       </scroll-view>
     </view>
 
-    <!-- SKU 选择弹窗 -->
-    <SkuSelectModal
-      :show="showSkuModal"
-      :product="currentProduct"
-      actionType="cart"
-      @close="showSkuModal = false"
-      @confirm="onSkuConfirm"
-    />
   </view>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue';
 import request from '@/utils/request.js';
-import { useCartStore } from '@/stores/cart.js';
-import SkuSelectModal from '@/components/SkuSelectModal.vue';
 
 // 常量配置
 const PAGE_SIZE = 10;
@@ -229,9 +216,6 @@ const sortOptions = [
   { label: '价格', value: 'price', order: 'asc' },
   { label: '新品', value: 'created_at', order: 'desc' }
 ];
-
-// Store
-const cartStore = useCartStore();
 
 // 状态
 const statusBarHeight = ref(20);
@@ -248,8 +232,6 @@ const refreshing = ref(false);
 const noMore = ref(false);
 const categoriesLoading = ref(false);
 const showFilter = ref(false);
-const showSkuModal = ref(false);
-const currentProduct = ref(null);
 
 // 分页
 const page = ref(1);
@@ -463,58 +445,6 @@ function goSearch() {
 // 跳转详情
 function goDetail(item) {
   uni.navigateTo({ url: `/pages/product/detail?id=${item.id}` });
-}
-
-// 添加购物车
-async function addToCart(item) {
-  if (item.stock === 0) {
-    uni.showToast({ title: '商品已售罄', icon: 'none' });
-    return;
-  }
-
-  // 有规格的商品弹出规格选择弹窗
-  if (item.skus?.length > 0) {
-    currentProduct.value = item;
-    showSkuModal.value = true;
-    return;
-  }
-
-  try {
-    await cartStore.addItem({
-      product_id: item.id,
-      sku_id: null,
-      title: item.title,
-      cover_image: item.cover_image,
-      price: item.price,
-      quantity: 1,
-      stock: item.stock,
-    });
-    uni.showToast({ title: '已加入购物车', icon: 'success' });
-  } catch (e) {
-    console.error('加入购物车失败', e);
-    uni.showToast({ title: '加入购物车失败', icon: 'none' });
-  }
-}
-
-async function onSkuConfirm({ sku_id, quantity }) {
-  const product = currentProduct.value;
-  const sku = product.skus?.find(s => s.id === sku_id);
-  try {
-    await cartStore.addItem({
-      product_id: product.id,
-      sku_id: sku_id,
-      title: product.title,
-      cover_image: product.cover_image,
-      price: sku?.price || product.price,
-      quantity: quantity,
-      stock: product.stock,
-    });
-    uni.showToast({ title: '已加入购物车', icon: 'success' });
-    showSkuModal.value = false;
-  } catch (e) {
-    console.error('加入购物车失败', e);
-    uni.showToast({ title: '加入购物车失败', icon: 'none' });
-  }
 }
 </script>
 
@@ -1110,28 +1040,6 @@ $radius-full: 9999rpx;
   font-size: 22rpx;
   color: $on-surface-variant;
   text-decoration: line-through;
-}
-
-.add-cart-btn {
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 50%;
-  background: $primary;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: transform 0.15s ease;
-
-  &:active {
-    transform: scale(0.9);
-    opacity: 0.8;
-  }
-
-  .add-cart-icon {
-    font-size: 36rpx;
-    color: #fff;
-  }
 }
 
 // ── 加载状态 ──
