@@ -72,6 +72,16 @@ export class OrderController {
     return this.orderService.confirm(+id);
   }
 
+  /**
+   * 本地开发：模拟下单（跳过校验）
+   * POST /api/order/mock/create
+   */
+  @UseGuards(JwtAuthGuard)
+  @Post('mock/create')
+  async mockCreate(@Request() req) {
+    return this.orderService.mockCreate(req.user?.id);
+  }
+
   // ==================== 管理端接口 ====================
 
   /**

@@ -334,16 +334,20 @@ async function handleSubmit() {
       cart_id: item.id
     }));
 
-    const res = await request.post('/order/create', {
-      address_id: selectedAddress.value.id,
-      items,
-      remark: remark.value,
-      pay_channel: payMethod.value,
-      pay_scene: process.env.UNI_PLATFORM === 'h5' ? 'h5' : 'miniapp',
-      coupon_id: selectedCouponId.value || undefined,
-      points_amount: usePoints.value,
-      points_money: pointsMoney.value,
-    });
+    // 本地开发环境使用 mock 下单
+    const isDev = import.meta.env.DEV;
+    const res = isDev
+      ? await request.post('/order/mock/create')
+      : await request.post('/order/create', {
+          address_id: selectedAddress.value.id,
+          items,
+          remark: remark.value,
+          pay_channel: payMethod.value,
+          pay_scene: process.env.UNI_PLATFORM === 'h5' ? 'h5' : 'miniapp',
+          coupon_id: selectedCouponId.value || undefined,
+          points_amount: usePoints.value,
+          points_money: pointsMoney.value,
+        });
 
     uni.redirectTo({
       url: `/pages/order/detail?id=${res.id}&order_no=${res.order_no}&pay_amount=${res.pay_amount}`
