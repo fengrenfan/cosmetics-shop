@@ -40,7 +40,6 @@ import { PaymentModule } from './modules/payment/payment.module';
       synchronize: false,
       logging: false,
       connectTimeout: 60000,
-      acquireTimeout: 60000,
     }),
 
     // JWT 配置

@@ -117,7 +117,7 @@ async function updateQuantity(index, quantity) {
   try {
     await request.put(`/cart/${item.id}`, { quantity });
     cartList.value[index].quantity = quantity;
-    cartStore.updateQuantity(index, quantity);
+    cartStore.setList(cartList.value);
   } catch (e) {
     console.error('更新数量失败', e);
   }
@@ -128,7 +128,7 @@ async function removeItem(index) {
   try {
     await request.delete(`/cart/${item.id}`);
     cartList.value.splice(index, 1);
-    cartStore.removeItem(index);
+    cartStore.setList(cartList.value);
   } catch (e) {
     console.error('删除失败', e);
   }
@@ -143,7 +143,7 @@ async function deleteChecked() {
   try {
     await request.delete('/cart/batch', { ids: checkedItems.map(item => item.id) });
     cartList.value = cartList.value.filter(item => !item.is_checked);
-    cartStore.clearChecked();
+    cartStore.setList(cartList.value);
   } catch (e) {
     console.error('批量删除失败', e);
   }

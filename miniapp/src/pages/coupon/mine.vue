@@ -51,7 +51,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { onMounted } from '@dcloudio/uni-app';
-import { request } from '@/utils/request';
+import request from '@/utils/request';
 
 const tabs = [
   { label: '全部', value: '' },

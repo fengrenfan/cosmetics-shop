@@ -459,6 +459,11 @@ function handleSkuConfirm() {
 }
 
 async function addToCart() {
+  const token = uni.getStorageSync('token');
+  if (!token) {
+    uni.navigateTo({ url: '/pages/login/index' });
+    return;
+  }
   // 检查是否选择了 SKU
   if (product.value.skus?.length > 0 && !currentSkuId.value) {
     uni.showToast({ title: '请选择规格', icon: 'none' });
@@ -517,6 +522,11 @@ function buyNow() {
 }
 
 async function toggleFavorite() {
+  const token = uni.getStorageSync('token');
+  if (!token) {
+    uni.navigateTo({ url: '/pages/login/index' });
+    return;
+  }
   try {
     const res = await request.post('/favorite/toggle', { product_id: productId.value });
     if (res?.is_favorite !== undefined) {
@@ -531,6 +541,8 @@ async function toggleFavorite() {
 }
 
 async function checkFavorite() {
+  const token = uni.getStorageSync('token');
+  if (!token) return;
   try {
     const res = await request.get('/favorite/list');
     const list = res || [];
@@ -541,6 +553,8 @@ async function checkFavorite() {
 }
 
 async function loadCartCount() {
+  const token = uni.getStorageSync('token');
+  if (!token) return;
   try {
     const res = await request.get('/cart/list');
     const list = res || [];
@@ -551,6 +565,8 @@ async function loadCartCount() {
 }
 
 async function addBrowseHistory() {
+  const token = uni.getStorageSync('token');
+  if (!token) return;
   try {
     await request.post('/browse-history/add', { product_id: productId.value });
   } catch (e) {

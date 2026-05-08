@@ -239,16 +239,20 @@ async function startPay(payChannel) {
       pay_scene: payScene,
     });
 
-    if (payScene === 'miniapp') {
-      await mockMiniappPay(payOrder?.pay_params || {});
-    } else {
-      await mockH5Pay(payOrder?.pay_params || {}, payChannel);
-    }
+    const payMode = payOrder?.pay_mode || 'mock';
+    const payParams = payOrder?.pay_params || {};
 
-    await request.post('/payment/mock/success', {
-      out_trade_no: payOrder.out_trade_no,
-      pay_channel: payChannel,
-    });
+    if (payMode === 'mock') {
+      await new Promise(resolve => setTimeout(resolve, 400));
+      await request.post('/payment/mock/success', {
+        out_trade_no: payOrder.out_trade_no,
+        pay_channel: payChannel,
+      });
+    } else if (payScene === 'miniapp') {
+      await realMiniappPay(payParams);
+    } else {
+      await realH5Pay(payParams, payChannel);
+    }
 
     uni.showToast({ title: '支付成功', icon: 'success' });
     await pollPayStatus();
@@ -260,29 +264,32 @@ async function startPay(payChannel) {
   }
 }
 
-function mockMiniappPay(params) {
+function realMiniappPay(params) {
   return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (!params?.out_trade_no) {
-        reject(new Error('支付参数异常'));
-        return;
-      }
-      resolve(true);
-    }, 400);
+    uni.requestPayment({
+      provider: 'wxpay',
+      timeStamp: params.timeStamp,
+      nonceStr: params.nonceStr,
+      package: params.package,
+      signType: params.signType || 'MD5',
+      paySign: params.paySign,
+      success: () => resolve(true),
+      fail: (err) => reject(new Error(err?.errMsg || '支付取消')),
+    });
   });
 }
 
-function mockH5Pay(params, payChannel) {
+function realH5Pay(params, payChannel) {
   return new Promise((resolve, reject) => {
-    if (payChannel === 'wechat' && !params?.mweb_url) {
-      reject(new Error('微信H5支付参数异常'));
-      return;
+    if (payChannel === 'wechat' && params.mweb_url) {
+      window.location.href = params.mweb_url;
+      resolve(true);
+    } else if (payChannel === 'alipay' && params.form_url) {
+      window.location.href = params.form_url;
+      resolve(true);
+    } else {
+      reject(new Error('支付参数缺失'));
     }
-    if (payChannel === 'alipay' && !params?.form_url) {
-      reject(new Error('支付宝H5支付参数异常'));
-      return;
-    }
-    setTimeout(() => resolve(true), 400);
   });
 }
 

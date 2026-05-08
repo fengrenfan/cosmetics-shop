@@ -41,7 +41,7 @@
 <script setup>
 import { ref } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
-import { request } from '@/utils/request';
+import request from '@/utils/request';
 
 const orderAmount = ref(0);
 const selectedId = ref(null);
