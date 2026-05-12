@@ -431,7 +431,7 @@ let OrderService = class OrderService {
         await this.orderRepository.query(`INSERT INTO \`order\` (order_no, user_id, status, pay_status, total_amount, freight_amount, pay_amount, address_snapshot, remark, created_at)
        VALUES (?, ?, 'pending', 'unpaid', ?, ?, ?, ?, ?, NOW())`, [orderNo, userId, price, freightAmount, payAmount, addressSnapshot, 'mock 订单']);
         const [{ id: orderId }] = await this.orderRepository.query('SELECT id FROM `order` WHERE order_no = ?', [orderNo]);
-        await this.orderItemRepository.query('INSERT INTO order_item (order_id, product_id, product_title, cover_image, price, quantity, created_at) VALUES (?, ?, ?, ?, ?, 1, NOW())', [orderId, product?.id || 1, product?.title || '测试商品', product?.cover_image || '', price]);
+        await this.orderItemRepository.query('INSERT INTO order_item (order_id, product_id, product_title, cover_image, price, quantity, subtotal, created_at) VALUES (?, ?, ?, ?, ?, 1, ?, NOW())', [orderId, product?.id || 1, product?.title || '测试商品', product?.cover_image || '', price, price]);
         return { id: orderId, order_no: orderNo, pay_amount: payAmount, pay_status: 'unpaid' };
     }
     generateOrderNo() {

@@ -587,8 +587,8 @@ export class OrderService {
 
     // 插入 order_item
     await this.orderItemRepository.query(
-      'INSERT INTO order_item (order_id, product_id, product_title, cover_image, price, quantity, created_at) VALUES (?, ?, ?, ?, ?, 1, NOW())',
-      [orderId, product?.id || 1, product?.title || '测试商品', product?.cover_image || '', price],
+      'INSERT INTO order_item (order_id, product_id, product_title, cover_image, price, quantity, subtotal, created_at) VALUES (?, ?, ?, ?, ?, 1, ?, NOW())',
+      [orderId, product?.id || 1, product?.title || '测试商品', product?.cover_image || '', price, price],
     );
 
     return { id: orderId, order_no: orderNo, pay_amount: payAmount, pay_status: 'unpaid' };

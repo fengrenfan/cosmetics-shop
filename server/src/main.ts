@@ -12,7 +12,7 @@ async function bootstrap() {
 
   // 全局前缀
   app.setGlobalPrefix('api');
-  
+
   // 跨域
   app.enableCors({
     origin: '*',
