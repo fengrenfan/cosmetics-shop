@@ -11,6 +11,7 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const order_controller_1 = require("./order.controller");
 const order_service_1 = require("./order.service");
+const order_task_1 = require("./order.task");
 const order_entity_1 = require("./order.entity");
 const order_item_entity_1 = require("./order-item.entity");
 const product_module_1 = require("../product/product.module");
@@ -33,7 +34,7 @@ exports.OrderModule = OrderModule = __decorate([
             coupon_module_1.CouponModule,
         ],
         controllers: [order_controller_1.OrderController],
-        providers: [order_service_1.OrderService],
+        providers: [order_service_1.OrderService, order_task_1.OrderTask],
         exports: [order_service_1.OrderService],
     })
 ], OrderModule);

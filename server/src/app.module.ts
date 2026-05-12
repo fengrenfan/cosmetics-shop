@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -48,6 +49,9 @@ import { PaymentModule } from './modules/payment/payment.module';
       secret: process.env.JWT_SECRET || 'cosmetics-shop-secret-2024',
       signOptions: { expiresIn: '7d' },
     }),
+
+    // 定时任务
+    ScheduleModule.forRoot(),
 
     // 功能模块
     AuthModule,

@@ -74,10 +74,14 @@ export declare class OrderService {
         shipped: number;
         completed: number;
     }>;
+    private buildAdminQuery;
+    private attachItems;
     getAdminList(query: {
         status?: string;
         pay_status?: string;
         order_no?: string;
+        start_date?: string;
+        end_date?: string;
         page?: number;
         pageSize?: number;
     }): Promise<{
@@ -89,6 +93,13 @@ export declare class OrderService {
             totalPages: number;
         };
     }>;
+    exportOrders(query: {
+        status?: string;
+        pay_status?: string;
+        order_no?: string;
+        start_date?: string;
+        end_date?: string;
+    }): Promise<Order[]>;
     ship(id: number, dto: {
         express_company: string;
         express_no: string;

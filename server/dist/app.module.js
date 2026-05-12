@@ -9,6 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
+const schedule_1 = require("@nestjs/schedule");
 const typeorm_1 = require("@nestjs/typeorm");
 const jwt_1 = require("@nestjs/jwt");
 const passport_1 = require("@nestjs/passport");
@@ -56,6 +57,7 @@ exports.AppModule = AppModule = __decorate([
                 secret: process.env.JWT_SECRET || 'cosmetics-shop-secret-2024',
                 signOptions: { expiresIn: '7d' },
             }),
+            schedule_1.ScheduleModule.forRoot(),
             auth_module_1.AuthModule,
             user_module_1.UserModule,
             product_module_1.ProductModule,

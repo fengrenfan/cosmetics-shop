@@ -321,33 +321,67 @@ let OrderService = class OrderService {
             completed: completedCount,
         };
     }
-    async getAdminList(query) {
-        const { status, pay_status, order_no, page = 1, pageSize = 10 } = query;
+    buildAdminQuery(query) {
         const qb = this.orderRepository.createQueryBuilder('order');
-        if (status) {
-            qb.andWhere('order.status = :status', { status });
+        if (query.status) {
+            qb.andWhere('order.status = :status', { status: query.status });
         }
-        if (pay_status) {
-            qb.andWhere('order.pay_status = :pay_status', { pay_status });
+        if (query.pay_status) {
+            qb.andWhere('order.pay_status = :pay_status', { pay_status: query.pay_status });
         }
-        if (order_no) {
-            qb.andWhere('order.order_no LIKE :order_no', { order_no: `%${order_no}%` });
+        if (query.order_no) {
+            qb.andWhere('order.order_no LIKE :order_no', { order_no: `%${query.order_no}%` });
         }
+        if (query.start_date) {
+            qb.andWhere('order.created_at >= :start_date', { start_date: query.start_date });
+        }
+        if (query.end_date) {
+            qb.andWhere('order.created_at < :end_date', { end_date: query.end_date + ' 23:59:59' });
+        }
+        return qb;
+    }
+    async attachItems(orders) {
+        if (orders.length === 0)
+            return;
+        const ids = orders.map(o => o.id);
+        const items = await this.orderItemRepository
+            .createQueryBuilder('item')
+            .where('item.order_id IN (:...ids)', { ids })
+            .getMany();
+        const itemsByOrder = new Map();
+        for (const item of items) {
+            if (!itemsByOrder.has(item.order_id)) {
+                itemsByOrder.set(item.order_id, []);
+            }
+            itemsByOrder.get(item.order_id).push(item);
+        }
+        for (const order of orders) {
+            order.items = itemsByOrder.get(order.id) || [];
+        }
+    }
+    async getAdminList(query) {
+        const { page = 1, pageSize = 10 } = query;
+        const qb = this.buildAdminQuery(query);
         const total = await qb.getCount();
         const list = await qb
             .orderBy('order.created_at', 'DESC')
             .skip((page - 1) * pageSize)
             .take(pageSize)
             .getMany();
-        for (const order of list) {
-            order.items = await this.orderItemRepository.find({
-                where: { order_id: order.id },
-            });
-        }
+        await this.attachItems(list);
         return {
             list,
             pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
         };
+    }
+    async exportOrders(query) {
+        const qb = this.buildAdminQuery(query);
+        const list = await qb
+            .orderBy('order.created_at', 'DESC')
+            .take(5000)
+            .getMany();
+        await this.attachItems(list);
+        return list;
     }
     async ship(id, dto) {
         const order = await this.orderRepository.findOne({ where: { id } });
@@ -397,7 +431,7 @@ let OrderService = class OrderService {
         await this.orderRepository.query(`INSERT INTO \`order\` (order_no, user_id, status, pay_status, total_amount, freight_amount, pay_amount, address_snapshot, remark, created_at)
        VALUES (?, ?, 'pending', 'unpaid', ?, ?, ?, ?, ?, NOW())`, [orderNo, userId, price, freightAmount, payAmount, addressSnapshot, 'mock 订单']);
         const [{ id: orderId }] = await this.orderRepository.query('SELECT id FROM `order` WHERE order_no = ?', [orderNo]);
-        await this.orderItemRepository.query('INSERT INTO order_item (order_id, product_id, title, cover_image, price, quantity, created_at) VALUES (?, ?, ?, ?, ?, 1, NOW())', [orderId, product?.id || 1, product?.title || '测试商品', product?.cover_image || '', price]);
+        await this.orderItemRepository.query('INSERT INTO order_item (order_id, product_id, product_title, cover_image, price, quantity, created_at) VALUES (?, ?, ?, ?, ?, 1, NOW())', [orderId, product?.id || 1, product?.title || '测试商品', product?.cover_image || '', price]);
         return { id: orderId, order_no: orderNo, pay_amount: payAmount, pay_status: 'unpaid' };
     }
     generateOrderNo() {

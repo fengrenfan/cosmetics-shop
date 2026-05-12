@@ -423,23 +423,55 @@ export class OrderService {
 
   // ==================== 管理端接口 ====================
 
+  private buildAdminQuery(query: { status?: string; pay_status?: string; order_no?: string; start_date?: string; end_date?: string }) {
+    const qb = this.orderRepository.createQueryBuilder('order');
+
+    if (query.status) {
+      qb.andWhere('order.status = :status', { status: query.status });
+    }
+    if (query.pay_status) {
+      qb.andWhere('order.pay_status = :pay_status', { pay_status: query.pay_status });
+    }
+    if (query.order_no) {
+      qb.andWhere('order.order_no LIKE :order_no', { order_no: `%${query.order_no}%` });
+    }
+    if (query.start_date) {
+      qb.andWhere('order.created_at >= :start_date', { start_date: query.start_date });
+    }
+    if (query.end_date) {
+      qb.andWhere('order.created_at < :end_date', { end_date: query.end_date + ' 23:59:59' });
+    }
+
+    return qb;
+  }
+
+  private async attachItems(orders: Order[]) {
+    if (orders.length === 0) return;
+    const ids = orders.map(o => o.id);
+    const items = await this.orderItemRepository
+      .createQueryBuilder('item')
+      .where('item.order_id IN (:...ids)', { ids })
+      .getMany();
+
+    const itemsByOrder = new Map<number, OrderItem[]>();
+    for (const item of items) {
+      if (!itemsByOrder.has(item.order_id)) {
+        itemsByOrder.set(item.order_id, []);
+      }
+      itemsByOrder.get(item.order_id).push(item);
+    }
+    for (const order of orders) {
+      order.items = itemsByOrder.get(order.id) || [];
+    }
+  }
+
   /**
    * 管理端订单列表
    */
-  async getAdminList(query: { status?: string; pay_status?: string; order_no?: string; page?: number; pageSize?: number }) {
-    const { status, pay_status, order_no, page = 1, pageSize = 10 } = query;
+  async getAdminList(query: { status?: string; pay_status?: string; order_no?: string; start_date?: string; end_date?: string; page?: number; pageSize?: number }) {
+    const { page = 1, pageSize = 10 } = query;
 
-    const qb = this.orderRepository.createQueryBuilder('order');
-
-    if (status) {
-      qb.andWhere('order.status = :status', { status });
-    }
-    if (pay_status) {
-      qb.andWhere('order.pay_status = :pay_status', { pay_status });
-    }
-    if (order_no) {
-      qb.andWhere('order.order_no LIKE :order_no', { order_no: `%${order_no}%` });
-    }
+    const qb = this.buildAdminQuery(query);
 
     const total = await qb.getCount();
     const list = await qb
@@ -448,16 +480,28 @@ export class OrderService {
       .take(pageSize)
       .getMany();
 
-    for (const order of list) {
-      order.items = await this.orderItemRepository.find({
-        where: { order_id: order.id },
-      });
-    }
+    await this.attachItems(list);
 
     return {
       list,
       pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
     };
+  }
+
+  /**
+   * 导出订单（CSV）
+   */
+  async exportOrders(query: { status?: string; pay_status?: string; order_no?: string; start_date?: string; end_date?: string }) {
+    const qb = this.buildAdminQuery(query);
+
+    const list = await qb
+      .orderBy('order.created_at', 'DESC')
+      .take(5000)
+      .getMany();
+
+    await this.attachItems(list);
+
+    return list;
   }
 
   /**
@@ -543,7 +587,7 @@ export class OrderService {
 
     // 插入 order_item
     await this.orderItemRepository.query(
-      'INSERT INTO order_item (order_id, product_id, title, cover_image, price, quantity, created_at) VALUES (?, ?, ?, ?, ?, 1, NOW())',
+      'INSERT INTO order_item (order_id, product_id, product_title, cover_image, price, quantity, created_at) VALUES (?, ?, ?, ?, ?, 1, NOW())',
       [orderId, product?.id || 1, product?.title || '测试商品', product?.cover_image || '', price],
     );
 

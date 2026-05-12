@@ -131,6 +131,13 @@
         <text>可抵扣 ¥{{ pointsMoney.toFixed(2) }}</text>
       </view>
 
+      <!-- 订单备注 -->
+      <view class="remark-section">
+        <text class="remark-label">订单备注</text>
+        <input class="remark-input" v-model="remark"
+          placeholder="选填，请先和商家协商一致" maxlength="200" />
+      </view>
+
       <!-- 底部占位 -->
       <view class="bottom-placeholder"></view>
     </scroll-view>
@@ -750,6 +757,32 @@ $tabbar-height: 100rpx;
   font-size: 26rpx;
   color: $secondary;
   font-weight: 600;
+}
+
+// ── 订单备注 ──
+.remark-section {
+  margin: 0 24rpx 24rpx;
+  background: $surface-lowest;
+  border-radius: $radius-lg;
+  padding: 24rpx;
+}
+
+.remark-label {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $on-surface;
+  margin-bottom: 16rpx;
+  display: block;
+}
+
+.remark-input {
+  font-size: 26rpx;
+  color: $on-surface;
+  width: 100%;
+  height: 72rpx;
+  background: $surface-low;
+  border-radius: $radius-md;
+  padding: 0 20rpx;
 }
 
 // ── 底部占位 ──

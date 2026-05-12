@@ -27,9 +27,15 @@
         <el-form-item label="订单号">
           <el-input v-model="queryForm.order_no" placeholder="请输入订单号" clearable />
         </el-form-item>
+        <el-form-item label="下单时间">
+          <el-date-picker v-model="dateRange" type="daterange"
+            start-placeholder="开始日期" end-placeholder="结束日期"
+            @change="onDateChange" value-format="YYYY-MM-DD" />
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSearch">搜索</el-button>
           <el-button @click="handleReset">重置</el-button>
+          <el-button type="success" @click="handleExport">导出</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -255,8 +261,22 @@ const pagination = reactive({
 const queryForm = reactive({
   status: '',
   pay_status: '',
-  order_no: ''
+  order_no: '',
+  start_date: '',
+  end_date: ''
 });
+
+const dateRange = ref(null);
+
+function onDateChange(val) {
+  if (val && val.length === 2) {
+    queryForm.start_date = val[0];
+    queryForm.end_date = val[1];
+  } else {
+    queryForm.start_date = '';
+    queryForm.end_date = '';
+  }
+}
 
 const shipForm = reactive({
   express_company: '',
@@ -294,8 +314,40 @@ function handleReset() {
   queryForm.status = '';
   queryForm.pay_status = '';
   queryForm.order_no = '';
+  queryForm.start_date = '';
+  queryForm.end_date = '';
+  dateRange.value = null;
   pagination.page = 1;
   loadData();
+}
+
+async function handleExport() {
+  const params = new URLSearchParams();
+  if (queryForm.status) params.append('status', queryForm.status);
+  if (queryForm.pay_status) params.append('pay_status', queryForm.pay_status);
+  if (queryForm.order_no) params.append('order_no', queryForm.order_no);
+  if (queryForm.start_date) params.append('start_date', queryForm.start_date);
+  if (queryForm.end_date) params.append('end_date', queryForm.end_date);
+  const url = `/api/order/admin/export?${params.toString()}`;
+
+  try {
+    const token = localStorage.getItem('admin_token') || '';
+    const res = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      ElMessage.error('导出失败');
+      return;
+    }
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `orders_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } catch (e) {
+    ElMessage.error('导出失败');
+  }
 }
 
 function handleRowClick(row) {

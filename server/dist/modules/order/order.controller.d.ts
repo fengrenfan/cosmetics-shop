@@ -1,3 +1,4 @@
+import type { Response } from 'express';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './order.dto';
 export declare class OrderController {
@@ -46,6 +47,7 @@ export declare class OrderController {
             totalPages: number;
         };
     }>;
+    exportOrders(query: Record<string, string>, res: Response): Promise<void>;
     ship(id: string, dto: {
         express_company: string;
         express_no: string;
