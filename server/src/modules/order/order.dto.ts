@@ -2,17 +2,21 @@ import { IsNumber, IsString, IsOptional, IsArray, ValidateNested } from 'class-v
 import { Type } from 'class-transformer';
 
 export class OrderItemDto {
+  @Type(() => Number)
   @IsNumber()
   product_id: number;
 
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   sku_id?: number;
 
+  @Type(() => Number)
   @IsNumber()
   quantity: number;
 
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   cart_id?: number;
 }

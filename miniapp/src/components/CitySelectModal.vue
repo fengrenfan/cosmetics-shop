@@ -1,6 +1,6 @@
 <template>
-  <view class="city-modal" v-if="show" @click="close">
-    <view class="city-content" @click.stop>
+  <view class="city-modal" v-if="show" @click="close" @touchmove.stop.prevent>
+    <view class="city-content" @click.stop @touchmove.stop>
       <!-- Header -->
       <view class="city-header">
         <text class="city-title">选择城市</text>
