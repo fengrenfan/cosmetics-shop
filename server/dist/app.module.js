@@ -50,7 +50,6 @@ exports.AppModule = AppModule = __decorate([
                 synchronize: false,
                 logging: false,
                 connectTimeout: 60000,
-                acquireTimeout: 60000,
             }),
             passport_1.PassportModule.register({ defaultStrategy: 'jwt' }),
             jwt_1.JwtModule.register({

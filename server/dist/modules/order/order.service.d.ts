@@ -98,5 +98,11 @@ export declare class OrderService {
     refund(id: number): Promise<{
         success: boolean;
     }>;
+    mockCreate(userId: number): Promise<{
+        id: any;
+        order_no: string;
+        pay_amount: number;
+        pay_status: string;
+    }>;
     private generateOrderNo;
 }

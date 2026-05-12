@@ -44,6 +44,9 @@ let OrderController = class OrderController {
     async confirm(id) {
         return this.orderService.confirm(+id);
     }
+    async mockCreate(req) {
+        return this.orderService.mockCreate(req.user?.id);
+    }
     async getAdminList(query) {
         return this.orderService.getAdminList(query);
     }
@@ -106,6 +109,14 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], OrderController.prototype, "confirm", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Post)('mock/create'),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], OrderController.prototype, "mockCreate", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Get)('admin/list'),

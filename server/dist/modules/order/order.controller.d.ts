@@ -31,6 +31,12 @@ export declare class OrderController {
     confirm(id: string): Promise<{
         success: boolean;
     }>;
+    mockCreate(req: any): Promise<{
+        id: any;
+        order_no: string;
+        pay_amount: number;
+        pay_status: string;
+    }>;
     getAdminList(query: any): Promise<{
         list: import("./order.entity").Order[];
         pagination: {

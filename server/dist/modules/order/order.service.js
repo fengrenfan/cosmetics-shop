@@ -382,6 +382,24 @@ let OrderService = class OrderService {
         }
         return { success: true };
     }
+    async mockCreate(userId) {
+        const products = await this.orderRepository.query('SELECT id, title, cover_image, price FROM product WHERE status = 1 LIMIT 1');
+        const product = products?.[0];
+        const price = parseFloat(product?.price) || 99;
+        const freightAmount = price >= 99 ? 0 : 10;
+        const payAmount = price + freightAmount;
+        const orderNo = this.generateOrderNo();
+        const addressSnapshot = JSON.stringify({
+            name: '测试用户', phone: '13800138000',
+            province: '广东省', city: '深圳市', district: '南山区',
+            detail_address: '科技园 mock 地址',
+        });
+        await this.orderRepository.query(`INSERT INTO \`order\` (order_no, user_id, status, pay_status, total_amount, freight_amount, pay_amount, address_snapshot, remark, created_at)
+       VALUES (?, ?, 'pending', 'unpaid', ?, ?, ?, ?, ?, NOW())`, [orderNo, userId, price, freightAmount, payAmount, addressSnapshot, 'mock 订单']);
+        const [{ id: orderId }] = await this.orderRepository.query('SELECT id FROM `order` WHERE order_no = ?', [orderNo]);
+        await this.orderItemRepository.query('INSERT INTO order_item (order_id, product_id, title, cover_image, price, quantity, created_at) VALUES (?, ?, ?, ?, ?, 1, NOW())', [orderId, product?.id || 1, product?.title || '测试商品', product?.cover_image || '', price]);
+        return { id: orderId, order_no: orderNo, pay_amount: payAmount, pay_status: 'unpaid' };
+    }
     generateOrderNo() {
         const date = new Date();
         const year = date.getFullYear();
