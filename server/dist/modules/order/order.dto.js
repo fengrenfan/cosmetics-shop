@@ -16,24 +16,24 @@ class OrderItemDto {
 }
 exports.OrderItemDto = OrderItemDto;
 __decorate([
-    (0, class_transformer_1.Type)(() => Number),
+    (0, class_transformer_1.Transform)(({ value }) => Number(value)),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], OrderItemDto.prototype, "product_id", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_transformer_1.Type)(() => Number),
+    (0, class_transformer_1.Transform)(({ value }) => Number(value)),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], OrderItemDto.prototype, "sku_id", void 0);
 __decorate([
-    (0, class_transformer_1.Type)(() => Number),
+    (0, class_transformer_1.Transform)(({ value }) => Number(value)),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], OrderItemDto.prototype, "quantity", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_transformer_1.Type)(() => Number),
+    (0, class_transformer_1.Transform)(({ value }) => Number(value)),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], OrderItemDto.prototype, "cart_id", void 0);

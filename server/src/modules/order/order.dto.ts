@@ -1,22 +1,22 @@
 import { IsNumber, IsString, IsOptional, IsArray, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 export class OrderItemDto {
-  @Type(() => Number)
+  @Transform(({ value }) => Number(value))
   @IsNumber()
   product_id: number;
 
   @IsOptional()
-  @Type(() => Number)
+  @Transform(({ value }) => Number(value))
   @IsNumber()
   sku_id?: number;
 
-  @Type(() => Number)
+  @Transform(({ value }) => Number(value))
   @IsNumber()
   quantity: number;
 
   @IsOptional()
-  @Type(() => Number)
+  @Transform(({ value }) => Number(value))
   @IsNumber()
   cart_id?: number;
 }
