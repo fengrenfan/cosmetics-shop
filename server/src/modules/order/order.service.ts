@@ -517,62 +517,37 @@ export class OrderService {
   }
 
   /**
-   * 本地开发：模拟下单（跳过校验）
+   * 本地开发：模拟下单（跳过校验，用 raw SQL 绕过实体映射）
    */
   async mockCreate(userId: number) {
-    // 取第一个商品
-    let product: any = null;
-    try {
-      product = await this.productService.getDetail(1);
-    } catch {}
-    const price = product?.price || 99;
-    const totalAmount = price;
-    const freightAmount = totalAmount >= 99 ? 0 : 10;
-    const payAmount = totalAmount + freightAmount;
+    // 取第一个上架商品
+    const products = await this.orderRepository.query('SELECT id, title, cover_image, price FROM product WHERE status = 1 LIMIT 1');
+    const product = products?.[0];
+    const price = parseFloat(product?.price) || 99;
+    const freightAmount = price >= 99 ? 0 : 10;
+    const payAmount = price + freightAmount;
     const orderNo = this.generateOrderNo();
-
-    const order = this.orderRepository.create({
-      order_no: orderNo,
-      user_id: userId,
-      total_amount: totalAmount,
-      freight_amount: freightAmount,
-      coupon_amount: 0,
-      coupon_id: null,
-      pay_amount: payAmount,
-      status: 'pending',
-      pay_status: ORDER_PAY_STATUS.UNPAID,
-      pay_channel: 'wechat',
-      pay_scene: 'miniapp',
-      address_snapshot: {
-        name: '测试用户',
-        phone: '13800138000',
-        province: '广东省',
-        city: '深圳市',
-        district: '南山区',
-        detail_address: '科技园 mock 地址',
-      },
-      remark: 'mock 订单',
+    const addressSnapshot = JSON.stringify({
+      name: '测试用户', phone: '13800138000',
+      province: '广东省', city: '深圳市', district: '南山区',
+      detail_address: '科技园 mock 地址',
     });
 
-    const savedOrder = await this.orderRepository.save(order);
+    // 插入 order
+    await this.orderRepository.query(
+      `INSERT INTO \`order\` (order_no, user_id, status, pay_status, total_amount, freight_amount, pay_amount, address_snapshot, remark, created_at)
+       VALUES (?, ?, 'pending', 'unpaid', ?, ?, ?, ?, ?, NOW())`,
+      [orderNo, userId, price, freightAmount, payAmount, addressSnapshot, 'mock 订单'],
+    );
+    const [{ id: orderId }] = await this.orderRepository.query('SELECT id FROM `order` WHERE order_no = ?', [orderNo]);
 
-    const orderItem = this.orderItemRepository.create({
-      order_id: savedOrder.id,
-      product_id: product?.id || 1,
-      product_title: product?.title || '测试商品',
-      cover_image: product?.cover_image || '',
-      price,
-      quantity: 1,
-      subtotal: price,
-    });
-    await this.orderItemRepository.save(orderItem);
+    // 插入 order_item
+    await this.orderItemRepository.query(
+      'INSERT INTO order_item (order_id, product_id, title, cover_image, price, quantity, created_at) VALUES (?, ?, ?, ?, ?, 1, NOW())',
+      [orderId, product?.id || 1, product?.title || '测试商品', product?.cover_image || '', price],
+    );
 
-    return {
-      id: savedOrder.id,
-      order_no: orderNo,
-      pay_amount: payAmount,
-      pay_status: savedOrder.pay_status,
-    };
+    return { id: orderId, order_no: orderNo, pay_amount: payAmount, pay_status: 'unpaid' };
   }
 
   /**

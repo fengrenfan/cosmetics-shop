@@ -50,7 +50,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { onMounted } from '@dcloudio/uni-app';
+import { onMounted } from 'vue';
 import request from '@/utils/request';
 
 const tabs = [
