@@ -431,6 +431,7 @@ async function confirmReceive() {
   font-size: 26rpx;
   color: #999;
   line-height: 1.5;
+  word-break: break-all;
 }
 
 .goods-section {
@@ -444,7 +445,8 @@ async function confirmReceive() {
   display: flex;
   padding: 24rpx;
   border-bottom: 1rpx solid #f5f5f5;
-  
+  min-width: 0;
+
   &:last-child {
     border-bottom: none;
   }
@@ -455,11 +457,13 @@ async function confirmReceive() {
   height: 160rpx;
   border-radius: 12rpx;
   background: #f5f5f5;
+  flex-shrink: 0;
 }
 
 .goods-info {
   flex: 1;
   margin-left: 20rpx;
+  min-width: 0;
 }
 
 .goods-title {
@@ -469,6 +473,7 @@ async function confirmReceive() {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  word-break: break-all;
 }
 
 .goods-sku {
@@ -476,6 +481,9 @@ async function confirmReceive() {
   color: #999;
   margin-top: 8rpx;
   display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .goods-bottom {
@@ -489,11 +497,14 @@ async function confirmReceive() {
   font-size: 30rpx;
   color: #ff4a8d;
   font-weight: bold;
+  white-space: nowrap;
 }
 
 .goods-count {
   font-size: 24rpx;
   color: #999;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .info-section {
@@ -509,7 +520,8 @@ async function confirmReceive() {
   align-items: center;
   padding: 16rpx 0;
   border-bottom: 1rpx solid #f5f5f5;
-  
+  min-width: 0;
+
   &:last-child {
     border-bottom: none;
   }
@@ -518,6 +530,7 @@ async function confirmReceive() {
 .info-label {
   font-size: 26rpx;
   color: #999;
+  flex-shrink: 0;
 }
 
 .info-value {
@@ -525,6 +538,17 @@ async function confirmReceive() {
   align-items: center;
   font-size: 26rpx;
   color: #333;
+  min-width: 0;
+  overflow: hidden;
+  flex: 1;
+  justify-content: flex-end;
+
+  text:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
 }
 
 .copy-btn {
@@ -534,6 +558,7 @@ async function confirmReceive() {
   color: #666;
   font-size: 22rpx;
   border-radius: 4rpx;
+  flex-shrink: 0;
 }
 
 .price-section {

@@ -307,6 +307,7 @@ export class OrderService {
         where: { order_id: order.id },
       });
     }
+    this.parseSnapshots(list);
 
     return {
       list,
@@ -331,6 +332,7 @@ export class OrderService {
     order.items = await this.orderItemRepository.find({
       where: { order_id: id },
     });
+    this.parseSnapshot(order);
 
     return order;
   }
@@ -481,6 +483,7 @@ export class OrderService {
       .getMany();
 
     await this.attachItems(list);
+    this.parseSnapshots(list);
 
     return {
       list,
@@ -597,6 +600,20 @@ export class OrderService {
   /**
    * 生成订单号
    */
+  private parseSnapshot(order: Order) {
+    if (typeof order.address_snapshot === 'string') {
+      try {
+        order.address_snapshot = JSON.parse(order.address_snapshot);
+      } catch { /* ignore parse error */ }
+    }
+  }
+
+  private parseSnapshots(orders: Order[]) {
+    for (const order of orders) {
+      this.parseSnapshot(order);
+    }
+  }
+
   private generateOrderNo(): string {
     const date = new Date();
     const year = date.getFullYear();

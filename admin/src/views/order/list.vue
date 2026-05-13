@@ -35,9 +35,9 @@
         <el-form-item>
           <el-button type="primary" @click="handleSearch">搜索</el-button>
           <el-button @click="handleReset">重置</el-button>
-          <el-button type="success" @click="handleExport">导出</el-button>
         </el-form-item>
       </el-form>
+      <el-button type="success" @click="handleExport" style="margin-top: 10px;">导出</el-button>
     </el-card>
 
     <!-- 数据表格 -->
@@ -354,8 +354,12 @@ function handleRowClick(row) {
   handleDetail(row);
 }
 
-function handleDetail(row) {
-  currentOrder.value = row;
+async function handleDetail(row) {
+  try {
+    currentOrder.value = await request.get(`/order/${row.id}`);
+  } catch (e) {
+    currentOrder.value = row;
+  }
   detailVisible.value = true;
 }
 

@@ -135,7 +135,10 @@
         <view class="filter-body">
           <!-- 分类筛选 -->
           <view class="filter-section">
-            <text class="section-title">分类</text>
+            <view class="section-header">
+              <text class="section-title">分类</text>
+              <text class="iconfont fa-xmark section-close" @click="clearCategories" v-if="selectedCategories.length > 0 || selectedParentId"></text>
+            </view>
             <!-- 一级分类 -->
             <view class="parent-categories">
               <view
@@ -202,7 +205,7 @@
         </view>
 
         <view class="filter-footer">
-          <view class="btn-cancel" @click="showFilter = false">取消</view>
+          <view class="btn-cancel" @click="resetFilter">重置</view>
           <view class="btn-confirm" @click="applyFilter">确定</view>
         </view>
       </view>
@@ -400,6 +403,11 @@ function onSortChange(newSort) {
   page.value = 1;
   noMore.value = false;
   loadData();
+}
+
+function clearCategories() {
+  selectedParentId.value = null;
+  selectedCategories.value = [];
 }
 
 function resetFilter() {
@@ -793,11 +801,23 @@ function goDetail(item) {
   }
 }
 
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
 .section-title {
   display: block;
   font-size: 28rpx;
   color: #333;
-  margin-bottom: 20rpx;
+}
+
+.section-close {
+  font-size: 28rpx;
+  color: #999;
+  padding: 8rpx;
 }
 
 .price-range {

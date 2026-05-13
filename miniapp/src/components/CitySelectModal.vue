@@ -1,6 +1,6 @@
 <template>
-  <view class="city-modal" v-if="show" @click="close" @touchmove.stop.prevent>
-    <view class="city-content" @click.stop @touchmove.stop>
+  <view class="city-modal" v-if="show" @click="close">
+    <view class="city-content" @click.stop>
       <!-- Header -->
       <view class="city-header">
         <text class="city-title">选择城市</text>
@@ -47,7 +47,7 @@
       <!-- City List -->
       <view class="city-list-section">
         <text class="section-title" v-if="!searchKeyword">全部城市</text>
-        <scroll-view class="city-scroll" scroll-y>
+        <view class="city-scroll">
           <view
             class="city-item"
             :class="{ active: selectedCity?.value === city.value }"
@@ -61,7 +61,7 @@
           <view class="empty-result" v-if="filteredCities.length === 0 && searchKeyword">
             <text>未找到匹配的城市</text>
           </view>
-        </scroll-view>
+        </view>
       </view>
     </view>
   </view>
@@ -149,6 +149,7 @@ function close() {
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: flex-end;
+  touch-action: none;
 }
 
 .city-content {
@@ -159,6 +160,7 @@ function close() {
   padding-bottom: env(safe-area-inset-bottom);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .city-header {
@@ -276,6 +278,7 @@ function close() {
 
 .city-list-section {
   flex: 1;
+  min-height: 0;
   padding: 0 32rpx;
   display: flex;
   flex-direction: column;
@@ -283,7 +286,7 @@ function close() {
 
 .city-scroll {
   flex: 1;
-  height: 400rpx;
+  overflow-y: auto;
 }
 
 .city-item {

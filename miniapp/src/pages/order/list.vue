@@ -316,16 +316,24 @@ function formatTime(time) {
   align-items: center;
   padding: 24rpx;
   border-bottom: 1rpx solid #f5f5f5;
+  min-width: 0;
 }
 
 .order-no {
   font-size: 24rpx;
   color: #666;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .order-status {
   font-size: 26rpx;
-  
+  flex-shrink: 0;
+  margin-left: 16rpx;
+
   &.pending { color: #ff9500; }
   &.paid { color: #409eff; }
   &.shipped { color: #409eff; }
@@ -342,7 +350,8 @@ function formatTime(time) {
   display: flex;
   align-items: center;
   margin-bottom: 20rpx;
-  
+  min-width: 0;
+
   &:last-child {
     margin-bottom: 0;
   }
@@ -353,11 +362,13 @@ function formatTime(time) {
   height: 160rpx;
   border-radius: 12rpx;
   background: #f5f5f5;
+  flex-shrink: 0;
 }
 
 .goods-info {
   flex: 1;
   margin-left: 20rpx;
+  min-width: 0;
 }
 
 .goods-title {
@@ -367,6 +378,7 @@ function formatTime(time) {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  word-break: break-all;
 }
 
 .goods-sku {
@@ -374,17 +386,22 @@ function formatTime(time) {
   color: #999;
   margin-top: 8rpx;
   display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .goods-right {
   text-align: right;
   margin-left: 20rpx;
+  flex-shrink: 0;
 }
 
 .goods-price {
   display: block;
   font-size: 28rpx;
   color: #333;
+  white-space: nowrap;
 }
 
 .goods-count {
@@ -392,6 +409,7 @@ function formatTime(time) {
   font-size: 24rpx;
   color: #999;
   margin-top: 8rpx;
+  white-space: nowrap;
 }
 
 .order-footer {
@@ -400,11 +418,14 @@ function formatTime(time) {
   align-items: center;
   padding: 20rpx 24rpx;
   border-top: 1rpx solid #f5f5f5;
+  min-width: 0;
 }
 
 .order-info {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  flex: 1;
 }
 
 .order-time {
@@ -423,12 +444,15 @@ function formatTime(time) {
   align-items: baseline;
   font-size: 26rpx;
   color: #333;
-  
+  flex-shrink: 0;
+  margin-left: 20rpx;
+
   .total-price {
     font-size: 32rpx;
     font-weight: bold;
     color: #ff4a8d;
     margin-left: 8rpx;
+    white-space: nowrap;
   }
 }
 
@@ -438,12 +462,15 @@ function formatTime(time) {
   gap: 20rpx;
   padding: 20rpx 24rpx;
   border-top: 1rpx solid #f5f5f5;
+  flex-wrap: wrap;
 }
 
 .action-btn {
   padding: 12rpx 32rpx;
   border-radius: 32rpx;
   font-size: 26rpx;
+  white-space: nowrap;
+  flex-shrink: 0;
   
   &.primary {
     background: linear-gradient(135deg, #ff4a8d 0%, #ff6b9d 100%);
