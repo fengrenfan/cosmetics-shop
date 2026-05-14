@@ -252,6 +252,7 @@ let OrderService = class OrderService {
                 where: { order_id: order.id },
             });
         }
+        this.parseSnapshots(list);
         return {
             list,
             pagination: {
@@ -270,6 +271,7 @@ let OrderService = class OrderService {
         order.items = await this.orderItemRepository.find({
             where: { order_id: id },
         });
+        this.parseSnapshot(order);
         return order;
     }
     async cancel(id, reason) {
@@ -369,6 +371,7 @@ let OrderService = class OrderService {
             .take(pageSize)
             .getMany();
         await this.attachItems(list);
+        this.parseSnapshots(list);
         return {
             list,
             pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
@@ -433,6 +436,19 @@ let OrderService = class OrderService {
         const [{ id: orderId }] = await this.orderRepository.query('SELECT id FROM `order` WHERE order_no = ?', [orderNo]);
         await this.orderItemRepository.query('INSERT INTO order_item (order_id, product_id, product_title, cover_image, price, quantity, subtotal, created_at) VALUES (?, ?, ?, ?, ?, 1, ?, NOW())', [orderId, product?.id || 1, product?.title || '测试商品', product?.cover_image || '', price, price]);
         return { id: orderId, order_no: orderNo, pay_amount: payAmount, pay_status: 'unpaid' };
+    }
+    parseSnapshot(order) {
+        if (typeof order.address_snapshot === 'string') {
+            try {
+                order.address_snapshot = JSON.parse(order.address_snapshot);
+            }
+            catch { }
+        }
+    }
+    parseSnapshots(orders) {
+        for (const order of orders) {
+            this.parseSnapshot(order);
+        }
     }
     generateOrderNo() {
         const date = new Date();

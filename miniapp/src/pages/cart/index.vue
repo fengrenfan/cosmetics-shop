@@ -3,7 +3,7 @@
     <header class="nav-header">
       <view class="nav-inner">
         <view class="nav-left">
-          <text class="iconfont fa-bag-shopping nav-icon"></text>
+          <uni-icons type="cart-filled" size="20" color="#bb0004" class="nav-icon"></uni-icons>
           <text class="nav-title">我的购物车</text>
         </view>
         <view class="nav-right" @click="toggleEdit">
@@ -14,7 +14,7 @@
 
     <view class="empty-cart" v-if="cartList.length === 0 && !loading">
       <view class="empty-icon-wrap">
-        <text class="iconfont fa-cart-shopping empty-icon"></text>
+        <uni-icons type="cart-filled" size="40" color="#5d3f3b" class="empty-icon"></uni-icons>
       </view>
       <text class="empty-text">购物车是空的</text>
       <view class="empty-btn" @click="goShopping">去逛逛</view>

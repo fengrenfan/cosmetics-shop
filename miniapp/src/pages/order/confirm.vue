@@ -4,7 +4,7 @@
       <!-- 收货地址 -->
       <view class="address-section" @click="goAddressList">
         <view class="address-content" v-if="selectedAddress">
-          <text class="iconfont fa-location-dot" style="font-size: 40rpx; color: #bb0004; flex-shrink: 0;"></text>
+          <uni-icons type="location-filled" size="20" color="#bb0004"></uni-icons>
           <view class="address-info">
             <view class="address-user">
               <view class="address-default-tag" v-if="selectedAddress.is_default">默认</view>
@@ -15,20 +15,20 @@
               {{ selectedAddress.province }}{{ selectedAddress.city }}{{ selectedAddress.district }}{{ selectedAddress.detail_address }}
             </view>
           </view>
-          <text class="iconfont fa-chevron-right" style="font-size: 32rpx; color: #926f69; flex-shrink: 0;"></text>
+          <uni-icons type="right" size="16" color="#926f69"></uni-icons>
           <view class="address-stripe"></view>
         </view>
         <view class="address-empty" v-else>
-          <text class="iconfont fa-location-dot" style="font-size: 40rpx; color: #5d3f3b;"></text>
+          <uni-icons type="location-filled" size="20" color="#5d3f3b"></uni-icons>
           <text style="font-size: 28rpx; color: #5d3f3b;">请添加收货地址</text>
-          <text class="iconfont fa-chevron-right" style="font-size: 32rpx; color: #926f69;"></text>
+          <uni-icons type="right" size="16" color="#926f69"></uni-icons>
         </view>
       </view>
 
       <!-- 商品列表 -->
       <view class="goods-section">
         <view class="shop-header">
-          <text class="iconfont fa-shop" style="font-size: 32rpx; color: #bb0004;"></text>
+          <uni-icons type="shop-filled" size="16" color="#bb0004"></uni-icons>
           <text class="shop-name">极致美妆旗舰店</text>
         </view>
         <view class="goods-list">
@@ -59,14 +59,14 @@
             <image class="payment-icon" src="/static/images/wechat_pay_icon.png" mode="aspectFit" />
             <text class="payment-name">微信支付</text>
             <view class="payment-check" :class="{ checked: payMethod === 'wechat' }">
-              <text class="iconfont fa-check" style="font-size: 20rpx; color: #fff;"></text>
+              <uni-icons type="checkmarkempty" size="10" color="#fff"></uni-icons>
             </view>
           </view>
           <view class="payment-item" :class="{ active: payMethod === 'alipay' }" @click="payMethod = 'alipay'">
             <image class="payment-icon" src="/static/images/alipay_icon.png" mode="aspectFit" />
             <text class="payment-name">支付宝支付</text>
             <view class="payment-check" :class="{ checked: payMethod === 'alipay' }">
-              <text class="iconfont fa-check" style="font-size: 20rpx; color: #fff;"></text>
+              <uni-icons type="checkmarkempty" size="10" color="#fff"></uni-icons>
             </view>
           </view>
         </view>
@@ -90,7 +90,7 @@
           <text class="summary-label">优惠券</text>
           <view class="summary-row-right">
             <text class="summary-value">{{ selectedCouponTitle }}</text>
-            <text class="iconfont fa-chevron-right" style="font-size: 24rpx; color: #926f69;"></text>
+            <uni-icons type="right" size="12" color="#926f69"></uni-icons>
           </view>
         </view>
         <view class="summary-row" v-if="couponDiscount > 0">
@@ -109,7 +109,7 @@
       <!-- 积分抵扣 -->
       <view class="points-section" v-if="userPoints >= 500">
         <view class="points-left">
-          <text class="iconfont fa-star" style="font-size: 36rpx; color: #7c5800;"></text>
+          <uni-icons type="star-filled" size="18" color="#7c5800"></uni-icons>
           <view class="points-text">
             <text class="points-label">使用积分</text>
             <text class="points-desc">可用 {{ userPoints }} 积分（满500可用，100积分=1元）</text>

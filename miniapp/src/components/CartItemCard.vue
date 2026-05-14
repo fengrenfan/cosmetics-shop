@@ -5,7 +5,7 @@
   >
     <view class="item-check" @click="$emit('toggle-check')">
       <view class="check-circle" :class="{ checked: item.is_checked }">
-        <text class="iconfont fa-check" v-if="item.is_checked"></text>
+        <uni-icons type="checkmarkempty" size="16" color="#fff" v-if="item.is_checked"></uni-icons>
       </view>
     </view>
 
@@ -20,7 +20,7 @@
       <text class="item-title" @click="$emit('go-detail')">{{ item.title }}</text>
       <view class="item-sku-row" v-if="item.sku_name" @click="$emit('change-sku')">
         <text class="item-sku">{{ item.sku_name }}</text>
-        <text class="iconfont fa-chevron-down sku-arrow"></text>
+        <uni-icons type="down" size="11" color="#5d3f3b" class="sku-arrow"></uni-icons>
       </view>
       <view class="item-bottom">
         <view class="item-price-wrap">

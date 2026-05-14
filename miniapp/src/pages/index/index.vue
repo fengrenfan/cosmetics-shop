@@ -5,23 +5,23 @@
       <view class="nav-inner">
         <!-- 定位 -->
         <view class="location" @click="openCityModal">
-          <text class="iconfont fa-location-dot" style="color: #bb0004; font-size: 32rpx;"></text>
+          <uni-icons type="location-filled" size="16" color="#bb0004"></uni-icons>
           <text class="city-name">{{ currentCity }}</text>
-          <text class="iconfont fa-chevron-down" style="font-size: 20rpx; color: #5d3f3b;"></text>
+          <uni-icons type="down" size="10" color="#5d3f3b"></uni-icons>
         </view>
         <!-- 搜索栏 -->
         <view class="search-bar" @click="goSearch">
-          <text class="iconfont fa-search" style="font-size: 32rpx;"></text>
+          <uni-icons type="search" size="16"></uni-icons>
           <text class="placeholder">搜索高端护肤品...</text>
-          <text class="iconfont fa-camera" style="font-size: 36rpx;"></text>
+          <uni-icons type="camera-filled" size="18"></uni-icons>
         </view>
         <!-- 右侧图标 -->
         <view class="nav-icons">
           <view class="nav-icon-btn">
-            <text class="iconfont fa-qrcode"></text>
+            <uni-icons type="scan" size="16"></uni-icons>
           </view>
           <view class="nav-icon-btn relative">
-            <text class="iconfont fa-bell"></text>
+            <uni-icons type="notification-filled" size="16"></uni-icons>
             <view class="red-dot"></view>
           </view>
         </view>
@@ -79,7 +79,7 @@
           <text class="section-title">热销TOP10</text>
           <view class="section-more" @click="goHotList">
             <text>查看榜单</text>
-            <text class="iconfont fa-chevron-right" style="font-size: 22rpx;"></text>
+            <uni-icons type="right" size="11"></uni-icons>
           </view>
         </view>
         <scroll-view scroll-x class="product-scroll">

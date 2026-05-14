@@ -4,12 +4,12 @@
     <view class="top-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="top-bar-inner">
         <view class="location">
-          <text class="iconfont fa-location-dot" style="color: #bb0004;"></text>
+          <uni-icons type="location-filled" size="16" color="#bb0004"></uni-icons>
           <text class="page-title">分类</text>
         </view>
         <view class="top-icons">
           <view class="icon-btn" @click="goSearch">
-            <text class="iconfont fa-search"></text>
+            <uni-icons type="search" size="16"></uni-icons>
           </view>
         </view>
       </view>
@@ -100,7 +100,7 @@
               >{{ sort.label }}</text>
             </view>
             <view class="filter-btn" @click="showFilter = !showFilter">
-              <text class="iconfont fa-filter"></text>
+              <uni-icons type="tune-filled" size="16"></uni-icons>
               <text>筛选</text>
             </view>
           </view>
@@ -161,7 +161,7 @@
               </view>
               <text class="card-title">{{ item.title }}</text>
               <view class="card-rating">
-                <text class="iconfont fa-star" style="color: #7c5800; font-size: 20rpx;"></text>
+                <uni-icons type="star-filled" size="10" color="#7c5800"></uni-icons>
                 <text class="rating-text">{{ item.rating || '4.9' }} | {{ item.sales_count || '0' }} 已售</text>
               </view>
               <view class="card-bottom">
@@ -185,7 +185,7 @@
 
         <!-- 空状态 -->
         <view class="empty-state" v-if="!loading && products.length === 0 && subCategories.length > 0">
-          <text class="iconfont fa-inbox empty-icon"></text>
+          <uni-icons type="mail-open-filled" size="16" class="empty-icon"></uni-icons>
           <text class="empty-text">该分类下暂无商品</text>
           <view class="empty-btn" @click="resetFilter" v-if="hasActiveFilter">清除筛选</view>
         </view>

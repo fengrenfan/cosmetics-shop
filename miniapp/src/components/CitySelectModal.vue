@@ -4,24 +4,24 @@
       <!-- Header -->
       <view class="city-header">
         <text class="city-title">选择城市</text>
-        <text class="city-close iconfont fa-xmark" @click="close"></text>
+        <uni-icons type="closeempty" size="18" color="#5d3f3b" class="city-close" @click="close"></uni-icons>
       </view>
 
       <!-- Search -->
       <view class="city-search">
-        <text class="iconfont fa-search search-icon"></text>
+        <uni-icons type="search" size="14" color="#5d3f3b" class="search-icon"></uni-icons>
         <input
           class="search-input"
           v-model="searchKeyword"
           placeholder="搜索城市"
           @input="onSearch"
         />
-        <text class="iconfont fa-xmark clear-icon" v-if="searchKeyword" @click="clearSearch"></text>
+        <uni-icons type="closeempty" size="12" color="#5d3f3b" class="clear-icon" v-if="searchKeyword" @click="clearSearch"></uni-icons>
       </view>
 
       <!-- Location Button -->
       <view class="location-btn" @click="useLocation">
-        <text class="iconfont fa-location-dot"></text>
+        <uni-icons type="location-filled" size="14" color="#bb0004"></uni-icons>
         <text>使用定位</text>
         <view class="loading-indicator" v-if="locating">
           <text>定位中...</text>
@@ -56,7 +56,7 @@
             @click="selectCity(city)"
           >
             <text>{{ city.label }}</text>
-            <text class="iconfont fa-check check-icon" v-if="selectedCity?.value === city.value"></text>
+            <uni-icons type="checkmarkempty" size="14" color="#bb0004" class="check-icon" v-if="selectedCity?.value === city.value"></uni-icons>
           </view>
           <view class="empty-result" v-if="filteredCities.length === 0 && searchKeyword">
             <text>未找到匹配的城市</text>

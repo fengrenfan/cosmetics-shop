@@ -2,7 +2,7 @@
   <view class="page">
     <!-- 订单状态 -->
     <view class="status-section" :class="order.status">
-      <text class="status-icon iconfont" :class="getStatusIcon(order.status)"></text>
+      <uni-icons :type="getStatusIcon(order.status)" size="28" class="status-icon"></uni-icons>
       <text class="status-text">{{ getStatusText(order.status) }}</text>
       <text class="status-desc">{{ getStatusDesc(order.status) }}</text>
     </view>
@@ -149,14 +149,14 @@ const showActions = computed(() => {
 
 function getStatusIcon(status) {
   const map = {
-    pending: 'fa-wallet',
-    paid: 'fa-plane',
-    shipped: 'fa-truck',
-    completed: 'fa-circle-check',
-    cancelled: 'fa-xmark',
-    refunded: 'fa-rotate-left'
+    pending: 'wallet-filled',
+    paid: 'paperplane-filled',
+    shipped: 'paperplane',
+    completed: 'checkbox-filled',
+    cancelled: 'closeempty',
+    refunded: 'refresh'
   };
-  return map[status] || 'fa-wallet';
+  return map[status] || 'wallet-filled';
 }
 
 function getStatusText(status) {

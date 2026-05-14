@@ -6,7 +6,7 @@
         <text>满¥99免运费</text>
       </view>
       <view class="tip-cleanup" v-else @click="$emit('clear-invalid')">
-        <text class="iconfont fa-trash-alt"></text>
+        <uni-icons type="trash" size="10" color="#bb0004"></uni-icons>
         <text>清理失效商品</text>
       </view>
     </view>

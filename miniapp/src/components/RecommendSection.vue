@@ -3,7 +3,7 @@
     <view class="recommend-header">
       <view class="divider-line"></view>
       <view class="recommend-title">
-        <text class="iconfont fa-heart heart-icon"></text>
+        <uni-icons type="heart-filled" size="16" color="#bb0004" class="heart-icon"></uni-icons>
         <text>猜你喜欢</text>
       </view>
       <view class="divider-line"></view>

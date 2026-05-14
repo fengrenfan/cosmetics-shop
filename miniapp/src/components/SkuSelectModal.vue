@@ -9,7 +9,7 @@
           <text class="sku-stock">库存: {{ finalStock }}</text>
           <text class="sku-selected-text" v-if="selectedSpecText">{{ selectedSpecText }}</text>
         </view>
-        <text class="sku-close iconfont fa-xmark close" @click="close"></text>
+        <uni-icons type="closeempty" size="20" color="#999" class="sku-close" @click="close"></uni-icons>
       </view>
 
       <!-- SKU 规格（多规格模式） -->

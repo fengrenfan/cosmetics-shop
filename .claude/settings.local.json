@@ -57,7 +57,22 @@
       "Bash(mysql -h 118.25.192.73 -u cosmetics_shop -pcosmetics_shop_2024 cosmetics_shop -e \"DESCRIBE coupon;\")",
       "Bash(mysql *)",
       "Bash(kill -9 74321)",
-      "Bash(openspec new *)"
+      "Bash(openspec new *)",
+      "Bash(find *)",
+      "Bash(kill 6653)",
+      "Bash(grep *)",
+      "Bash(awk '{print $1}')",
+      "Bash(ECC_GATEGUARD=off ssh *)",
+      "Read(//Users/fengrenfan/.ssh/**)",
+      "Bash(ssh *)",
+      "Bash(scp -i /Users/fengrenfan/Desktop/project/feng_renfan_94911.pem -P 22 /tmp/sync_schema.sql root@118.25.192.73:/tmp/sync_schema.sql)",
+      "Bash(scp -i /Users/fengrenfan/Desktop/project/feng_renfan_94911.pem -P 22 /tmp/sync_schema_fix.sql root@118.25.192.73:/tmp/sync_schema_fix.sql)",
+      "Bash(npx ecc-agentshield *)",
+      "Bash(pkill -9 -f \"nest start\")",
+      "Bash(kill 6442)",
+      "Bash(echo \"Server started with PID $!\")",
+      "Bash(npx vite *)",
+      "Bash(npx uni *)"
     ]
   }
 }

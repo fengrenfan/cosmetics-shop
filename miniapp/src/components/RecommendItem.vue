@@ -11,7 +11,7 @@
           <text class="rec-price">{{ item.price }}</text>
         </view>
         <view class="rec-add-btn" @click.stop="$emit('add-cart')">
-          <text class="iconfont fa-cart-plus rec-cart-icon"></text>
+          <uni-icons type="cart-filled" size="14" color="#bb0004" class="rec-cart-icon"></uni-icons>
         </view>
       </view>
     </view>

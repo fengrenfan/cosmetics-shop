@@ -3,7 +3,7 @@
     <!-- 搜索栏（非榜单模式显示） -->
     <view class="search-bar" :style="{ paddingTop: statusBarHeight + 'px' }" v-if="!isRankMode">
       <view class="search-input">
-        <text class="iconfont fa-search"></text>
+        <uni-icons type="search" size="16"></uni-icons>
         <input
           class="input"
           v-model="keyword"
@@ -12,7 +12,7 @@
           @input="onKeywordInput"
           confirm-type="search"
         />
-        <text class="iconfont fa-xmark" v-if="keyword" @click="clearKeyword"></text>
+        <uni-icons type="closeempty" size="16" v-if="keyword" @click="clearKeyword"></uni-icons>
       </view>
       <text class="search-btn" @click="handleSearch">搜索</text>
     </view>
@@ -41,16 +41,16 @@
         >
           <text>价格</text>
           <view class="price-arrow">
-            <text class="iconfont fa-chevron-up" :class="{ active: sort === 'price_asc' }"></text>
-            <text class="iconfont fa-chevron-down" :class="{ active: sort === 'price_desc' }"></text>
+            <uni-icons type="up" size="16" :class="{ active: sort === 'price_asc' }"></uni-icons>
+            <uni-icons type="down" size="16" :class="{ active: sort === 'price_desc' }"></uni-icons>
           </view>
         </view>
       </view>
       <view class="filter-action">
-        <text class="iconfont fa-filter" @click="showFilter = true"></text>
+        <uni-icons type="tune-filled" size="16" @click="showFilter = true"></uni-icons>
         <text @click="showFilter = true">筛选</text>
         <view class="view-mode-toggle" @click.stop="toggleViewMode">
-          <text class="iconfont" :class="viewMode === 'grid' ? 'fa-table-cells' : 'fa-list'"></text>
+          <uni-icons :type="viewMode === 'grid' ? 'loop' : 'list'" size="16" color="#666"></uni-icons>
         </view>
       </view>
     </view>
@@ -137,7 +137,7 @@
           <view class="filter-section">
             <view class="section-header">
               <text class="section-title">分类</text>
-              <text class="iconfont fa-xmark section-close" @click="clearCategories" v-if="selectedCategories.length > 0 || selectedParentId"></text>
+              <uni-icons type="closeempty" size="14" color="#999" class="section-close" @click="clearCategories" v-if="selectedCategories.length > 0 || selectedParentId"></uni-icons>
             </view>
             <!-- 一级分类 -->
             <view class="parent-categories">

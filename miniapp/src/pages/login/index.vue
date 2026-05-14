@@ -15,7 +15,7 @@
       
       <!-- 微信一键登录 -->
       <button class="btn-wechat" @click="handleWxLogin" :loading="loading">
-        <text class="iconfont fa-weixin"></text>
+        <uni-icons type="weixin" size="16"></uni-icons>
         <text>微信一键登录</text>
       </button>
       
@@ -29,7 +29,7 @@
       <view class="dev-login" v-if="isDevMode">
         <view class="dev-title">开发模式</view>
         <view class="btn-dev-login" @click="handleDevLogin">
-          <text class="iconfont fa-flask"></text>
+          <uni-icons type="fire-filled" size="16"></uni-icons>
           <text>模拟登录（测试用户）</text>
         </view>
       </view>
@@ -37,7 +37,7 @@
       <!-- 手机号登录 -->
       <view class="phone-login">
         <button class="btn-phone" @click="showPhoneLogin = true">
-          <text class="iconfont fa-phone"></text>
+          <uni-icons type="phone-filled" size="16"></uni-icons>
           <text>手机号登录</text>
         </button>
       </view>
@@ -45,7 +45,7 @@
       <!-- 协议 -->
       <view class="agreement">
         <view class="checkbox" :class="{ checked: agreed }" @click="agreed = !agreed">
-          <text class="iconfont fa-check" v-if="agreed"></text>
+          <uni-icons type="checkmarkempty" size="16" v-if="agreed"></uni-icons>
         </view>
         <text class="agreement-text">
           登录即表示同意
@@ -61,7 +61,7 @@
       <view class="modal-content" @click.stop>
         <view class="modal-header">
           <text>手机号登录</text>
-          <text class="iconfont fa-xmark" @click="showPhoneLogin = false"></text>
+          <uni-icons type="closeempty" size="16" @click="showPhoneLogin = false"></uni-icons>
         </view>
         
         <view class="modal-body">
@@ -88,7 +88,7 @@
       <view class="modal-content agreement-modal" @click.stop>
         <view class="modal-header">
           <text>{{ agreementTitle }}</text>
-          <text class="iconfont fa-xmark" @click="showAgreementModal = false"></text>
+          <uni-icons type="closeempty" size="16" @click="showAgreementModal = false"></uni-icons>
         </view>
         <scroll-view class="agreement-content" scroll-y>
           <text>{{ agreementContent }}</text>

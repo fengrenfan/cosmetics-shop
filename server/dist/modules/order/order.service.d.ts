@@ -115,5 +115,7 @@ export declare class OrderService {
         pay_amount: number;
         pay_status: string;
     }>;
+    private parseSnapshot;
+    private parseSnapshots;
     private generateOrderNo;
 }

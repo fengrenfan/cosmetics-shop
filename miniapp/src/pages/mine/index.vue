@@ -17,9 +17,9 @@
         <view class="user-detail">
           <text class="user-name">{{ userInfo?.nickname || '点击登录' }}</text>
           <view class="user-level">
-            <text class="iconfont fa-star" style="font-size: 22rpx; color: rgba(255,255,255,0.7);"></text>
+            <uni-icons type="star-filled" size="11" color="rgba(255,255,255,0.7)"></uni-icons>
             <text class="level-text">黄金会员</text>
-            <text class="iconfont fa-chevron-right" style="font-size: 24rpx; color: rgba(255,255,255,0.6);"></text>
+            <uni-icons type="right" size="12" color="rgba(255,255,255,0.6)"></uni-icons>
           </view>
         </view>
       </view>
@@ -51,38 +51,38 @@
         <text class="section-title">我的订单</text>
         <view class="section-more" @click="goOrderList('')">
           <text>查看全部</text>
-          <text class="iconfont fa-chevron-right" style="font-size: 24rpx;"></text>
+          <uni-icons type="right" size="12"></uni-icons>
         </view>
       </view>
       <view class="order-tabs">
         <view class="order-tab" @click="goOrderList('pending')">
           <view class="tab-icon">
-            <text class="iconfont fa-wallet" style="font-size: 40rpx;"></text>
+            <uni-icons type="wallet-filled" size="20"></uni-icons>
           </view>
           <text class="tab-text">待付款</text>
         </view>
         <view class="order-tab" @click="goOrderList('paid')">
           <view class="tab-icon">
-            <text class="iconfont fa-box-open" style="font-size: 40rpx;"></text>
+            <uni-icons type="gift-filled" size="20"></uni-icons>
           </view>
           <text class="tab-text">待发货</text>
         </view>
         <view class="order-tab" @click="goOrderList('shipped')">
           <view class="tab-icon relative">
-            <text class="iconfont fa-truck" style="font-size: 40rpx;"></text>
+            <uni-icons type="paperplane" size="20"></uni-icons>
             <view class="tab-badge" v-if="orderCount.shipped > 0">{{ orderCount.shipped }}</view>
           </view>
           <text class="tab-text">待收货</text>
         </view>
         <view class="order-tab" @click="goOrderList('completed')">
           <view class="tab-icon">
-            <text class="iconfont fa-pen-to-square" style="font-size: 40rpx;"></text>
+            <uni-icons type="compose" size="20"></uni-icons>
           </view>
           <text class="tab-text">待评价</text>
         </view>
         <view class="order-tab" @click="goOrderList('after-sale')">
           <view class="tab-icon">
-            <text class="iconfont fa-rotate-left" style="font-size: 40rpx;"></text>
+            <uni-icons type="refresh" size="20"></uni-icons>
           </view>
           <text class="tab-text">售后</text>
         </view>
@@ -94,35 +94,35 @@
       <text class="section-title" style="margin-bottom: 20rpx;">常用工具</text>
       <view class="tools-grid">
         <view class="tool-card" @click="goAddress">
-          <text class="iconfont fa-location-dot" style="color: #005da3; font-size: 44rpx;"></text>
+          <uni-icons type="location-filled" size="22" color="#005da3"></uni-icons>
           <text class="tool-name">地址管理</text>
         </view>
         <view class="tool-card" @click="callService">
-          <text class="iconfont fa-headset" style="color: #7c5800; font-size: 44rpx;"></text>
+          <uni-icons type="headphones" size="22" color="#7c5800"></uni-icons>
           <text class="tool-name">客服</text>
         </view>
         <view class="tool-card" @click="goSetting">
-          <text class="iconfont fa-gear" style="color: #bb0004; font-size: 44rpx;"></text>
+          <uni-icons type="settings-filled" size="22" color="#bb0004"></uni-icons>
           <text class="tool-name">设置</text>
         </view>
         <view class="tool-card" @click="goPrivacy">
-          <text class="iconfont fa-shield-halved" style="color: #004880; font-size: 44rpx;"></text>
+          <uni-icons type="locked-filled" size="22" color="#004880"></uni-icons>
           <text class="tool-name">隐私</text>
         </view>
         <view class="tool-card" @click="goFavorite">
-          <text class="iconfont fa-heart" style="color: #636e72; font-size: 44rpx;"></text>
+          <uni-icons type="heart-filled" size="22" color="#636e72"></uni-icons>
           <text class="tool-name">收藏</text>
         </view>
         <view class="tool-card" @click="goHistory">
-          <text class="iconfont fa-clock-rotate-left" style="color: #636e72; font-size: 44rpx;"></text>
+          <uni-icons type="refreshempty" size="22" color="#636e72"></uni-icons>
           <text class="tool-name">浏览历史</text>
         </view>
         <view class="tool-card" @click="goInvite">
-          <text class="iconfont fa-share-nodes" style="color: #636e72; font-size: 44rpx;"></text>
+          <uni-icons type="link" size="22" color="#636e72"></uni-icons>
           <text class="tool-name">邀请</text>
         </view>
         <view class="tool-card" @click="goHelp">
-          <text class="iconfont fa-circle-question" style="color: #636e72; font-size: 44rpx;"></text>
+          <uni-icons type="help-filled" size="22" color="#636e72"></uni-icons>
           <text class="tool-name">帮助</text>
         </view>
       </view>

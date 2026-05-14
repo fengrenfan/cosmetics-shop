@@ -6,7 +6,7 @@
     <view class="bar-track" v-if="showGap">
       <view class="bar-fill" :style="{ width: fillPercent + '%' }"></view>
     </view>
-    <text class="check-icon iconfont fa-circle-check" v-if="!showGap"></text>
+    <uni-icons type="checkbox-filled" size="12" color="#52c41a" class="check-icon" v-if="!showGap"></uni-icons>
   </view>
 </template>
 

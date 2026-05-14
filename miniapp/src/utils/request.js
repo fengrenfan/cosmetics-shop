@@ -3,8 +3,13 @@
  * 基于 uni.request
  */
 
-// 服务器API地址（开发阶段走 Vite 代理到 NestJS 服务器）
+// 服务器API地址（小程序需完整URL，H5走Vite代理）
+// #ifdef MP-WEIXIN
+const BASE_URL = 'http://118.25.192.73:3001/api';
+// #endif
+// #ifndef MP-WEIXIN
 const BASE_URL = '/api';
+// #endif
 const IMG_BASE = 'http://118.25.192.73';
 
 class Request {

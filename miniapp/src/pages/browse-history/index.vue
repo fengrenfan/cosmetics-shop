@@ -15,12 +15,12 @@
             <text class="time">{{ formatTime(item.viewed_at) }}</text>
           </view>
         </view>
-        <text class="iconfont fa-trash-o delete-btn" @click.stop="deleteItem(item.product_id)"></text>
+        <uni-icons type="trash" size="16" class="delete-btn" @click.stop="deleteItem(item.product_id)"></uni-icons>
       </view>
     </view>
 
     <view class="empty" v-else>
-      <text class="iconfont fa-clock-rotate-left"></text>
+      <uni-icons type="refreshempty" size="60" color="#ddd"></uni-icons>
       <text class="empty-text">暂无浏览记录</text>
       <view class="go-shop" @click="goIndex">去逛逛</view>
     </view>

@@ -10,11 +10,11 @@
         />
         <view class="btn-row">
           <view class="paste-btn" @click="pasteAndParse">
-            <text class="iconfont fa-clipboard"></text>
+            <uni-icons type="link" size="14" color="#fff"></uni-icons>
             <text class="btn-text">粘贴</text>
           </view>
           <view class="parse-btn" @click="parseImportAddress" v-if="importText.trim()">
-            <text class="iconfont fa-wand-magic-sparkles"></text>
+            <uni-icons type="color-filled" size="14" color="#fff"></uni-icons>
             <text>智能识别</text>
           </view>
         </view>

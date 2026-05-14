@@ -37,11 +37,11 @@
     <!-- 配送信息 -->
     <view class="delivery-section">
       <view class="delivery-item">
-        <text class="iconfont fa-truck"></text>
+        <uni-icons type="paperplane" size="16"></uni-icons>
         <text>快递: ¥{{ freight }} {{ freight > 0 ? '(满99包邮)' : '(包邮)' }}</text>
       </view>
       <view class="delivery-item">
-        <text class="iconfont fa-location-dot"></text>
+        <uni-icons type="location-filled" size="16"></uni-icons>
         <text>{{ product.category?.name || '全国' }}</text>
       </view>
     </view>
@@ -52,7 +52,7 @@
         <text class="sku-title">选择</text>
         <text class="sku-selected">{{ selectedSkuText || '请选择规格' }}</text>
       </view>
-      <text class="iconfont fa-chevron-right"></text>
+      <uni-icons type="right" size="16"></uni-icons>
     </view>
 
     <!-- 商品详情 -->
@@ -92,7 +92,7 @@
             <view class="review-user-info">
               <text class="review-name">{{ item.user?.nickname || '匿名用户' }}</text>
               <view class="review-rating">
-                <text class="iconfont fa-star" v-for="n in 5" :key="n" :class="{ active: n <= item.rating }"></text>
+                <uni-icons type="star-filled" size="16" v-for="n in 5" :key="n" :class="{ active: n <= item.rating }"></uni-icons>
                 <text class="rating-text">{{ item.rating }}分</text>
               </view>
             </view>
@@ -119,11 +119,11 @@
     <view class="action-bar">
       <view class="action-icons">
         <view class="action-icon" @click="toggleFavorite">
-          <text class="iconfont fa-star star-icon" :class="{ active: isFavorite }"></text>
+          <uni-icons type="star-filled" size="24" class="star-icon" :class="{ active: isFavorite }"></uni-icons>
           <text>收藏</text>
         </view>
         <view class="action-icon" @click="goCart">
-          <text class="iconfont fa-cart-shopping cart-icon"></text>
+          <uni-icons type="cart-filled" size="24" class="cart-icon"></uni-icons>
           <text>购物车</text>
           <view class="cart-badge" v-if="cartCount > 0">{{ cartCount > 99 ? '99+' : cartCount }}</view>
         </view>
@@ -145,7 +145,7 @@
             <text class="sku-stock">库存: {{ finalStock }}</text>
             <text class="sku-selected-text" v-if="selectedSpecText">{{ selectedSpecText }}</text>
           </view>
-          <text class="sku-close iconfont fa-xmark close" @click="closeSkuModal"></text>
+          <uni-icons type="closeempty" size="16" class="sku-close close" @click="closeSkuModal"></uni-icons>
         </view>
 
         <!-- SKU 规格（多规格模式） -->

@@ -3,7 +3,7 @@
     <view class="footer-left">
       <view class="select-all" @click="$emit('toggle-all')">
         <view class="check-circle" :class="{ checked: isAllChecked }">
-          <text class="iconfont fa-check" v-if="isAllChecked"></text>
+          <uni-icons type="checkmarkempty" size="16" color="#fff" v-if="isAllChecked"></uni-icons>
         </view>
         <text class="select-all-text">全选</text>
       </view>
