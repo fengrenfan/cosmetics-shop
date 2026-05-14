@@ -5,12 +5,12 @@
 
 // 服务器API地址（小程序需完整URL，H5走Vite代理）
 // #ifdef MP-WEIXIN
-const BASE_URL = 'http://118.25.192.73:3001/api';
+const BASE_URL = 'https://xiaodigua.shop/api';
 // #endif
 // #ifndef MP-WEIXIN
 const BASE_URL = '/api';
 // #endif
-const IMG_BASE = 'http://118.25.192.73';
+const IMG_BASE = 'https://xiaodigua.shop';
 
 class Request {
   constructor() {
