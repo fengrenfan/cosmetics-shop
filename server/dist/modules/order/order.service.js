@@ -118,14 +118,14 @@ let OrderService = class OrderService {
             pay_status: exports.ORDER_PAY_STATUS.UNPAID,
             pay_channel: pay_channel || null,
             pay_scene: pay_scene || null,
-            address_snapshot: {
+            address_snapshot: JSON.stringify({
                 name: address.name,
                 phone: address.phone,
                 province: address.province,
                 city: address.city,
                 district: address.district,
                 detail_address: address.detail_address,
-            },
+            }),
             remark,
         });
         const savedOrder = await this.orderRepository.save(order);

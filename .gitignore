@@ -1,9 +1,5 @@
 # Dependencies
 node_modules/
-admin/node_modules/
-server/node_modules/
-miniapp/node_modules/
-mock-server/node_modules/
 
 # Build output
 dist/
@@ -20,8 +16,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Database files
+*.db
+
 # macOS
 .DS_Store
+._*
 
 # IDE
 .idea/
@@ -37,8 +37,7 @@ server/uploads/
 
 # Temporary files
 tmp/
-temp/# Claude
-.claude/
+temp/
 
-# Server build
-server/dist/
+# Claude
+.claude/

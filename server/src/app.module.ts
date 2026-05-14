@@ -32,11 +32,11 @@ import { PaymentModule } from './modules/payment/payment.module';
     // 数据库配置
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT) || 3306,
-      username: process.env.DB_USER || 'cosmetics',
-      password: process.env.DB_PASSWORD || 'cosmetics123',
-      database: process.env.DB_NAME || 'cosmetics_shop',
+      host: process.env.DB_HOST!,
+      port: parseInt(process.env.DB_PORT!, 10),
+      username: process.env.DB_USER!,
+      password: process.env.DB_PASSWORD!,
+      database: process.env.DB_NAME!,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: false,
       logging: false,
@@ -46,7 +46,7 @@ import { PaymentModule } from './modules/payment/payment.module';
     // JWT 配置
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'cosmetics-shop-secret-2024',
+      secret: process.env.JWT_SECRET!,
       signOptions: { expiresIn: '7d' },
     }),
 

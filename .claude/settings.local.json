@@ -72,7 +72,12 @@
       "Bash(kill 6442)",
       "Bash(echo \"Server started with PID $!\")",
       "Bash(npx vite *)",
-      "Bash(npx uni *)"
+      "Bash(npx uni *)",
+      "Bash(grep -E \"DB_HOST|DB_PORT|DB_USER|DB_PASSWORD|DB_NAME\" .env)",
+      "Bash(grep -E \"DB_HOST|DB_PORT|DB_USER|DB_PASSWORD|DB_NAME\" .env.example)",
+      "Bash(brew list *)",
+      "Read(//usr/local/bin/**)",
+      "Read(//opt/homebrew/bin/**)"
     ]
   }
 }

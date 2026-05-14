@@ -51,7 +51,7 @@ request.interceptors.response.use(
 );
 
 // 修复图片URL
-const IMG_BASE = 'http://118.25.192.73';
+const IMG_BASE = 'https://xiaodigua.shop';
 request.fixImageUrl = (url) => {
   if (!url) return '';
   if (url.startsWith('http://') || url.startsWith('https://')) {

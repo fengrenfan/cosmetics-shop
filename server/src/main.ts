@@ -5,6 +5,15 @@ import { join } from 'path';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
+  // 环境变量校验
+  const requiredEnvVars = ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASSWORD', 'DB_NAME', 'JWT_SECRET'];
+  const missing = requiredEnvVars.filter((v) => !process.env[v]);
+  if (missing.length > 0) {
+    console.error(`❌ 缺少必要的环境变量: ${missing.join(', ')}`);
+    console.error('请复制 .env.example 为 .env 并填写实际值');
+    process.exit(1);
+  }
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // 静态文件服务（上传的图片）

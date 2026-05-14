@@ -783,6 +783,7 @@ $tabbar-height: 100rpx;
   background: $surface-low;
   border-radius: $radius-md;
   padding: 0 20rpx;
+  box-sizing: border-box;
 }
 
 // ── 底部占位 ──

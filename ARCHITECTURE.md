@@ -11,7 +11,7 @@
 | 项目名称 | 唯伊美妆 (Cosmetics Shop) |
 | 项目类型 | 全栈 B2C 电商小程序系统 |
 | 组成 | NestJS 后端 + Vue 3 管理后台 + uni-app 微信小程序 |
-| 数据库 | MySQL 8.x（生产）/ SQLite（本地开发） |
+| 数据库 | MySQL 8.x |
 | 认证方式 | JWT（有效期 7 天） |
 | 支付模式 | Mock（开发环境），支持微信小程序 / H5 / 支付宝 H5 |
 
@@ -336,7 +336,7 @@ module/
 | TypeScript | ^5.2.2 | 开发语言 |
 | TypeORM | ^0.3.28 | ORM |
 | MySQL | 8.x | 生产数据库 |
-| SQLite | ^6.0.1 | 开发数据库 |
+
 | Passport + JWT | ^0.6.0 / ^9.0.0 | 认证 |
 | class-validator | ^0.14.0 | DTO 校验 |
 | @nestjs/schedule | ^4.0.2 | 定时任务 |
@@ -375,16 +375,17 @@ module/
 
 ### 10.1 环境变量 (server/.env)
 
+从模板创建并填写实际值：
+
+```bash
+cd server
+cp .env.example .env
+# 编辑 .env 填写数据库密码、JWT 密钥等
 ```
-DB_HOST=118.25.192.73
-DB_PORT=3306
-DB_USER=cosmetics
-DB_PASSWORD=cosmetics123
-DB_NAME=cosmetics_shop
-JWT_SECRET=cosmetics-shop-secret-2024
-PORT=3001
-PAY_MODE=mock
-```
+
+启动时会校验必需变量（`DB_HOST`、`DB_PORT`、`DB_USER`、`DB_PASSWORD`、`DB_NAME`、`JWT_SECRET`），缺失则报错退出。
+
+> ⚠️ 不要将 `.env` 提交到 Git。
 
 ### 10.2 启动命令
 

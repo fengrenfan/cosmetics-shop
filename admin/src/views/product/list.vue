@@ -943,7 +943,7 @@ async function uploadImage(options) {
     const res = await request.post('/upload/image', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    productForm.images.push('http://118.25.192.73' + res.url);
+    productForm.images.push('https://xiaodigua.shop' + res.url);
     if (!productForm.cover_image) {
       productForm.cover_image = productForm.images[0];
     }

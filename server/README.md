@@ -126,23 +126,15 @@ src/
 
 ## 环境变量
 
-创建 `.env` 文件：
+从模板创建 `.env` 文件并填写实际值：
 
-```env
-# 数据库
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=your_password
-DB_NAME=cosmetics_shop
-
-# JWT
-JWT_SECRET=your-secret-key
-
-# 微信登录
-WX_APPID=your_appid
-WX_SECRET=your_secret
+```bash
+cp .env.example .env
 ```
+
+然后编辑 `.env`，填写数据库密码、JWT 密钥等配置。启动时会校验必需变量，缺失则报错退出。
+
+> ⚠️ **不要将 `.env` 提交到 Git**，它已被 `.gitignore` 忽略。
 
 ## 启动
 

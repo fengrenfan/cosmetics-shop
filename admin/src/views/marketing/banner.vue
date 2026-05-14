@@ -303,7 +303,7 @@ async function uploadImage(options) {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
     // 拼接完整URL
-    formData.image = 'http://118.25.192.73' + res.url;
+    formData.image = 'https://xiaodigua.shop' + res.url;
     ElMessage.success('上传成功');
   } catch (e) {
     ElMessage.error('上传失败');
