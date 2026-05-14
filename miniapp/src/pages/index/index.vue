@@ -15,16 +15,6 @@
           <text class="placeholder">搜索高端护肤品...</text>
           <uni-icons type="camera-filled" size="18"></uni-icons>
         </view>
-        <!-- 右侧图标 -->
-        <view class="nav-icons">
-          <view class="nav-icon-btn">
-            <uni-icons type="scan" size="16"></uni-icons>
-          </view>
-          <view class="nav-icon-btn relative">
-            <uni-icons type="notification-filled" size="16"></uni-icons>
-            <view class="red-dot"></view>
-          </view>
-        </view>
       </view>
     </view>
 
@@ -381,44 +371,6 @@ $radius-full: 9999rpx;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-}
-
-// 右侧图标
-.nav-icons {
-  display: flex;
-  align-items: center;
-  gap: 4rpx;
-  flex-shrink: 0;
-}
-
-.nav-icon-btn {
-  width: 72rpx;
-  height: 72rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background 0.2s;
-
-  &:active {
-    background: rgba(0, 0, 0, 0.05);
-  }
-
-  .iconfont {
-    font-size: 40rpx;
-    color: $on-surface;
-  }
-}
-
-.red-dot {
-  position: absolute;
-  top: 16rpx;
-  right: 16rpx;
-  width: 12rpx;
-  height: 12rpx;
-  background: $primary;
-  border-radius: 50%;
-  border: 2rpx solid #fff;
 }
 
 // ── 内容区域 ──

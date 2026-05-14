@@ -41,8 +41,8 @@
         >
           <text>价格</text>
           <view class="price-arrow">
-            <uni-icons type="up" size="16" :class="{ active: sort === 'price_asc' }"></uni-icons>
-            <uni-icons type="down" size="16" :class="{ active: sort === 'price_desc' }"></uni-icons>
+            <uni-icons type="up" size="10" :class="{ active: sort === 'price_asc' }"></uni-icons>
+            <uni-icons type="down" size="10" :class="{ active: sort === 'price_desc' }"></uni-icons>
           </view>
         </view>
       </view>
@@ -50,7 +50,7 @@
         <uni-icons type="tune-filled" size="16" @click="showFilter = true"></uni-icons>
         <text @click="showFilter = true">筛选</text>
         <view class="view-mode-toggle" @click.stop="toggleViewMode">
-          <uni-icons :type="viewMode === 'grid' ? 'loop' : 'list'" size="16" color="#666"></uni-icons>
+          <uni-icons :type="viewMode === 'grid' ? 'list' : 'bars'" size="16" color="#666"></uni-icons>
         </view>
       </view>
     </view>
