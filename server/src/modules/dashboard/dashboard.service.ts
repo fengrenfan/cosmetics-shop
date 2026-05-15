@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { Order } from '../order/order.entity';
+import { OrderItem } from '../order/order-item.entity';
 import { Product } from '../product/product.entity';
 import { User } from '../user/user.entity';
 
@@ -10,6 +11,8 @@ export class DashboardService {
   constructor(
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
+    @InjectRepository(OrderItem)
+    private readonly orderItemRepository: Repository<OrderItem>,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
     @InjectRepository(User)
@@ -56,4 +59,81 @@ export class DashboardService {
       user_count: userCount,
     };
   }
+
+  /**
+   * 获取销售趋势（近 N 天）
+   */
+  async getSalesTrend(days: number = 7) {
+    const result = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+      const next = new Date(date);
+      next.setDate(next.getDate() + 1);
+
+      const row = await this.orderRepository
+        .createQueryBuilder('o')
+        .select('COUNT(o.id)', 'orders')
+        .addSelect('COALESCE(SUM(o.pay_amount), 0)', 'sales')
+        .where('o.created_at >= :start', { start: date })
+        .andWhere('o.created_at < :end', { end: next })
+        .andWhere('o.status != :status', { status: 'cancelled' })
+        .getRawOne();
+
+      result.push({
+        date: date.toISOString().slice(0, 10),
+        orders: parseInt(row.orders) || 0,
+        sales: parseFloat(row.sales) || 0,
+      });
+    }
+    return result;
+  }
+
+  /**
+   * 获取商品销售排行 TOP N
+   */
+  async getProductRanking(limit: number = 5) {
+    const rows = await this.orderItemRepository
+      .createQueryBuilder('oi')
+      .select('oi.product_title', 'name')
+      .addSelect('SUM(oi.quantity)', 'sales')
+      .addSelect('SUM(oi.subtotal)', 'amount')
+      .groupBy('oi.product_id')
+      .addGroupBy('oi.product_title')
+      .orderBy('SUM(oi.quantity)', 'DESC')
+      .limit(limit)
+      .getRawMany();
+
+    return rows.map(r => ({
+      name: r.name,
+      sales: parseInt(r.sales) || 0,
+      amount: parseFloat(r.amount) || 0,
+    }));
+  }
+
+  /**
+   * 获取最新订单
+   */
+  async getLatestOrders(limit: number = 5) {
+    const orders = await this.orderRepository
+      .createQueryBuilder('o')
+      .leftJoin('user', 'u', 'u.id = o.user_id')
+      .select(['o.id', 'o.order_no', 'o.pay_amount', 'o.status', 'o.created_at'])
+      .addSelect('u.nickname', 'user_nickname')
+      .addSelect('u.phone', 'user_phone')
+      .orderBy('o.created_at', 'DESC')
+      .limit(limit)
+      .getRawMany();
+
+    return orders.map(o => ({
+      id: o.id,
+      order_no: o.order_no,
+      user: o.user_nickname || o.user_phone || null,
+      amount: o.o_pay_amount,
+      status: o.o_status,
+      created_at: o.o_created_at,
+    }));
+  }
+
 }

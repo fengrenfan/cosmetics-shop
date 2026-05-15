@@ -201,6 +201,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, nextTick, onUnmounted, watch } from 'vue';
+import request from '@/utils/request.js';
 import * as echarts from 'echarts';
 import {
   ShoppingCart, Money, Goods, User, Plus, List, Top,
@@ -212,28 +213,16 @@ const currentDate = new Date().toLocaleDateString('zh-CN', {
 });
 
 const stats = reactive({
-  today_orders: 156,
-  today_sales: '8,542',
-  product_count: 328,
-  user_count: '2,856'
+  today_orders: 0,
+  today_sales: '0',
+  product_count: 0,
+  user_count: 0
 });
 
 const chartPeriod = ref('week');
-const latestOrders = ref([
-  { order_no: 'DD20260416001', user: '张小美', amount: '299.00', status: 'completed', statusText: '已完成', time: '12:30' },
-  { order_no: 'DD20260416002', user: '李小红', amount: '159.00', status: 'pending', statusText: '待付款', time: '12:15' },
-  { order_no: 'DD20260416003', user: '王美丽', amount: '599.00', status: 'paid', statusText: '待发货', time: '11:50' },
-  { order_no: 'DD20260416004', user: '赵晓丽', amount: '89.00', status: 'shipped', statusText: '待收货', time: '11:30' },
-  { order_no: 'DD20260416005', user: '陈雅静', amount: '429.00', status: 'completed', statusText: '已完成', time: '10:45' }
-]);
+const latestOrders = ref([]);
 
-const productRanking = ref([
-  { name: '玻尿酸保湿面膜 5片装', sales: 328, amount: '25,864' },
-  { name: '胶原蛋白精华液 30ml', sales: 256, amount: '19,456' },
-  { name: '玫瑰保湿面霜 50g', sales: 198, amount: '14,652' },
-  { name: '丝绒哑光口红 #正红色', sales: 167, amount: '12,525' },
-  { name: '氨基酸洁面乳 100ml', sales: 145, amount: '10,305' }
-]);
+const productRanking = ref([]);
 
 const activities = ref([
   { text: '用户 张小美 购买商品「保湿面膜」', time: '3分钟前', color: '#67c23a' },
@@ -244,12 +233,47 @@ const activities = ref([
 ]);
 
 let salesChart = null;
+const salesTrendData = ref([]);
 const salesChartRef = ref(null);
 
-onMounted(() => {
+onMounted(async () => {
+  await loadDashboardData();
   nextTick(() => initChart());
   window.addEventListener('resize', handleResize);
 });
+
+async function loadDashboardData() {
+  try {
+    const [statsRes, trendRes, rankingRes, ordersRes] = await Promise.all([
+      request.get('/dashboard/stats'),
+      request.get('/dashboard/sales-trend?days=7'),
+      request.get('/dashboard/product-ranking?limit=5'),
+      request.get('/dashboard/latest-orders?limit=5'),
+    ]);
+    const s = statsRes.data || statsRes;
+    stats.today_orders = s.today_orders ?? 0;
+    stats.today_sales = (s.today_sales ?? 0).toLocaleString();
+    stats.product_count = s.product_count ?? 0;
+    stats.user_count = (s.user_count ?? 0).toLocaleString();
+
+    const trend = trendRes.data || trendRes;
+    salesTrendData.value = trend;
+
+    const ranking = rankingRes.data || rankingRes;
+    productRanking.value = ranking.map(r => ({ ...r, amount: Number(r.amount).toLocaleString() }));
+
+    const orders = ordersRes.data || ordersRes;
+    const statusMap = { pending: '待付款', paid: '待发货', shipped: '待收货', completed: '已完成', cancelled: '已取消', refunded: '已退款' };
+    latestOrders.value = orders.map(o => ({
+      ...o,
+      amount: Number(o.amount).toFixed(2),
+      statusText: statusMap[o.status] || o.status,
+      time: o.created_at ? new Date(o.created_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : '',
+    }));
+  } catch (e) {
+    console.error('加载首页数据失败', e);
+  }
+}
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize);
@@ -266,20 +290,24 @@ function initChart() {
   updateChart();
 }
 
-function updateChart() {
-  const weekData = {
-    xAxis: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
-    sales: [4200, 3800, 5100, 4600, 6200, 7800, 8542],
-    orders: [42, 38, 51, 46, 62, 78, 85]
+async function updateChart() {
+  let trend = salesTrendData.value;
+  if (chartPeriod.value === 'month' && trend.length < 28) {
+    try {
+      const res = await request.get('/dashboard/sales-trend?days=30');
+      trend = res.data || res;
+    } catch { /* fallback */ }
+  }
+  const data = {
+    xAxis: trend.map(d => d.date?.slice(5) || ''),
+    sales: trend.map(d => d.sales),
+    orders: trend.map(d => d.orders),
   };
-
-  const monthData = {
-    xAxis: Array.from({ length: 30 }, (_, i) => `${i + 1}日`),
-    sales: Array.from({ length: 30 }, () => Math.floor(Math.random() * 8000) + 2000),
-    orders: Array.from({ length: 30 }, () => Math.floor(Math.random() * 80) + 20)
-  };
-
-  const data = chartPeriod.value === 'week' ? weekData : monthData;
+  if (!data.xAxis.length) {
+    data.xAxis = ['暂无数据'];
+    data.sales = [0];
+    data.orders = [0];
+  }
 
   salesChart.setOption({
     tooltip: { trigger: 'axis', backgroundColor: 'rgba(255,255,255,0.95)', borderColor: '#eee', textStyle: { color: '#333' } },
