@@ -1,22 +1,17 @@
-version: '3.8'
-
 services:
   mock-server:
-    image: mall-mock-server:latest
     build:
-      context: ./mock-server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: mock-server/Dockerfile
     container_name: cosmetics-mock-server
     ports:
       - "3000:3000"
-    networks:
-      - cosmetics-net
+    network_mode: host
 
   server:
-    image: mall-server:latest
     build:
-      context: ./server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: server/Dockerfile
     container_name: cosmetics-server
     ports:
       - "3001:3001"
@@ -31,16 +26,10 @@ services:
       - PAY_MODE=mock
 
   admin:
-    image: mall-admin:latest
     build:
-      context: ./admin
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: admin/Dockerfile
     container_name: cosmetics-admin
     ports:
       - "5174:80"
-    networks:
-      - cosmetics-net
-
-networks:
-  cosmetics-net:
-    name: mall_cosmetics-net
+    network_mode: host
