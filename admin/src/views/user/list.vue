@@ -161,41 +161,15 @@ async function loadData() {
     const params = {
       page: pagination.page,
       pageSize: pagination.pageSize,
-      ...queryForm
     };
-    // 暂时使用模拟数据
-    tableData.value = [
-      {
-        id: 1,
-        nickname: '测试用户',
-        phone: '13800138000',
-        avatar: '',
-        gender: 1,
-        openid: 'ox1234567890abcdef',
-        unionid: null,
-        status: 1,
-        level: 1,
-        points: 100,
-        last_login_at: new Date(),
-        last_login_ip: '127.0.0.1',
-        created_at: new Date()
-      },
-      {
-        id: 2,
-        nickname: '美妆达人',
-        phone: '13900139000',
-        avatar: '',
-        gender: 2,
-        openid: 'ox234567890abcdef1',
-        unionid: null,
-        status: 1,
-        level: 2,
-        points: 500,
-        last_login_at: new Date(),
-        created_at: new Date()
-      }
-    ];
-    pagination.total = 2;
+    if (queryForm.id) params.id = queryForm.id;
+    if (queryForm.phone) params.phone = queryForm.phone;
+    if (queryForm.status !== null && queryForm.status !== '') params.status = queryForm.status;
+
+    const res = await request.get('/user/admin/list', { params });
+    const data = res.data || res;
+    tableData.value = data.list || [];
+    pagination.total = data.pagination?.total || 0;
   } catch (e) {
     console.error('加载用户失败', e);
   } finally {
@@ -216,8 +190,13 @@ function handleReset() {
   loadData();
 }
 
-function handleDetail(row) {
-  currentUser.value = row;
+async function handleDetail(row) {
+  try {
+    const res = await request.get(`/user/admin/${row.id}`);
+    currentUser.value = res.data || res;
+  } catch {
+    currentUser.value = row;
+  }
   detailVisible.value = true;
 }
 
@@ -227,8 +206,9 @@ async function toggleStatus(row) {
     type: 'warning'
   }).then(async () => {
     try {
-      // await request.put(`/user/${row.id}/status`, { status: row.status === 1 ? 0 : 1 });
-      row.status = row.status === 1 ? 0 : 1;
+      const newStatus = row.status === 1 ? 0 : 1;
+      await request.put(`/user/admin/${row.id}/status`, { status: newStatus });
+      row.status = newStatus;
       ElMessage.success(`${action}成功`);
     } catch (e) {
       console.error(`${action}失败`, e);

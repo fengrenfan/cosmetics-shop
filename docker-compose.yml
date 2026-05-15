@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  mock-server:
+    image: mall-mock-server:latest
+    build:
+      context: ./mock-server
+      dockerfile: Dockerfile
+    container_name: cosmetics-mock-server
+    ports:
+      - "3000:3000"
+    networks:
+      - cosmetics-net
+
+  server:
+    image: mall-server:latest
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: cosmetics-server
+    ports:
+      - "3001:3001"
+    network_mode: host
+    environment:
+      - DB_HOST=127.0.0.1
+      - DB_PORT=3306
+      - DB_USER=cosmetics
+      - DB_PASSWORD=Cosmetics_123
+      - DB_NAME=cosmetics_shop
+      - JWT_SECRET=CosmeticsShop2024Secret
+      - PAY_MODE=mock
+
+  admin:
+    image: mall-admin:latest
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    container_name: cosmetics-admin
+    ports:
+      - "5174:80"
+    networks:
+      - cosmetics-net
+
+networks:
+  cosmetics-net:
+    name: mall_cosmetics-net

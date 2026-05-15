@@ -97,6 +97,7 @@
             <el-button type="primary" link @click.stop="handleDetail(row)">详情</el-button>
             <el-button type="primary" link @click.stop="handleShip(row)" v-if="row.status === 'paid'">发货</el-button>
             <el-button type="danger" link @click.stop="handleRefund(row)" v-if="['paid', 'shipped'].includes(row.status)">退款</el-button>
+            <el-button type="success" link @click.stop="handleTracking(row)" v-if="row.status === 'shipped' || row.status === 'completed'">物流</el-button>
             <el-button type="warning" link @click.stop="handleMockPaid(row)" v-if="row.status === 'pending' && row.out_trade_no">模拟回调</el-button>
           </template>
         </el-table-column>
@@ -238,6 +239,28 @@
         <el-button type="primary" @click="confirmShip">确认发货</el-button>
       </template>
     </el-dialog>
+
+    <!-- 物流轨迹弹窗 -->
+    <el-dialog v-model="trackingVisible" title="物流轨迹" width="600px">
+      <div v-loading="trackingLoading">
+        <div v-if="trackingData.express_company" style="margin-bottom: 16px;">
+          <el-tag>{{ trackingData.express_company }}</el-tag>
+          <span style="margin-left: 12px; color: #666;">{{ trackingData.express_no }}</span>
+        </div>
+        <el-timeline v-if="trackingData.traces && trackingData.traces.length">
+          <el-timeline-item
+            v-for="(trace, index) in trackingData.traces"
+            :key="index"
+            :timestamp="trace.time"
+            :type="index === 0 ? 'primary' : ''"
+            placement="top"
+          >
+            {{ trace.description }}
+          </el-timeline-item>
+        </el-timeline>
+        <el-empty v-else description="暂无物流轨迹" />
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -277,6 +300,10 @@ function onDateChange(val) {
     queryForm.end_date = '';
   }
 }
+
+const trackingVisible = ref(false);
+const trackingLoading = ref(false);
+const trackingData = ref({});
 
 const shipForm = reactive({
   express_company: '',
@@ -368,6 +395,21 @@ function handleShip(row) {
   shipForm.express_company = '';
   shipForm.express_no = '';
   shipVisible.value = true;
+}
+
+async function handleTracking(row) {
+  trackingVisible.value = true;
+  trackingLoading.value = true;
+  trackingData.value = {};
+  try {
+    const res = await request.get(`/order/admin/${row.id}/tracking`);
+    trackingData.value = res.data || res;
+  } catch (e) {
+    trackingData.value = { traces: [] };
+    ElMessage.error('查询物流失败');
+  } finally {
+    trackingLoading.value = false;
+  }
 }
 
 async function confirmShip() {

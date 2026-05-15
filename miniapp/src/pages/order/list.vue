@@ -239,16 +239,17 @@ function formatTime(time) {
 
 <style lang="scss" scoped>
 .page {
-  min-height: 100vh;
+  height: 100vh;
   background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
 }
 
 .tabs {
   display: flex;
   background: #fff;
   padding: 0 20rpx;
-  position: sticky;
-  top: 0;
+  flex-shrink: 0;
   z-index: 10;
 }
 
@@ -300,7 +301,9 @@ function formatTime(time) {
 }
 
 .order-list {
+  flex: 1;
   padding: 20rpx;
+  height: 0;
 }
 
 .order-item {
@@ -308,6 +311,8 @@ function formatTime(time) {
   border-radius: 16rpx;
   margin-bottom: 20rpx;
   overflow: hidden;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .order-header {
@@ -317,21 +322,22 @@ function formatTime(time) {
   padding: 24rpx;
   border-bottom: 1rpx solid #f5f5f5;
   min-width: 0;
+  overflow: hidden;
 }
 
 .order-no {
-  font-size: 24rpx;
-  color: #666;
+  font-size: 22rpx;
+  color: #999;
   flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  letter-spacing: 0;
 }
 
 .order-status {
   font-size: 26rpx;
-  flex-shrink: 0;
   margin-left: 16rpx;
 
   &.pending { color: #ff9500; }
@@ -351,6 +357,7 @@ function formatTime(time) {
   align-items: center;
   margin-bottom: 20rpx;
   min-width: 0;
+  overflow: hidden;
 
   &:last-child {
     margin-bottom: 0;
@@ -394,7 +401,7 @@ function formatTime(time) {
 .goods-right {
   text-align: right;
   margin-left: 20rpx;
-  flex-shrink: 0;
+  min-width: 0;
 }
 
 .goods-price {
@@ -419,6 +426,7 @@ function formatTime(time) {
   padding: 20rpx 24rpx;
   border-top: 1rpx solid #f5f5f5;
   min-width: 0;
+  overflow: hidden;
 }
 
 .order-info {
@@ -444,7 +452,6 @@ function formatTime(time) {
   align-items: baseline;
   font-size: 26rpx;
   color: #333;
-  flex-shrink: 0;
   margin-left: 20rpx;
 
   .total-price {
@@ -459,10 +466,15 @@ function formatTime(time) {
 .order-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 20rpx;
   padding: 20rpx 24rpx;
   border-top: 1rpx solid #f5f5f5;
-  flex-wrap: wrap;
+  overflow: hidden;
+  
+  .action-btn {
+    margin-left: 20rpx;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
 }
 
 .action-btn {
@@ -470,7 +482,6 @@ function formatTime(time) {
   border-radius: 32rpx;
   font-size: 26rpx;
   white-space: nowrap;
-  flex-shrink: 0;
   
   &.primary {
     background: linear-gradient(135deg, #ff4a8d 0%, #ff6b9d 100%);

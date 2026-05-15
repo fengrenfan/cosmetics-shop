@@ -33,8 +33,18 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Get('admin/list')
-  getAdminList(@Query('page') page: number, @Query('pageSize') pageSize: number) {
-    return this.userService.getAdminList(page || 1, pageSize || 20);
+  getAdminList(
+    @Query('page') page: number,
+    @Query('pageSize') pageSize: number,
+    @Query('id') id?: string,
+    @Query('phone') phone?: string,
+    @Query('status') status?: string,
+  ) {
+    const filters: any = {};
+    if (id) filters.id = parseInt(id);
+    if (phone) filters.phone = phone;
+    if (status !== undefined && status !== '' && status !== null) filters.status = parseInt(status);
+    return this.userService.getAdminList(page || 1, pageSize || 20, filters);
   }
 
   /**
@@ -60,4 +70,25 @@ export class UserController {
       }
     };
   }
+
+  /**
+   * 获取用户详情 (管理员)
+   * GET /api/user/admin/:id
+   */
+  @UseGuards(JwtAuthGuard)
+  @Get('admin/:id')
+  async getAdminDetail(@Param('id') id: number) {
+    return this.userService.getAdminDetail(id);
+  }
+
+  /**
+   * 切换用户状态 (管理员)
+   * PUT /api/user/admin/:id/status
+   */
+  @UseGuards(JwtAuthGuard)
+  @Put('admin/:id/status')
+  async toggleStatus(@Param('id') id: number, @Body('status') status: number) {
+    return this.userService.toggleStatus(id, status);
+  }
+
 }

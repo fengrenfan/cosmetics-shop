@@ -159,4 +159,15 @@ export class OrderController {
   async refund(@Param('id') id: string) {
     return this.orderService.refund(+id);
   }
+
+  /**
+   * 查询物流轨迹
+   * GET /api/order/admin/:id/tracking
+   */
+  @UseGuards(JwtAuthGuard)
+  @Get('admin/:id/tracking')
+  async getTracking(@Param('id') id: string) {
+    return this.orderService.getTracking(+id);
+  }
+
 }
