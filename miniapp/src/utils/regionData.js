@@ -18529,3 +18529,32 @@ export function getDistricts(provinceIndex, cityIndex) {
   if (!city) return [];
   return (city.children || []).map(d => ({ label: d.label, value: d.value }));
 }
+
+// 不包邮地区（偏远地区，下单时不显示）
+const NO_FREE_SHIPPING_REGIONS = ['西藏自治区', '新疆维吾尔自治区'];
+
+// 过滤后的省市区数据（去掉不包邮地区）
+export const filteredRegionData = regionData.filter(
+  p => !NO_FREE_SHIPPING_REGIONS.includes(p.label)
+);
+
+export function getFilteredRegionColumns() {
+  const provinces = filteredRegionData.map(p => ({ label: p.label, value: p.value }));
+  const cities = filteredRegionData[0]?.children?.map(c => ({ label: c.label, value: c.value })) || [];
+  const districts = filteredRegionData[0]?.children?.[0]?.children?.map(d => ({ label: d.label, value: d.value })) || [];
+  return [provinces, cities, districts];
+}
+
+export function getFilteredCities(provinceIndex) {
+  const province = filteredRegionData[provinceIndex];
+  if (!province) return [];
+  return province.children.map(c => ({ label: c.label, value: c.value }));
+}
+
+export function getFilteredDistricts(provinceIndex, cityIndex) {
+  const province = filteredRegionData[provinceIndex];
+  if (!province) return [];
+  const city = province.children[cityIndex];
+  if (!city) return [];
+  return (city.children || []).map(d => ({ label: d.label, value: d.value }));
+}

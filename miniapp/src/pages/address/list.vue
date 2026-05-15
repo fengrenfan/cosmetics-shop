@@ -139,7 +139,7 @@
               <view class="picker-value" :class="{ empty: !formData.province }">
                 <text v-if="formData.province">{{ formData.province }} {{ formData.city }} {{ formData.district }}</text>
                 <text v-else>请选择省市区</text>
-                <uni-icons type="right" size="16" class="picker-arrow"></uni-icons>
+                <uni-icons type="right" size="12" class="picker-arrow"></uni-icons>
               </view>
             </picker>
           </view>
@@ -171,7 +171,7 @@
 import { ref } from 'vue';
 import { onShow } from '@dcloudio/uni-app';
 import request from '@/utils/request.js';
-import { regionData, getRegionColumns, getCities, getDistricts } from '@/utils/regionData.js';
+import { filteredRegionData, getFilteredCities, getFilteredDistricts } from '@/utils/regionData.js';
 
 const addressList = ref([]);
 const loading = ref(false);
@@ -272,7 +272,7 @@ function parseImportAddress() {
   let matchedProvince = null;
   let restText = textWithoutPhone;
 
-  for (const p of regionData) {
+  for (const p of filteredRegionData) {
     const shortName = fullToShort[p.label] || p.label.slice(0, 2);
     const idx = textWithoutPhone.indexOf(p.label);
     const shortIdx = shortName ? textWithoutPhone.indexOf(shortName) : -1;
@@ -376,8 +376,8 @@ function parseImportAddress() {
     formData.value.detail_address = detailAddr;
     importText.value = '';
     // 设置 picker 索引
-    const pIdx = regionData.findIndex(p => p.label === formData.value.province);
-    const provinceData = regionData[pIdx];
+    const pIdx = filteredRegionData.findIndex(p => p.label === formData.value.province);
+    const provinceData = filteredRegionData[pIdx];
     const cIdx = provinceData?.children?.findIndex(c => c.label === formData.value.city) ?? 0;
     const cityData = provinceData?.children?.[cIdx];
     let dIdx = 0;
@@ -434,9 +434,9 @@ function editAddress(item) {
     is_default: !!Number(item.is_default)
   };
   // 定位省市区索引
-  const pIdx = regionData.findIndex(p => p.label === item.province || p.value === item.province);
+  const pIdx = filteredRegionData.findIndex(p => p.label === item.province || p.value === item.province);
   const provinceIdx = pIdx >= 0 ? pIdx : 0;
-  const province = regionData[provinceIdx];
+  const province = filteredRegionData[provinceIdx];
   const hasDistrict = province?.children?.[0]?.children;
   const cIdx = province?.children?.findIndex(c => (c.label === item.city || c.value === item.city) && (hasDistrict ? c.children : true));
   const cityIdx = cIdx >= 0 ? cIdx : 0;
@@ -451,9 +451,9 @@ function editAddress(item) {
 }
 
 function initRegionColumns(provinceIdx = 0, cityIdx = 0, districtIdx = 0) {
-  const p = regionData[provinceIdx];
+  const p = filteredRegionData[provinceIdx];
   const cities = p?.children || [];
-  regionCol1.value = regionData.map(pv => ({ label: pv.label, value: pv.value }));
+  regionCol1.value = filteredRegionData.map(pv => ({ label: pv.label, value: pv.value }));
 
   // 判断直辖市/无中间城市的省份（所有 children 都是叶子节点）
   const allLeaves = cities.length > 0 && cities.every(c => c.children.length === 0);
@@ -510,7 +510,7 @@ function onRegionColumnChange(e) {
   const { column, value: colIdx } = e.detail;
   regionIndex.value[column] = colIdx;
   if (column === 0) {
-    const province = regionData[colIdx];
+    const province = filteredRegionData[colIdx];
     const cities = province?.children || [];
     const allLeaves = cities.length > 0 && cities.every(c => c.children.length === 0);
     regionTwoLevel.value = allLeaves;
@@ -525,7 +525,7 @@ function onRegionColumnChange(e) {
     }
     regionIndex.value = [colIdx, 0, 0];
   } else if (column === 1) {
-    const province = regionData[regionIndex.value[0]];
+    const province = filteredRegionData[regionIndex.value[0]];
     const cities = province?.children || [];
     const city = cities[colIdx];
     if (!regionTwoLevel.value) {

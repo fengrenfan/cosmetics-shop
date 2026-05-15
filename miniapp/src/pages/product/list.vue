@@ -137,7 +137,7 @@
           <view class="filter-section">
             <view class="section-header">
               <text class="section-title">分类</text>
-              <uni-icons type="closeempty" size="14" color="#999" class="section-close" @click="clearCategories" v-if="selectedCategories.length > 0 || selectedParentId"></uni-icons>
+              <uni-icons type="closeempty" size="16" color="#999" class="section-close" @click="clearCategories" v-if="selectedCategories.length > 0 || selectedParentId"></uni-icons>
             </view>
             <!-- 一级分类 -->
             <view class="parent-categories">

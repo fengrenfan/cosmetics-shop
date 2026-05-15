@@ -63,7 +63,7 @@
         </view>
         <view class="order-tab" @click="goOrderList('paid')">
           <view class="tab-icon">
-            <uni-icons type="gift-filled" size="20"></uni-icons>
+            <uni-icons type="shop-filled" size="20"></uni-icons>
           </view>
           <text class="tab-text">待发货</text>
         </view>
@@ -76,13 +76,13 @@
         </view>
         <view class="order-tab" @click="goOrderList('completed')">
           <view class="tab-icon">
-            <uni-icons type="compose" size="20"></uni-icons>
+            <uni-icons type="chat-filled" size="20"></uni-icons>
           </view>
           <text class="tab-text">待评价</text>
         </view>
         <view class="order-tab" @click="goOrderList('after-sale')">
           <view class="tab-icon">
-            <uni-icons type="refresh" size="20"></uni-icons>
+            <uni-icons type="undo-filled" size="20"></uni-icons>
           </view>
           <text class="tab-text">售后</text>
         </view>
@@ -114,11 +114,11 @@
           <text class="tool-name">收藏</text>
         </view>
         <view class="tool-card" @click="goHistory">
-          <uni-icons type="refreshempty" size="22" color="#636e72"></uni-icons>
+          <uni-icons type="eye-filled" size="22" color="#636e72"></uni-icons>
           <text class="tool-name">浏览历史</text>
         </view>
         <view class="tool-card" @click="goInvite">
-          <uni-icons type="link" size="22" color="#636e72"></uni-icons>
+          <uni-icons type="personadd-filled" size="22" color="#636e72"></uni-icons>
           <text class="tool-name">邀请</text>
         </view>
         <view class="tool-card" @click="goHelp">

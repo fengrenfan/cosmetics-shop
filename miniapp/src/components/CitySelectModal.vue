@@ -4,7 +4,7 @@
       <!-- Header -->
       <view class="city-header">
         <text class="city-title">选择城市</text>
-        <uni-icons type="closeempty" size="18" color="#5d3f3b" class="city-close" @click="close"></uni-icons>
+        <uni-icons type="closeempty" size="16" color="#5d3f3b" class="city-close" @click="close"></uni-icons>
       </view>
 
       <!-- Search -->
@@ -16,7 +16,7 @@
           placeholder="搜索城市"
           @input="onSearch"
         />
-        <uni-icons type="closeempty" size="12" color="#5d3f3b" class="clear-icon" v-if="searchKeyword" @click="clearSearch"></uni-icons>
+        <uni-icons type="closeempty" size="16" color="#5d3f3b" class="clear-icon" v-if="searchKeyword" @click="clearSearch"></uni-icons>
       </view>
 
       <!-- Location Button -->

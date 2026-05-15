@@ -69,7 +69,7 @@
           <text class="section-title">热销TOP10</text>
           <view class="section-more" @click="goHotList">
             <text>查看榜单</text>
-            <uni-icons type="right" size="11"></uni-icons>
+            <uni-icons type="right" size="12"></uni-icons>
           </view>
         </view>
         <scroll-view scroll-x class="product-scroll">

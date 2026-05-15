@@ -15,13 +15,13 @@
               {{ selectedAddress.province }}{{ selectedAddress.city }}{{ selectedAddress.district }}{{ selectedAddress.detail_address }}
             </view>
           </view>
-          <uni-icons type="right" size="16" color="#926f69"></uni-icons>
+          <uni-icons type="right" size="12" color="#926f69"></uni-icons>
           <view class="address-stripe"></view>
         </view>
         <view class="address-empty" v-else>
           <uni-icons type="location-filled" size="20" color="#5d3f3b"></uni-icons>
           <text style="font-size: 28rpx; color: #5d3f3b;">请添加收货地址</text>
-          <uni-icons type="right" size="16" color="#926f69"></uni-icons>
+          <uni-icons type="right" size="12" color="#926f69"></uni-icons>
         </view>
       </view>
 
@@ -81,10 +81,6 @@
         <view class="summary-row">
           <text class="summary-label">运费</text>
           <text class="summary-value">{{ freight > 0 ? '¥' + freight : '¥0.00' }}</text>
-        </view>
-        <view class="summary-row" v-if="shopDiscount > 0">
-          <text class="summary-label">店铺优惠</text>
-          <text class="summary-discount">- ¥{{ shopDiscount.toFixed(2) }}</text>
         </view>
         <view class="summary-row summary-row-clickable" @click="chooseCoupon">
           <text class="summary-label">优惠券</text>
@@ -186,16 +182,12 @@ const freight = computed(() => {
   return parseFloat(totalPrice.value) >= 99 ? 0 : 10;
 });
 
-const shopDiscount = computed(() => {
-  return parseFloat(totalPrice.value) * 0.05;
-});
-
 const totalCount = computed(() => {
   return settlementItems.value.reduce((sum, item) => sum + item.quantity, 0);
 });
 
 const actualPrice = computed(() => {
-  const base = parseFloat(totalPrice.value) + freight.value - shopDiscount.value;
+  const base = parseFloat(totalPrice.value) + freight.value;
   const afterCoupon = base - couponDiscount.value;
   const afterPoints = afterCoupon - pointsMoney.value;
   return Math.max(0, afterPoints).toFixed(2);

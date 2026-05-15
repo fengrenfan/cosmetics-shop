@@ -32,7 +32,7 @@
 
       <view class="form-item">
         <view class="label">所在地区</view>
-        <picker mode="region" @change="onRegionChange" :value="region">
+        <picker mode="multiSelector" @change="onRegionChange" @columnchange="onRegionColumnChange" :value="regionIndex" :range="[regionCol1, regionCol2, regionCol3]" :range-key="'label'">
           <view class="picker-value">
             {{ region.length ? region.join('') : '请选择省市区' }}
           </view>
@@ -58,13 +58,19 @@
 
 <script>
 import request from '@/utils/request.js';
-import { regionData } from '@/utils/regionData.js';
+import { regionData, filteredRegionData } from '@/utils/regionData.js';
 
 export default {
   data() {
     return {
       id: null,
       region: [],
+      regionIndex: [0, 0, 0],
+      regionCol1: [],
+      regionCol2: [],
+      regionCol3: [],
+      regionTwoLevel: false,
+      noFreeShipRegions: ['西藏自治区', '新疆维吾尔自治区'],
       importText: '',
       formData: {
         name: '',
@@ -78,6 +84,7 @@ export default {
     };
   },
   onLoad(options) {
+    this.initRegionColumns();
     if (options.id) {
       this.id = parseInt(options.id);
       this.loadAddress();
@@ -229,8 +236,22 @@ export default {
       detailAddr = detailAddr.replace(/^(市辖区|县|区)/, '').trim();
       detailAddr = detailAddr.replace(/^[，,、\s]+/, '').trim();
 
-      // 7. 如果成功解析出省市区，填充表单
+      // 7. 如果成功解析出省市区，检查是否为不包邮地区
       if (this.formData.province) {
+        if (this.noFreeShipRegions.includes(this.formData.province)) {
+          uni.showModal({
+            title: '温馨提示',
+            content: '该地区暂不支持配送，请修改收货地址',
+            showCancel: false,
+            confirmText: '知道了'
+          });
+          this.formData.province = '';
+          this.formData.city = '';
+          this.formData.district = '';
+          this.formData.detail_address = '';
+          this.region = [];
+          return;
+        }
         this.formData.detail_address = detailAddr;
         this.importText = '';
         uni.showToast({ title: '地址解析成功', icon: 'success' });
@@ -241,16 +262,74 @@ export default {
         const res = await request.get(`/address/${this.id}`);
         this.formData = res;
         this.region = [res.province, res.city, res.district];
+        // 设置 picker 索引
+        const pIdx = filteredRegionData.findIndex(p => p.label === res.province);
+        if (pIdx >= 0) {
+          const cities = filteredRegionData[pIdx]?.children || [];
+          const cIdx = cities.findIndex(c => c.label === res.city);
+          const districts = (cities[cIdx >= 0 ? cIdx : 0]?.children || []);
+          const dIdx = districts.findIndex(d => d.label === res.district);
+          this.initRegionColumns(pIdx, cIdx >= 0 ? cIdx : 0, dIdx >= 0 ? dIdx : 0);
+        }
       } catch (e) {
         uni.showToast({ title: '加载失败', icon: 'none' });
       }
     },
+    initRegionColumns(provinceIdx = 0, cityIdx = 0, districtIdx = 0) {
+      const p = filteredRegionData[provinceIdx];
+      const cities = p?.children || [];
+      this.regionCol1 = filteredRegionData.map(pv => ({ label: pv.label, value: pv.value }));
+      const allLeaves = cities.length > 0 && cities.every(c => c.children.length === 0);
+      if (allLeaves) {
+        this.regionTwoLevel = true;
+        this.regionCol2 = cities.map(c => ({ label: c.label, value: c.value || c.label }));
+        this.regionCol3 = [];
+        this.regionIndex = [provinceIdx, Math.min(cityIdx, cities.length - 1), 0];
+      } else {
+        this.regionTwoLevel = false;
+        this.regionCol2 = cities.map(c => ({ label: c.label, value: c.value || c.label }));
+        const firstWithChildren = cities.find(c => c.children.length > 0);
+        this.regionCol3 = (firstWithChildren?.children || []).map(d => ({ label: d.label, value: d.value || d.label }));
+        this.regionIndex = [provinceIdx, cityIdx, Math.min(districtIdx, this.regionCol3.length - 1)];
+      }
+    },
     onRegionChange(e) {
-      const [province, city, district] = e.detail.value;
-      this.region = e.detail.value;
-      this.formData.province = province;
-      this.formData.city = city;
-      this.formData.district = district;
+      const [pIdx, cIdx, dIdx] = e.detail.value;
+      this.formData.province = this.regionCol1[pIdx]?.label || '';
+      if (this.regionTwoLevel) {
+        this.formData.city = this.regionCol1[pIdx]?.label || '';
+        this.formData.district = this.regionCol2[cIdx]?.label || '';
+        this.region = [this.formData.province, this.formData.city, this.formData.district];
+      } else {
+        this.formData.city = this.regionCol2[cIdx]?.label || '';
+        this.formData.district = this.regionCol3[dIdx]?.label || '';
+        this.region = [this.formData.province, this.formData.city, this.formData.district];
+      }
+    },
+    onRegionColumnChange(e) {
+      const { column, value: colIdx } = e.detail;
+      this.regionIndex[column] = colIdx;
+      if (column === 0) {
+        const province = filteredRegionData[colIdx];
+        const cities = province?.children || [];
+        const allLeaves = cities.length > 0 && cities.every(c => c.children.length === 0);
+        this.regionTwoLevel = allLeaves;
+        this.regionCol2 = cities.map(c => ({ label: c.label, value: c.value || c.label }));
+        if (allLeaves) {
+          this.regionCol3 = [];
+        } else {
+          const firstWithChildren = cities.find(c => c.children.length > 0);
+          this.regionCol3 = (firstWithChildren?.children || []).map(d => ({ label: d.label, value: d.value || d.label }));
+        }
+        this.regionIndex = [colIdx, 0, 0];
+      } else if (column === 1) {
+        const province = filteredRegionData[this.regionIndex[0]];
+        const cities = province?.children || [];
+        const city = cities[colIdx];
+        const districts = (city?.children || []).map(d => ({ label: d.label, value: d.value || d.label }));
+        this.regionCol3 = districts;
+        this.regionIndex = [this.regionIndex[0], colIdx, 0];
+      }
     },
     onDefaultChange(e) {
       this.formData.is_default = e.detail.value;

@@ -52,7 +52,7 @@
         <text class="sku-title">选择</text>
         <text class="sku-selected">{{ selectedSkuText || '请选择规格' }}</text>
       </view>
-      <uni-icons type="right" size="16"></uni-icons>
+      <uni-icons type="right" size="12"></uni-icons>
     </view>
 
     <!-- 商品详情 -->
