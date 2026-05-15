@@ -1,7 +1,7 @@
 FROM node:18-alpine
 WORKDIR /app
-COPY package*.json ./
+COPY mock-server/package*.json ./
 RUN npm ci
-COPY . .
+COPY mock-server/ ./
 EXPOSE 3000
 CMD ["node", "server.js"]
