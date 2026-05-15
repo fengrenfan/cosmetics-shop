@@ -32,4 +32,9 @@ services:
     container_name: cosmetics-admin
     ports:
       - "5174:80"
-    network_mode: host
+    networks:
+      - cosmetics-net
+
+networks:
+  cosmetics-net:
+    name: mall_cosmetics-net
