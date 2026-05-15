@@ -8,6 +8,10 @@ cd "$SERVER_DIR"
 echo "🔨 Building..."
 /Users/fengrenfan/.nvm/versions/node/v18.20.8/bin/node node_modules/.bin/nest build
 
-echo "🚀 Starting NestJS (MySQL: 118.25.192.73)..."
-DB_HOST=118.25.192.73 DB_USER=cosmetics DB_PASSWORD=cosmetics123 DB_NAME=cosmetics_shop DB_PORT=3306 \
+if [ ! -f .env ]; then
+  echo "❌ Missing .env file. Please copy .env.example to .env first."
+  exit 1
+fi
+
+echo "🚀 Starting NestJS with .env configuration..."
 /Users/fengrenfan/.nvm/versions/node/v18.20.8/bin/node dist/main.js
