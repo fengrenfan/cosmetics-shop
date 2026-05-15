@@ -42,7 +42,7 @@ request.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       request.clearToken();
-      window.location.href = '/login';
+      window.location.href = '/admin/login';
     } else {
       ElMessage.error(error.response?.data?.message || '请求失败');
     }
