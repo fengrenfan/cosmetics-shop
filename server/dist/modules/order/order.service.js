@@ -11,8 +11,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+var OrderService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrderService = exports.ORDER_PAY_STATUS = void 0;
+const axios_1 = __importDefault(require("axios"));
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
@@ -34,7 +39,7 @@ exports.ORDER_PAY_STATUS = {
     REFUNDING: 'refunding',
     REFUNDED: 'refunded',
 };
-let OrderService = class OrderService {
+let OrderService = OrderService_1 = class OrderService {
     constructor(orderRepository, orderItemRepository, userCouponRepository, productService, addressService, cartService, pointsService, couponService) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
@@ -44,6 +49,19 @@ let OrderService = class OrderService {
         this.cartService = cartService;
         this.pointsService = pointsService;
         this.couponService = couponService;
+        this.lastTimestamp = 0;
+        this.sequence = 0;
+        this.expressCodeMap = {
+            '顺丰速运': 'shunfeng', '顺丰': 'shunfeng',
+            '圆通快递': 'yuantong', '圆通': 'yuantong',
+            '中通快递': 'zhongtong', '中通': 'zhongtong',
+            '韵达快递': 'yunda', '韵达': 'yunda',
+            '申通快递': 'shentong', '申通': 'shentong',
+            '京东物流': 'jd', '京东': 'jd',
+            '极兔速递': 'jtexpress', '极兔': 'jtexpress',
+            '邮政快递包裹': 'youzhengguonei', 'EMS': 'ems',
+            '德邦快递': 'debangwuliu', '德邦': 'debangwuliu',
+        };
     }
     async create(dto) {
         const { user_id, address_id, items, remark, coupon_id, points_amount, points_money, pay_channel, pay_scene } = dto;
@@ -451,16 +469,89 @@ let OrderService = class OrderService {
         }
     }
     generateOrderNo() {
-        const date = new Date();
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-        return `COS${year}${month}${day}${random}`;
+        let timestamp = Date.now();
+        if (timestamp === this.lastTimestamp) {
+            this.sequence = (this.sequence + 1) & OrderService_1.SEQUENCE_MASK;
+            if (this.sequence === 0) {
+                while (timestamp <= this.lastTimestamp) {
+                    timestamp = Date.now();
+                }
+            }
+        }
+        else {
+            this.sequence = 0;
+        }
+        this.lastTimestamp = timestamp;
+        const snowflakeId = (BigInt(timestamp - OrderService_1.EPOCH) << BigInt(OrderService_1.TIMESTAMP_LEFT_SHIFT) |
+            BigInt(OrderService_1.WORKER_ID) << BigInt(OrderService_1.WORKER_ID_SHIFT) |
+            BigInt(this.sequence)).toString();
+        return `COS${snowflakeId}`;
+    }
+    async getTracking(orderId) {
+        const order = await this.orderRepository.findOne({ where: { id: orderId } });
+        if (!order)
+            throw new Error('订单不存在');
+        if (!order.express_no || !order.express_company) {
+            return { status: 'no_data', message: '暂无物流信息', traces: [] };
+        }
+        const customer = process.env.KUAIDI100_CUSTOMER;
+        const key = process.env.KUAIDI100_KEY;
+        if (!customer || !key) {
+            return this.getMockTracking(order);
+        }
+        const code = this.expressCodeMap[order.express_company] || order.express_company;
+        try {
+            const param = JSON.stringify({ com: code, num: order.express_no });
+            const sign = require('crypto')
+                .createHash('md5')
+                .update(param + key + customer)
+                .digest('hex')
+                .toUpperCase();
+            const res = await axios_1.default.post('https://poll.kuaidi100.com/poll/query.do', `customer=${customer}&sign=${sign}&param=${encodeURIComponent(param)}`, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, timeout: 5000 });
+            if (res.data?.status === '200') {
+                const data = res.data;
+                return {
+                    status: 'ok',
+                    express_company: order.express_company,
+                    express_no: order.express_no,
+                    state: data.state,
+                    traces: (data.data || []).map((t) => ({
+                        time: t.time,
+                        description: t.context,
+                    })),
+                };
+            }
+            return { status: 'error', message: res.data?.message || '查询失败', traces: [] };
+        }
+        catch (e) {
+            console.error('物流查询失败:', e.message);
+            return this.getMockTracking(order);
+        }
+    }
+    getMockTracking(order) {
+        const traces = [
+            { time: order.ship_time || order.created_at, description: '快件已从仓库发出' },
+            { time: order.ship_time || order.created_at, description: `快件已到达${order.express_company || '快递'}转运中心` },
+            { time: order.ship_time || order.created_at, description: '快件派送中，快递员正在配送' },
+        ];
+        return {
+            status: 'mock',
+            express_company: order.express_company,
+            express_no: order.express_no,
+            state: order.status === 'completed' ? '3' : '2',
+            traces,
+        };
     }
 };
 exports.OrderService = OrderService;
-exports.OrderService = OrderService = __decorate([
+OrderService.EPOCH = 1700000000000;
+OrderService.WORKER_ID = 1;
+OrderService.SEQUENCE_BITS = 12;
+OrderService.WORKER_ID_BITS = 10;
+OrderService.TIMESTAMP_LEFT_SHIFT = 22;
+OrderService.WORKER_ID_SHIFT = 12;
+OrderService.SEQUENCE_MASK = 4095;
+exports.OrderService = OrderService = OrderService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(order_entity_1.Order)),
     __param(1, (0, typeorm_1.InjectRepository)(order_item_entity_1.OrderItem)),

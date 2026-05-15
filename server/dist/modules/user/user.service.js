@@ -87,21 +87,34 @@ let UserService = class UserService {
         await this.userRepository.save(user);
         return { success: true };
     }
-    async getAdminList(page = 1, pageSize = 20) {
-        const [list, total] = await this.userRepository.findAndCount({
-            order: { created_at: 'DESC' },
-            skip: (page - 1) * pageSize,
-            take: pageSize,
-        });
+    async getAdminList(page = 1, pageSize = 20, filters) {
+        const qb = this.userRepository.createQueryBuilder('u');
+        if (filters?.id) {
+            qb.andWhere('u.id = :id', { id: filters.id });
+        }
+        if (filters?.phone) {
+            qb.andWhere('u.phone LIKE :phone', { phone: `%${filters.phone}%` });
+        }
+        if (filters?.status !== null && filters?.status !== undefined) {
+            qb.andWhere('u.status = :status', { status: filters.status });
+        }
+        qb.orderBy('u.created_at', 'DESC')
+            .skip((page - 1) * pageSize)
+            .take(pageSize);
+        const [list, total] = await qb.getManyAndCount();
         return {
             list: list.map((u) => ({
                 id: u.id,
                 nickname: u.nickname,
                 avatar: u.avatar,
                 phone: u.phone,
+                gender: u.gender,
+                openid: u.openid,
                 status: u.status,
+                points: u.points,
                 created_at: u.created_at,
                 last_login_at: u.last_login_at,
+                last_login_ip: u.last_login_ip,
             })),
             pagination: {
                 page,
@@ -110,6 +123,29 @@ let UserService = class UserService {
                 totalPages: Math.ceil(total / pageSize),
             },
         };
+    }
+    async getAdminDetail(userId) {
+        const user = await this.userRepository.findOne({ where: { id: userId } });
+        if (!user)
+            return null;
+        return {
+            id: user.id,
+            nickname: user.nickname,
+            avatar: user.avatar,
+            phone: user.phone,
+            gender: user.gender,
+            openid: user.openid,
+            unionid: user.unionid,
+            status: user.status,
+            points: user.points,
+            created_at: user.created_at,
+            last_login_at: user.last_login_at,
+            last_login_ip: user.last_login_ip,
+        };
+    }
+    async toggleStatus(userId, status) {
+        await this.userRepository.update(userId, { status });
+        return { success: true };
     }
 };
 exports.UserService = UserService;

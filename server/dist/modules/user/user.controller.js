@@ -30,8 +30,15 @@ let UserController = class UserController {
     getStats(req) {
         return this.userService.getStats(req.user.id);
     }
-    getAdminList(page, pageSize) {
-        return this.userService.getAdminList(page || 1, pageSize || 20);
+    getAdminList(page, pageSize, id, phone, status) {
+        const filters = {};
+        if (id)
+            filters.id = parseInt(id);
+        if (phone)
+            filters.phone = phone;
+        if (status !== undefined && status !== '' && status !== null)
+            filters.status = parseInt(status);
+        return this.userService.getAdminList(page || 1, pageSize || 20, filters);
     }
     async search(phone) {
         if (!phone) {
@@ -49,6 +56,12 @@ let UserController = class UserController {
                 avatar: user.avatar,
             }
         };
+    }
+    async getAdminDetail(id) {
+        return this.userService.getAdminDetail(id);
+    }
+    async toggleStatus(id, status) {
+        return this.userService.toggleStatus(id, status);
     }
 };
 exports.UserController = UserController;
@@ -82,8 +95,11 @@ __decorate([
     (0, common_1.Get)('admin/list'),
     __param(0, (0, common_1.Query)('page')),
     __param(1, (0, common_1.Query)('pageSize')),
+    __param(2, (0, common_1.Query)('id')),
+    __param(3, (0, common_1.Query)('phone')),
+    __param(4, (0, common_1.Query)('status')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:paramtypes", [Number, Number, String, String, String]),
     __metadata("design:returntype", void 0)
 ], UserController.prototype, "getAdminList", null);
 __decorate([
@@ -94,6 +110,23 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "search", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Get)('admin/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "getAdminDetail", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Put)('admin/:id/status'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)('status')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "toggleStatus", null);
 exports.UserController = UserController = __decorate([
     (0, common_1.Controller)('user'),
     __metadata("design:paramtypes", [user_service_1.UserService])

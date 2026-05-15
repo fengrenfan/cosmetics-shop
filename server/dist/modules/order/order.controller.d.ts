@@ -57,4 +57,28 @@ export declare class OrderController {
     refund(id: string): Promise<{
         success: boolean;
     }>;
+    getTracking(id: string): Promise<{
+        status: string;
+        express_company: any;
+        express_no: any;
+        state: string;
+        traces: {
+            time: any;
+            description: string;
+        }[];
+    } | {
+        status: string;
+        express_company: string;
+        express_no: string;
+        state: any;
+        traces: any;
+        message?: undefined;
+    } | {
+        status: string;
+        message: any;
+        traces: any[];
+        express_company?: undefined;
+        express_no?: undefined;
+        state?: undefined;
+    }>;
 }

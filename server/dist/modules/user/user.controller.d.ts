@@ -23,15 +23,19 @@ export declare class UserController {
             completed: number;
         };
     }>;
-    getAdminList(page: number, pageSize: number): Promise<{
+    getAdminList(page: number, pageSize: number, id?: string, phone?: string, status?: string): Promise<{
         list: {
             id: number;
             nickname: string;
             avatar: string;
             phone: string;
+            gender: number;
+            openid: string;
             status: number;
+            points: number;
             created_at: Date;
             last_login_at: Date;
+            last_login_ip: string;
         }[];
         pagination: {
             page: number;
@@ -47,5 +51,22 @@ export declare class UserController {
             phone: string;
             avatar: string;
         };
+    }>;
+    getAdminDetail(id: number): Promise<{
+        id: number;
+        nickname: string;
+        avatar: string;
+        phone: string;
+        gender: number;
+        openid: string;
+        unionid: string;
+        status: number;
+        points: number;
+        created_at: Date;
+        last_login_at: Date;
+        last_login_ip: string;
+    }>;
+    toggleStatus(id: number, status: number): Promise<{
+        success: boolean;
     }>;
 }

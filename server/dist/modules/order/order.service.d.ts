@@ -117,5 +117,40 @@ export declare class OrderService {
     }>;
     private parseSnapshot;
     private parseSnapshots;
+    private static readonly EPOCH;
+    private static readonly WORKER_ID;
+    private static readonly SEQUENCE_BITS;
+    private static readonly WORKER_ID_BITS;
+    private static readonly TIMESTAMP_LEFT_SHIFT;
+    private static readonly WORKER_ID_SHIFT;
+    private static readonly SEQUENCE_MASK;
+    private lastTimestamp;
+    private sequence;
     private generateOrderNo;
+    private readonly expressCodeMap;
+    getTracking(orderId: number): Promise<{
+        status: string;
+        express_company: any;
+        express_no: any;
+        state: string;
+        traces: {
+            time: any;
+            description: string;
+        }[];
+    } | {
+        status: string;
+        express_company: string;
+        express_no: string;
+        state: any;
+        traces: any;
+        message?: undefined;
+    } | {
+        status: string;
+        message: any;
+        traces: any[];
+        express_company?: undefined;
+        express_no?: undefined;
+        state?: undefined;
+    }>;
+    private getMockTracking;
 }

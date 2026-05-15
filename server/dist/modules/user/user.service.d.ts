@@ -33,15 +33,23 @@ export declare class UserService {
     updateProfile(userId: number, dto: any): Promise<{
         success: boolean;
     }>;
-    getAdminList(page?: number, pageSize?: number): Promise<{
+    getAdminList(page?: number, pageSize?: number, filters?: {
+        id?: number;
+        phone?: string;
+        status?: number;
+    }): Promise<{
         list: {
             id: number;
             nickname: string;
             avatar: string;
             phone: string;
+            gender: number;
+            openid: string;
             status: number;
+            points: number;
             created_at: Date;
             last_login_at: Date;
+            last_login_ip: string;
         }[];
         pagination: {
             page: number;
@@ -49,5 +57,22 @@ export declare class UserService {
             total: number;
             totalPages: number;
         };
+    }>;
+    getAdminDetail(userId: number): Promise<{
+        id: number;
+        nickname: string;
+        avatar: string;
+        phone: string;
+        gender: number;
+        openid: string;
+        unionid: string;
+        status: number;
+        points: number;
+        created_at: Date;
+        last_login_at: Date;
+        last_login_ip: string;
+    }>;
+    toggleStatus(userId: number, status: number): Promise<{
+        success: boolean;
     }>;
 }
