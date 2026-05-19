@@ -25,11 +25,16 @@ CREATE TABLE `user` (
   `status` TINYINT UNSIGNED DEFAULT 1 COMMENT '状态 0-禁用 1-正常',
   `last_login_at` DATETIME DEFAULT NULL COMMENT '最后登录时间',
   `last_login_ip` VARCHAR(45) DEFAULT NULL COMMENT '最后登录IP',
+  `points` INT DEFAULT 0 COMMENT '积分余额',
+  `member_level_id` BIGINT UNSIGNED DEFAULT NULL COMMENT '会员等级ID',
+  `parent_id` BIGINT UNSIGNED DEFAULT NULL COMMENT '邀请人/上级用户ID',
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_openid` (`openid`),
-  UNIQUE KEY `uk_phone` (`phone`)
+  UNIQUE KEY `uk_phone` (`phone`),
+  KEY `idx_parent` (`parent_id`),
+  KEY `idx_member_level` (`member_level_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
 
 -- 插入管理员
@@ -260,6 +265,36 @@ CREATE TABLE `user_coupon` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户优惠券表';
 
 -- ============================================
+-- 11. 美圈动态表
+-- ============================================
+CREATE TABLE `community_post` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `content` TEXT NOT NULL,
+  `images` JSON DEFAULT NULL,
+  `like_count` INT UNSIGNED DEFAULT 0,
+  `status` TINYINT UNSIGNED DEFAULT 1,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_user` (`user_id`),
+  KEY `idx_status_created` (`status`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='美圈动态表';
+
+-- ============================================
+-- 12. 美圈点赞表
+-- ============================================
+CREATE TABLE `community_like` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `post_id` BIGINT UNSIGNED NOT NULL,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_post_user` (`post_id`, `user_id`),
+  KEY `idx_user` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='美圈点赞表';
+
+-- ============================================
 -- 11. 收藏表
 -- ============================================
 CREATE TABLE `favorite` (
@@ -329,3 +364,69 @@ CREATE TABLE `payment_record` (
   KEY `idx_order` (`order_id`),
   KEY `idx_user` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='支付记录表';
+
+-- ============================================
+-- 15. 会员等级表
+-- ============================================
+CREATE TABLE IF NOT EXISTS `member_level` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(64) NOT NULL COMMENT '等级名称',
+  `discount_rate` DECIMAL(5,2) DEFAULT 100.00 COMMENT '折扣率(%)',
+  `benefit_desc` VARCHAR(512) DEFAULT NULL COMMENT '权益描述',
+  `sort_order` INT UNSIGNED DEFAULT 0,
+  `status` TINYINT UNSIGNED DEFAULT 1 COMMENT '0-禁用 1-启用',
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='会员等级表';
+
+INSERT INTO `member_level` (`id`, `name`, `discount_rate`, `benefit_desc`, `sort_order`, `status`) VALUES
+(1, '普通会员', 100.00, '享受商城原价购买', 1, 1),
+(2, 'VIP会员', 95.00, '下单享受VIP会员优惠价', 2, 1),
+(3, '特级经销商', 85.00, '下单享受特级经销商优惠价', 3, 1);
+
+-- ============================================
+-- 16. 业绩考核期表
+-- ============================================
+CREATE TABLE IF NOT EXISTS `performance_period` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `period_code` VARCHAR(20) NOT NULL COMMENT '期数编码 如202605',
+  `name` VARCHAR(64) NOT NULL COMMENT '期数名称 如202605期',
+  `start_date` DATE NOT NULL,
+  `end_date` DATE NOT NULL,
+  `qualified_threshold` DECIMAL(12,2) DEFAULT 10000.00 COMMENT '部门合格业绩门槛',
+  `status` TINYINT UNSIGNED DEFAULT 1 COMMENT '0-关闭 1-进行中',
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_period_code` (`period_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='业绩考核期';
+
+INSERT INTO `performance_period` (`period_code`, `name`, `start_date`, `end_date`, `qualified_threshold`, `status`) VALUES
+('202605', '202605期', '2026-05-01', '2026-05-31', 10000.00, 1),
+('202604', '202604期', '2026-04-01', '2026-04-30', 10000.00, 0);
+
+-- ============================================
+-- 17. 部门业绩快照表（可按期维护/覆盖）
+-- ============================================
+CREATE TABLE IF NOT EXISTS `department_performance` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `owner_user_id` BIGINT UNSIGNED NOT NULL COMMENT '部门所属用户(上级)',
+  `direct_user_id` BIGINT UNSIGNED NOT NULL COMMENT '直属下级(部门负责人)',
+  `period_id` BIGINT UNSIGNED NOT NULL,
+  `dept_name` VARCHAR(64) DEFAULT NULL COMMENT '部门名称',
+  `total_members` INT UNSIGNED DEFAULT 0 COMMENT '部门总人数',
+  `total_performance` DECIMAL(12,2) DEFAULT 0 COMMENT '总业绩',
+  `effective_performance` DECIMAL(12,2) DEFAULT 0 COMMENT '有效业绩',
+  `status` TINYINT UNSIGNED DEFAULT 0 COMMENT '0-不合格 1-合格',
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_owner_direct_period` (`owner_user_id`, `direct_user_id`, `period_id`),
+  KEY `idx_owner_period` (`owner_user_id`, `period_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='部门业绩快照';
+
+-- 已有库迁移（可重复执行）
+ALTER TABLE `user` ADD COLUMN IF NOT EXISTS `points` INT DEFAULT 0 COMMENT '积分余额' AFTER `last_login_ip`;
+ALTER TABLE `user` ADD COLUMN IF NOT EXISTS `member_level_id` BIGINT UNSIGNED DEFAULT NULL COMMENT '会员等级ID' AFTER `points`;
+ALTER TABLE `user` ADD COLUMN IF NOT EXISTS `parent_id` BIGINT UNSIGNED DEFAULT NULL COMMENT '邀请人/上级用户ID' AFTER `member_level_id`;

@@ -63,6 +63,14 @@ __decorate([
     __metadata("design:type", Number)
 ], User.prototype, "points", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ nullable: true, name: 'member_level_id' }),
+    __metadata("design:type", Number)
+], User.prototype, "member_level_id", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, name: 'parent_id' }),
+    __metadata("design:type", Number)
+], User.prototype, "parent_id", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], User.prototype, "created_at", void 0);

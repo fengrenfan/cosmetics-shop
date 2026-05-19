@@ -28,6 +28,19 @@
       }
     },
     {
+      "path": "pages/community/index",
+      "style": {
+        "navigationBarTitleText": "美圈",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/community/publish",
+      "style": {
+        "navigationBarTitleText": "发布动态"
+      }
+    },
+    {
       "path": "pages/product/detail",
       "style": {
         "navigationBarTitleText": "商品详情"
@@ -123,6 +136,12 @@
       "style": {
         "navigationBarTitleText": "积分明细"
       }
+    },
+    {
+      "path": "pages/member/center",
+      "style": {
+        "navigationBarTitleText": "会员中心"
+      }
     }
   ],
   "globalStyle": {
@@ -148,6 +167,12 @@
         "text": "分类",
         "iconPath": "static/tabbar/category.png",
         "selectedIconPath": "static/tabbar/category-active.png"
+      },
+      {
+        "pagePath": "pages/community/index",
+        "text": "美圈",
+        "iconPath": "static/tabbar/community.png",
+        "selectedIconPath": "static/tabbar/community-active.png"
       },
       {
         "pagePath": "pages/cart/index",

@@ -47,6 +47,8 @@ export declare class UserService {
             openid: string;
             status: number;
             points: number;
+            member_level_id: number;
+            parent_id: number;
             created_at: Date;
             last_login_at: Date;
             last_login_ip: string;
@@ -68,6 +70,8 @@ export declare class UserService {
         unionid: string;
         status: number;
         points: number;
+        member_level_id: number;
+        parent_id: number;
         created_at: Date;
         last_login_at: Date;
         last_login_ip: string;

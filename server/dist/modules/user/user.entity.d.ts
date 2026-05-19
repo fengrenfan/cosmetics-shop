@@ -11,6 +11,8 @@ export declare class User {
     last_login_at: Date;
     last_login_ip: string;
     points: number;
+    member_level_id: number;
+    parent_id: number;
     created_at: Date;
     updated_at: Date;
 }

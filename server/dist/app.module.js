@@ -33,6 +33,8 @@ const quick_entry_module_1 = require("./modules/quick-entry/quick-entry.module")
 const browse_history_module_1 = require("./modules/browse-history/browse-history.module");
 const points_module_1 = require("./modules/points/points.module");
 const payment_module_1 = require("./modules/payment/payment.module");
+const community_module_1 = require("./modules/community/community.module");
+const member_module_1 = require("./modules/member/member.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -76,6 +78,8 @@ exports.AppModule = AppModule = __decorate([
             browse_history_module_1.BrowseHistoryModule,
             points_module_1.PointsModule,
             payment_module_1.PaymentModule,
+            community_module_1.CommunityModule,
+            member_module_1.MemberModule,
         ],
         providers: [
             {

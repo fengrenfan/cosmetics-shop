@@ -304,6 +304,7 @@ function formatTime(time) {
   flex: 1;
   padding: 20rpx;
   height: 0;
+  box-sizing: border-box;
 }
 
 .order-item {
@@ -402,6 +403,7 @@ function formatTime(time) {
   text-align: right;
   margin-left: 20rpx;
   min-width: 0;
+  flex-shrink: 0;
 }
 
 .goods-price {
@@ -466,12 +468,12 @@ function formatTime(time) {
 .order-actions {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 16rpx 20rpx;
   padding: 20rpx 24rpx;
   border-top: 1rpx solid #f5f5f5;
-  overflow: hidden;
   
   .action-btn {
-    margin-left: 20rpx;
     max-width: 100%;
     box-sizing: border-box;
   }

@@ -25,6 +25,8 @@ import { QuickEntryModule } from './modules/quick-entry/quick-entry.module';
 import { BrowseHistoryModule } from './modules/browse-history/browse-history.module';
 import { PointsModule } from './modules/points/points.module';
 import { PaymentModule } from './modules/payment/payment.module';
+import { CommunityModule } from './modules/community/community.module';
+import { MemberModule } from './modules/member/member.module';
 
 @Module({
   imports: [
@@ -72,6 +74,8 @@ import { PaymentModule } from './modules/payment/payment.module';
     BrowseHistoryModule,
     PointsModule,
     PaymentModule,
+    CommunityModule,
+    MemberModule,
   ],
   providers: [
     {

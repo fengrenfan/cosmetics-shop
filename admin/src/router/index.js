@@ -64,6 +64,31 @@ const routes = [
         ],
       },
       {
+        path: 'member',
+        name: 'Member',
+        meta: { title: '会员中心', icon: 'Medal' },
+        children: [
+          {
+            path: 'level',
+            name: 'MemberLevel',
+            component: () => import('@/views/member/level.vue'),
+            meta: { title: '等级管理' },
+          },
+          {
+            path: 'period',
+            name: 'MemberPeriod',
+            component: () => import('@/views/member/period.vue'),
+            meta: { title: '考核期管理' },
+          },
+          {
+            path: 'user',
+            name: 'MemberUser',
+            component: () => import('@/views/member/user.vue'),
+            meta: { title: '会员详情' },
+          },
+        ],
+      },
+      {
         path: 'marketing',
         name: 'Marketing',
         meta: { title: '营销管理', icon: 'Present' },

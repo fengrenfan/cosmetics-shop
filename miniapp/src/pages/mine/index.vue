@@ -16,9 +16,9 @@
         <!-- 用户信息 -->
         <view class="user-detail">
           <text class="user-name">{{ userInfo?.nickname || '点击登录' }}</text>
-          <view class="user-level">
+          <view class="user-level" @click.stop="goMemberCenter">
             <uni-icons type="star-filled" size="11" color="rgba(255,255,255,0.7)"></uni-icons>
-            <text class="level-text">黄金会员</text>
+            <text class="level-text">{{ memberLevelName }}</text>
             <uni-icons type="right" size="12" color="rgba(255,255,255,0.6)"></uni-icons>
           </view>
         </view>
@@ -140,6 +140,7 @@ import request from '@/utils/request.js';
 
 const statusBarHeight = ref(20);
 const userInfo = ref(null);
+const memberLevelName = ref('会员中心');
 const userStats = reactive({ favorite_count: 0, coupon_count: 0, order_count: {} });
 const orderCount = reactive({ pending: 0, paid: 0, shipped: 0, completed: 0 });
 
@@ -154,6 +155,7 @@ onShow(async () => {
     userInfo.value = uni.getStorageSync('userInfo');
     await loadUserStats();
     await loadOrderCount();
+    await loadMemberLevel();
   }
 });
 
@@ -162,7 +164,27 @@ async function init() {
   if (checkLogin()) {
     await loadUserStats();
     await loadOrderCount();
+    await loadMemberLevel();
   }
+}
+
+async function loadMemberLevel() {
+  try {
+    const data = await request.get('/member/profile');
+    if (data?.level?.name) {
+      memberLevelName.value = data.level.name;
+    }
+  } catch (e) {
+    // 未登录或接口失败时保持默认文案
+  }
+}
+
+function goMemberCenter() {
+  if (!checkLogin()) {
+    uni.navigateTo({ url: '/pages/login/index' });
+    return;
+  }
+  uni.navigateTo({ url: '/pages/member/center' });
 }
 
 async function loadUserStats() {
@@ -226,7 +248,7 @@ function goHistory() {
 }
 
 function goInvite() {
-  uni.showToast({ title: '功能开发中', icon: 'none' });
+  goMemberCenter();
 }
 
 function goMyCoupons() {

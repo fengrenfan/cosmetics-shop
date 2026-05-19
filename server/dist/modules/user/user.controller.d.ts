@@ -33,6 +33,8 @@ export declare class UserController {
             openid: string;
             status: number;
             points: number;
+            member_level_id: number;
+            parent_id: number;
             created_at: Date;
             last_login_at: Date;
             last_login_ip: string;
@@ -62,6 +64,8 @@ export declare class UserController {
         unionid: string;
         status: number;
         points: number;
+        member_level_id: number;
+        parent_id: number;
         created_at: Date;
         last_login_at: Date;
         last_login_ip: string;

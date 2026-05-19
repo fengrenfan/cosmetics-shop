@@ -60,9 +60,10 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="150" fixed="right">
+        <el-table-column label="操作" width="220" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link @click="handleDetail(row)">详情</el-button>
+            <el-button type="warning" link @click="goMember(row)">会员</el-button>
             <el-button :type="row.status === 1 ? 'danger' : 'success'" link @click="toggleStatus(row)">
               {{ row.status === 1 ? '禁用' : '启用' }}
             </el-button>
@@ -131,8 +132,11 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import request from '@/utils/request.js';
+
+const router = useRouter();
 
 const loading = ref(false);
 const tableData = ref([]);
@@ -188,6 +192,10 @@ function handleReset() {
   queryForm.status = null;
   pagination.page = 1;
   loadData();
+}
+
+function goMember(row) {
+  router.push({ path: '/member/user', query: { userId: row.id } });
 }
 
 async function handleDetail(row) {

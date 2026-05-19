@@ -148,6 +148,7 @@ const selectedCityData = computed(() => locationStore.currentCity);
 const TAB_PAGES = new Set([
   'pages/index/index',
   'pages/category/index',
+  'pages/community/index',
   'pages/cart/index',
   'pages/mine/index',
 ]);

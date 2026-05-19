@@ -38,6 +38,12 @@ export class User {
   @Column({ type: 'int', default: 0, name: 'points' })
   points: number;
 
+  @Column({ nullable: true, name: 'member_level_id' })
+  member_level_id: number;
+
+  @Column({ nullable: true, name: 'parent_id' })
+  parent_id: number;
+
   @CreateDateColumn()
   created_at: Date;
 

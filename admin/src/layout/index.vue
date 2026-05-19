@@ -46,6 +46,16 @@
           <el-menu-item index="/user/list">用户列表</el-menu-item>
         </el-sub-menu>
 
+        <el-sub-menu index="/member">
+          <template #title>
+            <el-icon><Medal /></el-icon>
+            <span>会员中心</span>
+          </template>
+          <el-menu-item index="/member/level">等级管理</el-menu-item>
+          <el-menu-item index="/member/period">考核期管理</el-menu-item>
+          <el-menu-item index="/member/user">会员详情</el-menu-item>
+        </el-sub-menu>
+
         <el-sub-menu index="/marketing">
           <template #title>
             <el-icon><Present /></el-icon>
