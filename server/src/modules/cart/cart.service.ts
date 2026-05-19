@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Cart } from './cart.entity';
 import { Product } from '../product/product.entity';
 import { DictService } from '../dict/dict.service';
+import { resolveProductImageUrl } from '../../common/utils/image-url.util';
 
 @Injectable()
 export class CartService {
@@ -39,7 +40,7 @@ export class CartService {
       product_id: cart.product_id,
       sku_id: cart.sku_id,
       title: cart.product?.title,
-      cover_image: cart.product?.cover_image,
+      cover_image: resolveProductImageUrl(cart.product?.cover_image, cart.product_id),
       price: cart.sku?.price || cart.product?.price,
       stock: cart.sku?.stock || cart.product?.stock,
       sku_name: cart.sku?.sku_name,

@@ -111,7 +111,18 @@ class Request {
     return this.request({ url, method: 'DELETE', data });
   }
 
-  fixImageUrl(url) {
+  isInvalidImageUrl(url) {
+    if (!url) return true;
+    const u = String(url);
+    return u.includes('/static/uploads/placeholder') || u.includes('placeholder.jpg');
+  }
+
+  fixImageUrl(url, seed) {
+    if (this.isInvalidImageUrl(url)) {
+      return seed != null
+        ? `https://picsum.photos/seed/p${seed}/400/400`
+        : '';
+    }
     if (!url) return '';
     if (url.startsWith('http://') || url.startsWith('https://')) {
       return url;
@@ -119,7 +130,7 @@ class Request {
     return IMG_BASE + url;
   }
 
-  fixImageUrls(urls) {
+  fixImageUrls(urls, seed) {
     if (!urls || !Array.isArray(urls)) return [];
     // 处理可能为 JSON 字符串的情况
     if (typeof urls === 'string') {
@@ -129,7 +140,7 @@ class Request {
         return [];
       }
     }
-    return urls.map(url => this.fixImageUrl(url));
+    return urls.map((url, i) => this.fixImageUrl(url, seed != null ? seed * 10 + i : undefined));
   }
 
   // 标准化商品数据格式
@@ -150,8 +161,8 @@ class Request {
       id: p.id,
       title: p.title || '',
       subtitle: p.subtitle || '',
-      cover_image: this.fixImageUrl(p.cover_image),
-      images: images.map(img => this.fixImageUrl(img)),
+      cover_image: this.fixImageUrl(p.cover_image, p.id),
+      images: this.fixImageUrls(images, p.id),
       price: parseFloat(p.price) || 0,
       original_price: p.original_price ? parseFloat(p.original_price) : 0,
       stock: p.stock || 0,

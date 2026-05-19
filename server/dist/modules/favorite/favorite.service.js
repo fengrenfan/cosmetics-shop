@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const favorite_entity_1 = require("./favorite.entity");
+const image_url_util_1 = require("../../common/utils/image-url.util");
 let FavoriteService = class FavoriteService {
     constructor(favoriteRepository) {
         this.favoriteRepository = favoriteRepository;
@@ -33,7 +34,7 @@ let FavoriteService = class FavoriteService {
             id: f.id,
             product_id: f.product_id,
             title: f.product.title,
-            cover_image: f.product.cover_image,
+            cover_image: (0, image_url_util_1.resolveProductImageUrl)(f.product.cover_image, f.product_id),
             price: f.product.price,
             created_at: f.created_at,
         }));

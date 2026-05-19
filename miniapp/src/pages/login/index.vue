@@ -226,7 +226,14 @@ async function handleDevLogin() {
       uni.switchTab({ url: '/pages/index/index' });
     }, 800);
   } catch (e) {
-    uni.showToast({ title: '模拟登录失败: ' + (e?.message || '未知错误'), icon: 'none' });
+    const msg = e?.message || '未知错误';
+    const hint = msg.includes('网络') || msg.includes('request')
+      ? '请确认后端已启动 (npm run dev, 端口 3001)'
+      : msg.includes('500') || msg.includes('Internal')
+        ? '数据库可能未迁移，请在 server 目录执行: npm run db:migrate-member'
+        : msg;
+    console.error('模拟登录失败', e);
+    uni.showToast({ title: `模拟登录失败: ${hint}`, icon: 'none', duration: 3000 });
   }
 }
 

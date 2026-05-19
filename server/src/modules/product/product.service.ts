@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Product } from './product.entity';
 import { ProductSku } from './product-sku.entity';
 import { ProductListDto, CreateProductDto, UpdateProductDto } from './product.dto';
+import { isInvalidImageUrl, resolveProductImageUrl, sanitizeProductImages } from '../../common/utils/image-url.util';
 
 @Injectable()
 export class ProductService {
@@ -85,15 +86,8 @@ export class ProductService {
       .take(pageSize)
       .getMany();
 
-    // 获取 SKU
     for (const product of list) {
-      product.skus = await this.skuRepository.find({
-        where: { product_id: product.id, status: 1 },
-      });
-      // 解析 JSON 字段
-      if (product.images) {
-        try { product.images = JSON.parse(product.images as string); } catch { product.images = [] as any; }
-      }
+      await this.enrichProduct(product);
     }
 
     return {
@@ -124,14 +118,8 @@ export class ProductService {
       .take(pageSize)
       .getMany();
 
-    // 获取 SKU
     for (const product of list) {
-      product.skus = await this.skuRepository.find({
-        where: { product_id: product.id, status: 1 },
-      });
-      if (product.images) {
-        try { product.images = JSON.parse(product.images as string); } catch { product.images = [] as any; }
-      }
+      await this.enrichProduct(product);
     }
 
     return {
@@ -151,12 +139,7 @@ export class ProductService {
     });
 
     if (product) {
-      product.skus = await this.skuRepository.find({
-        where: { product_id: product.id, status: 1 },
-      });
-      if (product.images) {
-        try { product.images = JSON.parse(product.images as string); } catch { product.images = [] as any; }
-      }
+      await this.enrichProduct(product);
     }
 
     return product;
@@ -172,14 +155,8 @@ export class ProductService {
       take: limit,
     });
 
-    // 获取 SKU
     for (const product of products) {
-      product.skus = await this.skuRepository.find({
-        where: { product_id: product.id, status: 1 },
-      });
-      if (product.images) {
-        try { product.images = JSON.parse(product.images as string); } catch { product.images = [] as any; }
-      }
+      await this.enrichProduct(product);
     }
 
     return products;
@@ -201,21 +178,30 @@ export class ProductService {
     // 增加浏览量
     await this.productRepository.increment({ id }, 'view_count', 1);
 
-    // 获取 SKU
+    return this.enrichProduct(product);
+  }
+
+  private async enrichProduct(product: Product) {
     product.skus = await this.skuRepository.find({
-      where: { product_id: id, status: 1 },
+      where: { product_id: product.id, status: 1 },
     });
     if (product.images) {
-      try { product.images = JSON.parse(product.images as string); } catch { product.images = [] as any; }
+      try {
+        product.images = JSON.parse(product.images as string);
+      } catch {
+        product.images = [] as any;
+      }
     }
-
-    return product;
+    return sanitizeProductImages(product);
   }
 
   /**
    * 创建商品
    */
   async create(dto: CreateProductDto) {
+    if (isInvalidImageUrl(dto.cover_image)) {
+      dto.cover_image = resolveProductImageUrl(null);
+    }
     const product = this.productRepository.create({
       category_id: dto.category_id,
       title: dto.title,

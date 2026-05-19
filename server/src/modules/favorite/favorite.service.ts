@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Favorite } from './favorite.entity';
+import { resolveProductImageUrl } from '../../common/utils/image-url.util';
 
 @Injectable()
 export class FavoriteService {
@@ -26,7 +27,7 @@ export class FavoriteService {
         id: f.id,
         product_id: f.product_id,
         title: f.product.title,
-        cover_image: f.product.cover_image,
+        cover_image: resolveProductImageUrl(f.product.cover_image, f.product_id),
         price: f.product.price,
         created_at: f.created_at,
       }));

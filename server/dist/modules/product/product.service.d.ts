@@ -29,6 +29,7 @@ export declare class ProductService {
     getFeatured(): Promise<Product>;
     getHot(limit?: number): Promise<Product[]>;
     getDetail(id: number): Promise<Product>;
+    private enrichProduct;
     create(dto: CreateProductDto): Promise<Product>;
     update(id: number, dto: UpdateProductDto): Promise<{
         success: boolean;

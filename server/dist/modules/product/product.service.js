@@ -18,6 +18,7 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const product_entity_1 = require("./product.entity");
 const product_sku_entity_1 = require("./product-sku.entity");
+const image_url_util_1 = require("../../common/utils/image-url.util");
 let ProductService = class ProductService {
     constructor(productRepository, skuRepository) {
         this.productRepository = productRepository;
@@ -76,17 +77,7 @@ let ProductService = class ProductService {
             .take(pageSize)
             .getMany();
         for (const product of list) {
-            product.skus = await this.skuRepository.find({
-                where: { product_id: product.id, status: 1 },
-            });
-            if (product.images) {
-                try {
-                    product.images = JSON.parse(product.images);
-                }
-                catch {
-                    product.images = [];
-                }
-            }
+            await this.enrichProduct(product);
         }
         return {
             list,
@@ -111,17 +102,7 @@ let ProductService = class ProductService {
             .take(pageSize)
             .getMany();
         for (const product of list) {
-            product.skus = await this.skuRepository.find({
-                where: { product_id: product.id, status: 1 },
-            });
-            if (product.images) {
-                try {
-                    product.images = JSON.parse(product.images);
-                }
-                catch {
-                    product.images = [];
-                }
-            }
+            await this.enrichProduct(product);
         }
         return {
             list,
@@ -135,17 +116,7 @@ let ProductService = class ProductService {
             relations: ['category'],
         });
         if (product) {
-            product.skus = await this.skuRepository.find({
-                where: { product_id: product.id, status: 1 },
-            });
-            if (product.images) {
-                try {
-                    product.images = JSON.parse(product.images);
-                }
-                catch {
-                    product.images = [];
-                }
-            }
+            await this.enrichProduct(product);
         }
         return product;
     }
@@ -156,17 +127,7 @@ let ProductService = class ProductService {
             take: limit,
         });
         for (const product of products) {
-            product.skus = await this.skuRepository.find({
-                where: { product_id: product.id, status: 1 },
-            });
-            if (product.images) {
-                try {
-                    product.images = JSON.parse(product.images);
-                }
-                catch {
-                    product.images = [];
-                }
-            }
+            await this.enrichProduct(product);
         }
         return products;
     }
@@ -179,8 +140,11 @@ let ProductService = class ProductService {
             throw new common_1.NotFoundException('商品不存在');
         }
         await this.productRepository.increment({ id }, 'view_count', 1);
+        return this.enrichProduct(product);
+    }
+    async enrichProduct(product) {
         product.skus = await this.skuRepository.find({
-            where: { product_id: id, status: 1 },
+            where: { product_id: product.id, status: 1 },
         });
         if (product.images) {
             try {
@@ -190,9 +154,12 @@ let ProductService = class ProductService {
                 product.images = [];
             }
         }
-        return product;
+        return (0, image_url_util_1.sanitizeProductImages)(product);
     }
     async create(dto) {
+        if ((0, image_url_util_1.isInvalidImageUrl)(dto.cover_image)) {
+            dto.cover_image = (0, image_url_util_1.resolveProductImageUrl)(null);
+        }
         const product = this.productRepository.create({
             category_id: dto.category_id,
             title: dto.title,

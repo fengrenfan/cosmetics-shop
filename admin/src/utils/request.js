@@ -52,7 +52,18 @@ request.interceptors.response.use(
 
 // 修复图片URL
 const IMG_BASE = 'https://xiaodigua.shop';
-request.fixImageUrl = (url) => {
+request.isInvalidImageUrl = (url) => {
+  if (!url) return true;
+  const u = String(url);
+  return u.includes('/static/uploads/placeholder') || u.includes('placeholder.jpg');
+};
+
+request.fixImageUrl = (url, seed) => {
+  if (request.isInvalidImageUrl(url)) {
+    return seed != null
+      ? `https://picsum.photos/seed/p${seed}/400/400`
+      : '';
+  }
   if (!url) return '';
   if (url.startsWith('http://') || url.startsWith('https://')) {
     return url;

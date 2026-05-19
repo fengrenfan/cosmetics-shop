@@ -302,8 +302,8 @@ async function uploadImage(options) {
     const res = await request.post('/upload/image', uploadFormData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    // 拼接完整URL
-    formData.image = 'https://xiaodigua.shop' + res.url;
+    // 存相对路径，本地和生产都能解析（本地走 vite 代理，生产走 nginx）
+    formData.image = res.url;
     ElMessage.success('上传成功');
   } catch (e) {
     ElMessage.error('上传失败');

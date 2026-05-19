@@ -76,10 +76,10 @@
         <el-table-column label="商品图片" width="100">
           <template #default="{ row }">
             <el-image
-              :src="row.cover_image"
+              :src="request.fixImageUrl(row.cover_image, row.id)"
               fit="cover"
               style="width: 70px; height: 70px; border-radius: 4px; cursor: pointer;"
-              :preview-src-list="[row.cover_image]"
+              :preview-src-list="[request.fixImageUrl(row.cover_image, row.id)]"
               @click="showProductDetail(row)"
             />
           </template>

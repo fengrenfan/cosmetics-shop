@@ -19,6 +19,7 @@ const typeorm_2 = require("typeorm");
 const cart_entity_1 = require("./cart.entity");
 const product_entity_1 = require("../product/product.entity");
 const dict_service_1 = require("../dict/dict.service");
+const image_url_util_1 = require("../../common/utils/image-url.util");
 let CartService = class CartService {
     constructor(cartRepository, productRepository, dictService) {
         this.cartRepository = cartRepository;
@@ -46,7 +47,7 @@ let CartService = class CartService {
             product_id: cart.product_id,
             sku_id: cart.sku_id,
             title: cart.product?.title,
-            cover_image: cart.product?.cover_image,
+            cover_image: (0, image_url_util_1.resolveProductImageUrl)(cart.product?.cover_image, cart.product_id),
             price: cart.sku?.price || cart.product?.price,
             stock: cart.sku?.stock || cart.product?.stock,
             sku_name: cart.sku?.sku_name,
