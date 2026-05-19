@@ -51,18 +51,25 @@ const jwt_1 = require("@nestjs/jwt");
 const bcrypt = __importStar(require("bcryptjs"));
 const axios_1 = __importDefault(require("axios"));
 const user_service_1 = require("../user/user.service");
+const task_service_1 = require("../task/task.service");
 let AuthService = class AuthService {
-    constructor(userService, jwtService) {
+    constructor(userService, jwtService, taskService) {
         this.userService = userService;
         this.jwtService = jwtService;
+        this.taskService = taskService;
     }
-    async wxLogin(code) {
+    async wxLogin(code, inviterId) {
         const openid = await this.getWxOpenid(code);
         let user = await this.userService.getProfileByOpenid(openid);
+        const isNew = !user;
         if (!user) {
             user = await this.userService.create({ openid }, 1);
         }
+        if (isNew && inviterId) {
+            await this.taskService.bindInviterOnRegister(user.id, inviterId);
+        }
         const token = this.generateToken(user);
+        const profile = await this.userService.getProfile(user.id);
         return {
             token,
             user: {
@@ -70,6 +77,7 @@ let AuthService = class AuthService {
                 nickname: user.nickname,
                 avatar: user.avatar,
                 phone: user.phone,
+                points: profile?.points ?? user.points ?? 0,
             },
         };
     }
@@ -118,19 +126,24 @@ let AuthService = class AuthService {
             },
         };
     }
-    async phoneLogin(phone, code) {
+    async phoneLogin(phone, code, inviterId) {
         if (code !== '1234') {
             throw new common_1.UnauthorizedException('验证码错误');
         }
         let user = await this.userService.getProfileByPhone(phone);
+        const isNew = !user;
         if (!user) {
             user = await this.userService.create({ phone }, 1);
         }
         if (user.status === 0) {
             throw new common_1.UnauthorizedException('账号已被禁用');
         }
+        if (isNew && inviterId) {
+            await this.taskService.bindInviterOnRegister(user.id, inviterId);
+        }
         await this.userService.updateLastLogin(user.id);
         const token = this.generateToken(user);
+        const profile = await this.userService.getProfile(user.id);
         return {
             token,
             user: {
@@ -138,6 +151,7 @@ let AuthService = class AuthService {
                 nickname: user.nickname,
                 avatar: user.avatar,
                 phone: user.phone,
+                points: profile?.points ?? user.points ?? 0,
             },
         };
     }
@@ -185,6 +199,7 @@ exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [user_service_1.UserService,
-        jwt_1.JwtService])
+        jwt_1.JwtService,
+        task_service_1.TaskService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

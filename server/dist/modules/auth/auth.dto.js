@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PhoneLoginDto = exports.SendCodeDto = exports.AdminLoginDto = exports.WxLoginDto = void 0;
 const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
 class WxLoginDto {
 }
 exports.WxLoginDto = WxLoginDto;
@@ -19,6 +20,13 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], WxLoginDto.prototype, "code", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    __metadata("design:type", Number)
+], WxLoginDto.prototype, "inviter_id", void 0);
 class AdminLoginDto {
 }
 exports.AdminLoginDto = AdminLoginDto;
@@ -53,4 +61,11 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], PhoneLoginDto.prototype, "code", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    __metadata("design:type", Number)
+], PhoneLoginDto.prototype, "inviter_id", void 0);
 //# sourceMappingURL=auth.dto.js.map

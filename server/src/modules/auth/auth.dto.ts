@@ -1,9 +1,16 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsInt, Min } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class WxLoginDto {
   @IsString()
   @IsNotEmpty()
   code: string; // 微信登录 code
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  inviter_id?: number;
 }
 
 export class AdminLoginDto {
@@ -30,4 +37,10 @@ export class PhoneLoginDto {
   @IsString()
   @IsNotEmpty()
   code: string; // 验证码
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  inviter_id?: number;
 }

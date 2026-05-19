@@ -9,6 +9,7 @@ export declare class UserController {
         avatar: string;
         phone: string;
         gender: number;
+        points: number;
     }>;
     updateProfile(req: any, dto: UpdateProfileDto): Promise<{
         success: boolean;

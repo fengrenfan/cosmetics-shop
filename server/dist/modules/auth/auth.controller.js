@@ -22,7 +22,7 @@ let AuthController = class AuthController {
         this.authService = authService;
     }
     async wxLogin(dto) {
-        return this.authService.wxLogin(dto.code);
+        return this.authService.wxLogin(dto.code, dto.inviter_id);
     }
     async adminLogin(dto) {
         return this.authService.adminLogin(dto.username, dto.password);
@@ -31,7 +31,7 @@ let AuthController = class AuthController {
         return { code: 0, message: 'success', data: { code: '1234' } };
     }
     async phoneLogin(dto) {
-        return this.authService.phoneLogin(dto.phone, dto.code);
+        return this.authService.phoneLogin(dto.phone, dto.code, dto.inviter_id);
     }
     async refresh(req) {
         return this.authService.refreshToken(req.user);

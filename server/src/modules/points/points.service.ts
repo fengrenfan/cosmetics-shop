@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, IsNull } from 'typeorm';
+import { Repository, EntityManager } from 'typeorm';
 import { PointLog } from './points.entity';
 import { User } from '../user/user.entity';
 
@@ -77,29 +77,41 @@ export class PointsService {
 
   // 添加积分（返积分）
   async addPoints(userId: number, points: number, orderId?: number, remark?: string) {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+    return this.addRewardPoints(userId, points, 'order', remark || '订单返积分', orderId);
+  }
+
+  /** 任务/签到等非订单积分奖励（可传入 EntityManager 参与外部事务） */
+  async addRewardPoints(
+    userId: number,
+    points: number,
+    source: string,
+    remark: string,
+    orderId?: number,
+    manager?: EntityManager,
+  ) {
+    const userRepo = manager ? manager.getRepository(User) : this.userRepository;
+    const logRepo = manager ? manager.getRepository(PointLog) : this.pointLogRepository;
+
+    const user = await userRepo.findOne({ where: { id: userId } });
     if (!user) throw new BadRequestException('用户不存在');
 
-    // 计算过期时间（12个月后）
     const expiredAt = new Date();
     expiredAt.setMonth(expiredAt.getMonth() + this.EXPIRE_MONTHS);
 
-    // 更新用户积分
     user.points = (user.points || 0) + points;
-    await this.userRepository.save(user);
+    await userRepo.save(user);
 
-    // 记录积分变动
-    const log = this.pointLogRepository.create({
+    const log = logRepo.create({
       user_id: userId,
-      type: 1, // 收入
+      type: 1,
       points,
       balance: user.points,
-      source: 'order',
+      source,
       order_id: orderId,
-      remark: remark || `订单返积分`,
+      remark,
       expired_at: expiredAt,
     });
-    await this.pointLogRepository.save(log);
+    await logRepo.save(log);
 
     return { points: user.points };
   }

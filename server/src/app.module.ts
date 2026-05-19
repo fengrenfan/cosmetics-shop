@@ -27,6 +27,7 @@ import { PointsModule } from './modules/points/points.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { CommunityModule } from './modules/community/community.module';
 import { MemberModule } from './modules/member/member.module';
+import { TaskModule } from './modules/task/task.module';
 
 @Module({
   imports: [
@@ -76,6 +77,7 @@ import { MemberModule } from './modules/member/member.module';
     PaymentModule,
     CommunityModule,
     MemberModule,
+    TaskModule,
   ],
   providers: [
     {

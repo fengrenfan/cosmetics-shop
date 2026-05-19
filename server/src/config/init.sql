@@ -426,6 +426,33 @@ CREATE TABLE IF NOT EXISTS `department_performance` (
   KEY `idx_owner_period` (`owner_user_id`, `period_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='部门业绩快照';
 
+-- ============================================
+-- 任务中心：签到 & 任务记录
+-- ============================================
+CREATE TABLE IF NOT EXISTS `user_checkin` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `checkin_date` DATE NOT NULL,
+  `points` INT NOT NULL DEFAULT 10,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_checkin_date` (`user_id`, `checkin_date`),
+  KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户每日签到';
+
+CREATE TABLE IF NOT EXISTS `user_task_log` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `task_type` VARCHAR(32) NOT NULL,
+  `period_key` VARCHAR(32) NOT NULL,
+  `ref_id` BIGINT UNSIGNED DEFAULT NULL,
+  `points` INT NOT NULL DEFAULT 10,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_task_period` (`user_id`, `task_type`, `period_key`),
+  KEY `idx_user_task_type` (`user_id`, `task_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户任务完成记录';
+
 -- 已有库迁移（可重复执行）
 ALTER TABLE `user` ADD COLUMN IF NOT EXISTS `points` INT DEFAULT 0 COMMENT '积分余额' AFTER `last_login_ip`;
 ALTER TABLE `user` ADD COLUMN IF NOT EXISTS `member_level_id` BIGINT UNSIGNED DEFAULT NULL COMMENT '会员等级ID' AFTER `points`;

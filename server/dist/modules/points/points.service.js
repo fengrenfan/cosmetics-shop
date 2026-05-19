@@ -70,24 +70,29 @@ let PointsService = class PointsService {
         return { canUsePoints: 0, canUseMoney: 0, maxPoints };
     }
     async addPoints(userId, points, orderId, remark) {
-        const user = await this.userRepository.findOne({ where: { id: userId } });
+        return this.addRewardPoints(userId, points, 'order', remark || '订单返积分', orderId);
+    }
+    async addRewardPoints(userId, points, source, remark, orderId, manager) {
+        const userRepo = manager ? manager.getRepository(user_entity_1.User) : this.userRepository;
+        const logRepo = manager ? manager.getRepository(points_entity_1.PointLog) : this.pointLogRepository;
+        const user = await userRepo.findOne({ where: { id: userId } });
         if (!user)
             throw new common_1.BadRequestException('用户不存在');
         const expiredAt = new Date();
         expiredAt.setMonth(expiredAt.getMonth() + this.EXPIRE_MONTHS);
         user.points = (user.points || 0) + points;
-        await this.userRepository.save(user);
-        const log = this.pointLogRepository.create({
+        await userRepo.save(user);
+        const log = logRepo.create({
             user_id: userId,
             type: 1,
             points,
             balance: user.points,
-            source: 'order',
+            source,
             order_id: orderId,
-            remark: remark || `订单返积分`,
+            remark,
             expired_at: expiredAt,
         });
-        await this.pointLogRepository.save(log);
+        await logRepo.save(log);
         return { points: user.points };
     }
     async deductPoints(userId, points, orderId) {

@@ -10,6 +10,7 @@ export declare class AuthController {
             nickname: string;
             avatar: string;
             phone: string;
+            points: number;
         };
     }>;
     adminLogin(dto: AdminLoginDto): Promise<{
@@ -35,6 +36,7 @@ export declare class AuthController {
             nickname: string;
             avatar: string;
             phone: string;
+            points: number;
         };
     }>;
     refresh(req: any): Promise<{
@@ -46,5 +48,6 @@ export declare class AuthController {
         avatar: string;
         phone: string;
         gender: number;
+        points: number;
     }>;
 }

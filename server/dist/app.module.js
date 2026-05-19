@@ -35,6 +35,7 @@ const points_module_1 = require("./modules/points/points.module");
 const payment_module_1 = require("./modules/payment/payment.module");
 const community_module_1 = require("./modules/community/community.module");
 const member_module_1 = require("./modules/member/member.module");
+const task_module_1 = require("./modules/task/task.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -80,6 +81,7 @@ exports.AppModule = AppModule = __decorate([
             payment_module_1.PaymentModule,
             community_module_1.CommunityModule,
             member_module_1.MemberModule,
+            task_module_1.TaskModule,
         ],
         providers: [
             {

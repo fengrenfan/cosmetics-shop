@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { Repository, EntityManager } from 'typeorm';
 import { PointLog } from './points.entity';
 import { User } from '../user/user.entity';
 export declare class PointsService {
@@ -34,6 +34,9 @@ export declare class PointsService {
         maxPoints: number;
     }>;
     addPoints(userId: number, points: number, orderId?: number, remark?: string): Promise<{
+        points: number;
+    }>;
+    addRewardPoints(userId: number, points: number, source: string, remark: string, orderId?: number, manager?: EntityManager): Promise<{
         points: number;
     }>;
     deductPoints(userId: number, points: number, orderId: number): Promise<{

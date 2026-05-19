@@ -1,16 +1,19 @@
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
+import { TaskService } from '../task/task.service';
 export declare class AuthService {
     private readonly userService;
     private readonly jwtService;
-    constructor(userService: UserService, jwtService: JwtService);
-    wxLogin(code: string): Promise<{
+    private readonly taskService;
+    constructor(userService: UserService, jwtService: JwtService, taskService: TaskService);
+    wxLogin(code: string, inviterId?: number): Promise<{
         token: string;
         user: {
             id: number;
             nickname: string;
             avatar: string;
             phone: string;
+            points: number;
         };
     }>;
     adminLogin(username: string, password: string): Promise<{
@@ -22,13 +25,14 @@ export declare class AuthService {
             phone: string;
         };
     }>;
-    phoneLogin(phone: string, code: string): Promise<{
+    phoneLogin(phone: string, code: string, inviterId?: number): Promise<{
         token: string;
         user: {
             id: number;
             nickname: string;
             avatar: string;
             phone: string;
+            points: number;
         };
     }>;
     getProfile(userId: number): Promise<{
@@ -37,6 +41,7 @@ export declare class AuthService {
         avatar: string;
         phone: string;
         gender: number;
+        points: number;
     }>;
     refreshToken(user: any): Promise<{
         token: string;

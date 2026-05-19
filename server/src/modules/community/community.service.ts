@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { CommunityLike } from './community-like.entity';
 import { CommunityPost } from './community-post.entity';
 import { CreateCommunityPostDto } from './community.dto';
+import { TaskService } from '../task/task.service';
 
 @Injectable()
 export class CommunityService {
@@ -12,6 +13,7 @@ export class CommunityService {
     private readonly postRepository: Repository<CommunityPost>,
     @InjectRepository(CommunityLike)
     private readonly likeRepository: Repository<CommunityLike>,
+    private readonly taskService: TaskService,
   ) {}
 
   async getList(userId: number, page = 1, pageSize = 10) {
@@ -58,7 +60,9 @@ export class CommunityService {
       content: dto.content.trim(),
       images: dto.images || [],
     });
-    return this.postRepository.save(post);
+    const saved = await this.postRepository.save(post);
+    await this.taskService.onCommunityPost(userId);
+    return saved;
   }
 
   async toggleLike(userId: number, postId: number) {

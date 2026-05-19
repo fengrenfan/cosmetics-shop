@@ -16,10 +16,15 @@
         <!-- 用户信息 -->
         <view class="user-detail">
           <text class="user-name">{{ userInfo?.nickname || '点击登录' }}</text>
-          <view class="user-level" @click.stop="goMemberCenter">
-            <uni-icons type="star-filled" size="11" color="rgba(255,255,255,0.7)"></uni-icons>
-            <text class="level-text">{{ memberLevelName }}</text>
-            <uni-icons type="right" size="12" color="rgba(255,255,255,0.6)"></uni-icons>
+          <view class="user-level-row">
+            <view class="user-level" @click.stop="goMemberCenter">
+              <uni-icons type="star-filled" size="11" color="rgba(255,255,255,0.7)"></uni-icons>
+              <text class="level-text">{{ memberLevelName }}</text>
+              <uni-icons type="right" size="12" color="rgba(255,255,255,0.6)"></uni-icons>
+            </view>
+            <view class="sign-entry" @click.stop="goTaskCenter">
+              <uni-icons type="calendar-filled" size="18" color="#fff"></uni-icons>
+            </view>
           </view>
         </view>
       </view>
@@ -185,6 +190,14 @@ function goMemberCenter() {
     return;
   }
   uni.navigateTo({ url: '/pages/member/center' });
+}
+
+function goTaskCenter() {
+  if (!checkLogin()) {
+    uni.navigateTo({ url: '/pages/login/index' });
+    return;
+  }
+  uni.navigateTo({ url: '/pages/task/index' });
 }
 
 async function loadUserStats() {
@@ -389,6 +402,12 @@ $radius-full: 9999rpx;
   letter-spacing: -0.02em;
 }
 
+.user-level-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
 .user-level {
   display: flex;
   align-items: center;
@@ -403,6 +422,21 @@ $radius-full: 9999rpx;
     font-size: 22rpx;
     color: rgba(255, 255, 255, 0.9);
     font-weight: 600;
+  }
+}
+
+.sign-entry {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: rgba(255, 107, 149, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
+
+  &:active {
+    opacity: 0.85;
   }
 }
 

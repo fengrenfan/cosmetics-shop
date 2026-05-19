@@ -1,14 +1,13 @@
 <script>
+import { parseInviterFromLaunch } from '@/utils/inviter.js';
+
 export default {
-  onLaunch() {
-    console.log('App Launch');
+  onLaunch(options) {
+    parseInviterFromLaunch(options);
   },
-  onShow() {
-    console.log('App Show');
+  onShow(options) {
+    parseInviterFromLaunch(options);
   },
-  onHide() {
-    console.log('App Hide');
-  }
 };
 </script>
 

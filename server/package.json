@@ -7,6 +7,7 @@
     "start": "nest start",
     "dev": "nest start --watch",
     "db:migrate-member": "node scripts/migrate-member.js",
+    "db:migrate-task": "node scripts/migrate-task.js",
     "db:fix-placeholder-images": "node scripts/fix-placeholder-images.js",
     "start:prod": "node dist/main",
     "test": "jest --passWithNoTests"
@@ -32,6 +33,7 @@
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
+    "qrcode": "^1.5.4",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
     "typeorm": "^0.3.28",

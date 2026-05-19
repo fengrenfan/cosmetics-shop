@@ -4,32 +4,36 @@ import * as bcrypt from 'bcryptjs';
 import axios from 'axios';
 import { User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
+import { TaskService } from '../task/task.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private readonly taskService: TaskService,
   ) {}
 
   /**
    * 微信登录
    * code -> openid -> JWT
    */
-  async wxLogin(code: string) {
-    // 1. 通过 code 调用微信接口获取 openid
+  async wxLogin(code: string, inviterId?: number) {
     const openid = await this.getWxOpenid(code);
 
-    // 2. 查找或创建用户
     let user = await this.userService.getProfileByOpenid(openid);
+    const isNew = !user;
 
     if (!user) {
-      // 新用户创建时自动发券（trigger = 1）
       user = await this.userService.create({ openid }, 1);
     }
 
-    // 3. 生成 Token
+    if (isNew && inviterId) {
+      await this.taskService.bindInviterOnRegister(user.id, inviterId);
+    }
+
     const token = this.generateToken(user);
+    const profile = await this.userService.getProfile(user.id);
 
     return {
       token,
@@ -38,6 +42,7 @@ export class AuthService {
         nickname: user.nickname,
         avatar: user.avatar,
         phone: user.phone,
+        points: profile?.points ?? user.points ?? 0,
       },
     };
   }
@@ -109,17 +114,15 @@ export class AuthService {
   /**
    * 手机号验证码登录
    */
-  async phoneLogin(phone: string, code: string) {
-    // 开发环境验证码固定为 1234
+  async phoneLogin(phone: string, code: string, inviterId?: number) {
     if (code !== '1234') {
       throw new UnauthorizedException('验证码错误');
     }
 
-    // 查找或创建用户
     let user = await this.userService.getProfileByPhone(phone);
+    const isNew = !user;
 
     if (!user) {
-      // 新用户创建时自动发券（trigger = 1）
       user = await this.userService.create({ phone }, 1);
     }
 
@@ -127,10 +130,14 @@ export class AuthService {
       throw new UnauthorizedException('账号已被禁用');
     }
 
-    // 更新登录信息
+    if (isNew && inviterId) {
+      await this.taskService.bindInviterOnRegister(user.id, inviterId);
+    }
+
     await this.userService.updateLastLogin(user.id);
 
     const token = this.generateToken(user);
+    const profile = await this.userService.getProfile(user.id);
 
     return {
       token,
@@ -139,6 +146,7 @@ export class AuthService {
         nickname: user.nickname,
         avatar: user.avatar,
         phone: user.phone,
+        points: profile?.points ?? user.points ?? 0,
       },
     };
   }

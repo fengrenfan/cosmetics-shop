@@ -19,6 +19,7 @@ export declare class UserService {
         avatar: string;
         phone: string;
         gender: number;
+        points: number;
     }>;
     getStats(userId: number): Promise<{
         favorite_count: number;

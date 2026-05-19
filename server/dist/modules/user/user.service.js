@@ -58,6 +58,7 @@ let UserService = class UserService {
             avatar: user.avatar,
             phone: user.phone,
             gender: user.gender,
+            points: user.points || 0,
         };
     }
     async getStats(userId) {

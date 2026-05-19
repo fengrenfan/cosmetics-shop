@@ -1,5 +1,6 @@
 export declare class WxLoginDto {
     code: string;
+    inviter_id?: number;
 }
 export declare class AdminLoginDto {
     username: string;
@@ -11,4 +12,5 @@ export declare class SendCodeDto {
 export declare class PhoneLoginDto {
     phone: string;
     code: string;
+    inviter_id?: number;
 }

@@ -13,7 +13,7 @@ export class AuthController {
    */
   @Post('wx-login')
   async wxLogin(@Body() dto: WxLoginDto) {
-    return this.authService.wxLogin(dto.code);
+    return this.authService.wxLogin(dto.code, dto.inviter_id);
   }
 
   /**
@@ -41,7 +41,7 @@ export class AuthController {
    */
   @Post('phone-login')
   async phoneLogin(@Body() dto: PhoneLoginDto) {
-    return this.authService.phoneLogin(dto.phone, dto.code);
+    return this.authService.phoneLogin(dto.phone, dto.code, dto.inviter_id);
   }
 
   /**

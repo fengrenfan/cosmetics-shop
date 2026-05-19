@@ -101,7 +101,8 @@
 <script setup>
 import { ref, computed, onUnmounted } from 'vue';
 import request from '@/utils/request.js';
-import { login as doLogin } from '@/utils/auth.js';
+import { withInviterPayload } from '@/utils/auth.js';
+import { clearInviterId, getInviterId } from '@/utils/inviter.js';
 
 const loading = ref(false);
 const agreed = ref(true);
@@ -143,12 +144,12 @@ async function handleWxLogin() {
     });
 
     // 调用后端登录接口
-    const res = await request.post('/auth/wx-login', { code: loginRes.code });
-    
-    // 保存 token 和用户信息
+    const res = await request.post('/auth/wx-login', withInviterPayload({ code: loginRes.code }));
+
     request.setToken(res.token);
     uni.setStorageSync('userInfo', res.user);
     uni.setStorageSync('user_id', res.user.id);
+    if (getInviterId()) clearInviterId();
     
     uni.showToast({ title: '登录成功', icon: 'success' });
     // 返回上一页或跳转到首页
@@ -191,14 +192,18 @@ async function handlePhoneLogin() {
   if (!canPhoneLogin.value) return;
 
   try {
-    const res = await request.post('/auth/phone-login', {
-      phone: phoneForm.value.phone,
-      code: phoneForm.value.code,
-    });
+    const res = await request.post(
+      '/auth/phone-login',
+      withInviterPayload({
+        phone: phoneForm.value.phone,
+        code: phoneForm.value.code,
+      }),
+    );
 
     request.setToken(res.token);
     uni.setStorageSync('userInfo', res.user);
     uni.setStorageSync('user_id', res.user.id);
+    if (getInviterId()) clearInviterId();
     uni.showToast({ title: '登录成功', icon: 'success', duration: 800 });
     showPhoneLogin.value = false;
     setTimeout(() => {
@@ -213,14 +218,15 @@ async function handlePhoneLogin() {
 async function handleDevLogin() {
   try {
     // 调用后端手机号登录接口（开发环境验证码固定为 1234）
-    const res = await request.post('/auth/phone-login', {
-      phone: '13800138000',
-      code: '1234',
-    });
+    const res = await request.post(
+      '/auth/phone-login',
+      withInviterPayload({ phone: '13800138000', code: '1234' }),
+    );
 
     request.setToken(res.token);
     uni.setStorageSync('userInfo', res.user);
     uni.setStorageSync('user_id', res.user.id);
+    if (getInviterId()) clearInviterId();
     uni.showToast({ title: '模拟登录成功', icon: 'success' });
     setTimeout(() => {
       uni.switchTab({ url: '/pages/index/index' });

@@ -3,6 +3,7 @@
  */
 
 import request from './request.js';
+import { getInviterId, clearInviterId } from './inviter.js';
 
 /**
  * 获取微信登录凭证 code
@@ -31,17 +32,28 @@ export function wxLogin() {
 export async function login() {
   try {
     const code = await wxLogin();
-    const data = await request.post('/auth/wx-login', { code });
-    
-    // 保存 token
+    const inviter_id = getInviterId();
+    const payload = { code };
+    if (inviter_id) payload.inviter_id = inviter_id;
+
+    const data = await request.post('/auth/wx-login', payload);
+
     request.setToken(data.token);
     uni.setStorageSync('userInfo', data.user);
-    
+    if (inviter_id) clearInviterId();
+
     return data;
   } catch (e) {
     console.error('登录失败', e);
     throw e;
   }
+}
+
+/** 登录请求体附带邀请人（供各登录方式复用） */
+export function withInviterPayload(body) {
+  const inviter_id = getInviterId();
+  if (inviter_id) return { ...body, inviter_id };
+  return body;
 }
 
 /**
