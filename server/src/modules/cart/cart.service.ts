@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Cart } from './cart.entity';
 import { Product } from '../product/product.entity';
-import { DictService } from '../dict/dict.service';
 import { resolveProductImageUrl } from '../../common/utils/image-url.util';
 
 @Injectable()
@@ -13,7 +12,6 @@ export class CartService {
     private readonly cartRepository: Repository<Cart>,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-    private readonly dictService: DictService,
   ) {}
 
   /**
@@ -269,25 +267,5 @@ export class CartService {
     }
 
     return products;
-  }
-
-  /**
-   * 获取运费配置
-   */
-  async getShippingConfig() {
-    const threshold = 99;
-    try {
-      const dicts = await this.dictService.getAllDictsWithItems();
-      const shippingDict = dicts.find(d => d.dict_code === 'shipping');
-      if (shippingDict) {
-        const thresholdItem = shippingDict.items.find(i => i.item_value === 'free_shipping_threshold');
-        if (thresholdItem) {
-          return { free_shipping_threshold: parseFloat(thresholdItem.item_label) || threshold };
-        }
-      }
-    } catch (e) {
-      // ignore dict errors, use default
-    }
-    return { free_shipping_threshold: threshold };
   }
 }

@@ -34,14 +34,6 @@ export const useCartStore = defineStore('cart', {
         return stock === 0 || status === 0;
       });
     },
-    shippingThreshold: () => 99,
-    shippingGap: (state) => {
-      const threshold = 99;
-      const total = state.list
-        .filter((item) => item.is_checked)
-        .reduce((sum, item) => sum + item.price * item.quantity, 0);
-      return Math.max(0, threshold - total);
-    },
   },
 
   actions: {

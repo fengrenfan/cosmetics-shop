@@ -33,7 +33,4 @@ export declare class CartController {
         success: boolean;
     }>;
     getRecommend(req: any): Promise<import("../product/product.entity").Product[]>;
-    getShippingConfig(): Promise<{
-        free_shipping_threshold: number;
-    }>;
 }

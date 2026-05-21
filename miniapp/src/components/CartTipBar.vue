@@ -1,11 +1,8 @@
 <template>
   <view class="tip-bar">
     <text class="tip-count">购物车 ({{ itemCount }})</text>
-    <view class="tip-right">
-      <view class="tip-badge" v-if="!hasInvalid">
-        <text>满¥99免运费</text>
-      </view>
-      <view class="tip-cleanup" v-else @click="$emit('clear-invalid')">
+    <view class="tip-right" v-if="hasInvalid">
+      <view class="tip-cleanup" @click="$emit('clear-invalid')">
         <uni-icons type="trash" size="16" color="#bb0004"></uni-icons>
         <text>清理失效商品</text>
       </view>
@@ -49,15 +46,6 @@ defineEmits(['clear-invalid']);
 .tip-right {
   display: flex;
   align-items: center;
-}
-
-.tip-badge {
-  background: #e3e2e2;
-  font-size: 22rpx;
-  color: #5d3f3b;
-  padding: 8rpx 24rpx;
-  border-radius: 9999rpx;
-  font-weight: 500;
 }
 
 .tip-cleanup {

@@ -8,7 +8,6 @@
         <text class="select-all-text">全选</text>
       </view>
       <view class="total-info">
-        <ShippingProgress :totalPrice="totalPrice" />
         <view class="price-row">
           <text class="total-label">合计</text>
           <view class="total-price-wrap">
@@ -33,8 +32,6 @@
 </template>
 
 <script setup>
-import ShippingProgress from './ShippingProgress.vue';
-
 defineProps({
   isAllChecked: Boolean,
   totalPrice: {

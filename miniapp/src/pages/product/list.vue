@@ -47,8 +47,8 @@
         </view>
       </view>
       <view class="filter-action">
-        <uni-icons type="tune-filled" size="16" @click="showFilter = true"></uni-icons>
-        <text @click="showFilter = true">筛选</text>
+        <uni-icons type="tune-filled" size="16" @click="openFilter"></uni-icons>
+        <text @click="openFilter">筛选</text>
         <view class="view-mode-toggle" @click.stop="toggleViewMode">
           <uni-icons :type="viewMode === 'grid' ? 'list' : 'bars'" size="16" color="#666"></uni-icons>
         </view>
@@ -125,11 +125,11 @@
     </scroll-view>
 
     <!-- 筛选弹窗 -->
-    <view class="filter-modal" v-if="showFilter" @click="showFilter = false">
+    <view class="filter-modal" v-if="showFilter" @click="closeFilter">
       <view class="filter-content" @click.stop>
         <view class="filter-header">
           <text class="filter-title">筛选</text>
-          <text class="filter-reset" @click="resetFilter">重置</text>
+          <uni-icons type="closeempty" size="20" color="#999" class="filter-close" @click="closeFilter"></uni-icons>
         </view>
 
         <view class="filter-body">
@@ -205,7 +205,7 @@
         </view>
 
         <view class="filter-footer">
-          <view class="btn-cancel" @click="resetFilter">重置</view>
+          <view class="btn-reset" @click="resetFilter">重置</view>
           <view class="btn-confirm" @click="applyFilter">确定</view>
         </view>
       </view>
@@ -231,6 +231,7 @@ const page = ref(1);
 const pageSize = 20;
 const showFilter = ref(false);
 let searchTimer = null;
+let filterSnapshot = null;
 
 const filterForm = ref({
   minPrice: '',
@@ -410,6 +411,25 @@ function clearCategories() {
   selectedCategories.value = [];
 }
 
+function openFilter() {
+  filterSnapshot = {
+    filterForm: { ...filterForm.value },
+    selectedParentId: selectedParentId.value,
+    selectedCategories: [...selectedCategories.value],
+  };
+  showFilter.value = true;
+}
+
+function closeFilter() {
+  if (filterSnapshot) {
+    filterForm.value = { ...filterSnapshot.filterForm };
+    selectedParentId.value = filterSnapshot.selectedParentId;
+    selectedCategories.value = [...filterSnapshot.selectedCategories];
+    filterSnapshot = null;
+  }
+  showFilter.value = false;
+}
+
 function resetFilter() {
   filterForm.value = {
     minPrice: '',
@@ -417,13 +437,14 @@ function resetFilter() {
     is_new: false,
     is_hot: false,
     is_recommend: false,
-    category_id: null
+    category_id: null,
   };
   selectedParentId.value = null;
   selectedCategories.value = [];
 }
 
 function applyFilter() {
+  filterSnapshot = null;
   showFilter.value = false;
   page.value = 1;
   noMore.value = false;
@@ -782,9 +803,8 @@ function goDetail(item) {
   color: #333;
 }
 
-.filter-reset {
-  font-size: 26rpx;
-  color: #ff4a8d;
+.filter-close {
+  padding: 8rpx;
 }
 
 .filter-body {
@@ -899,7 +919,7 @@ function goDetail(item) {
   }
 }
 
-.btn-cancel {
+.btn-reset {
   background: #f5f5f5;
   color: #666;
 }

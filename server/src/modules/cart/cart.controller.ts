@@ -85,13 +85,4 @@ export class CartController {
     const deviceId = req.headers['x-device-id'] || null;
     return this.cartService.getRecommend(userId, deviceId);
   }
-
-  /**
-   * 获取运费配置
-   * GET /api/cart/shipping-config
-   */
-  @Get('shipping-config')
-  async getShippingConfig() {
-    return this.cartService.getShippingConfig();
-  }
 }

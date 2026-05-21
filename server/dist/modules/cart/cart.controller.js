@@ -50,9 +50,6 @@ let CartController = class CartController {
         const deviceId = req.headers['x-device-id'] || null;
         return this.cartService.getRecommend(userId, deviceId);
     }
-    async getShippingConfig() {
-        return this.cartService.getShippingConfig();
-    }
 };
 exports.CartController = CartController;
 __decorate([
@@ -110,12 +107,6 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], CartController.prototype, "getRecommend", null);
-__decorate([
-    (0, common_1.Get)('shipping-config'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], CartController.prototype, "getShippingConfig", null);
 exports.CartController = CartController = __decorate([
     (0, common_1.Controller)('cart'),
     __metadata("design:paramtypes", [cart_service_1.CartService])

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import axios from 'axios';
@@ -23,7 +23,7 @@ function isDuplicateEntryError(err: unknown): boolean {
 }
 
 @Injectable()
-export class TaskService {
+export class TaskService implements OnModuleInit {
   private readonly logger = new Logger(TaskService.name);
   private wxAccessToken: string | null = null;
   private wxTokenExpiresAt = 0;
@@ -38,6 +38,40 @@ export class TaskService {
     private readonly pointsService: PointsService,
     private readonly dataSource: DataSource,
   ) {}
+
+  async onModuleInit() {
+    await this.ensureTaskTables();
+  }
+
+  /** 启动时自动建表，避免未执行 migrate 导致 /task/center 500 */
+  private async ensureTaskTables() {
+    await this.dataSource.query(`
+      CREATE TABLE IF NOT EXISTS \`user_checkin\` (
+        \`id\` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        \`user_id\` BIGINT UNSIGNED NOT NULL,
+        \`checkin_date\` DATE NOT NULL,
+        \`points\` INT NOT NULL DEFAULT 10,
+        \`created_at\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (\`id\`),
+        UNIQUE KEY \`uk_user_checkin_date\` (\`user_id\`, \`checkin_date\`),
+        KEY \`idx_user_id\` (\`user_id\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户每日签到'
+    `);
+    await this.dataSource.query(`
+      CREATE TABLE IF NOT EXISTS \`user_task_log\` (
+        \`id\` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        \`user_id\` BIGINT UNSIGNED NOT NULL,
+        \`task_type\` VARCHAR(32) NOT NULL,
+        \`period_key\` VARCHAR(32) NOT NULL,
+        \`ref_id\` BIGINT UNSIGNED DEFAULT NULL,
+        \`points\` INT NOT NULL DEFAULT 10,
+        \`created_at\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (\`id\`),
+        UNIQUE KEY \`uk_user_task_period\` (\`user_id\`, \`task_type\`, \`period_key\`),
+        KEY \`idx_user_task_type\` (\`user_id\`, \`task_type\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户任务完成记录'
+    `);
+  }
 
   private formatDate(d: dayjs.Dayjs): string {
     return d.format('YYYY-MM-DD');
