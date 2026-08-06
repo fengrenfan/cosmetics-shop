@@ -51,7 +51,7 @@ request.interceptors.response.use(
 );
 
 // 修复图片URL
-const IMG_BASE = 'https://xiaodigua.shop';
+const IMG_BASE = window.location.origin;
 request.isInvalidImageUrl = (url) => {
   if (!url) return true;
   const u = String(url);

@@ -288,7 +288,7 @@ async function uploadIcon(options) {
     const res = await request.post('/upload/image', uploadFormData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    formData.icon = 'https://xiaodigua.shop' + res.url;
+    formData.icon = window.location.origin + res.url;
     ElMessage.success('上传成功');
   } catch (e) {
     ElMessage.error('上传失败');
