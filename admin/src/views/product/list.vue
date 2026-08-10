@@ -851,6 +851,13 @@ async function handleSubmit() {
     loadData();
   } catch (e) {
     console.error('提交失败', e);
+    if (e?.response?.status === 401 || e?.message?.includes('401')) {
+      ElMessage.error('登录已过期，请重新登录');
+      request.clearToken();
+      window.location.href = '/admin/login';
+      return;
+    }
+    ElMessage.error(e?.message || '提交失败');
   } finally {
     submitLoading.value = false;
   }
@@ -875,6 +882,13 @@ async function handleSaveDraft() {
     loadData();
   } catch (e) {
     console.error('保存失败', e);
+    if (e?.response?.status === 401 || e?.message?.includes('401')) {
+      ElMessage.error('登录已过期，请重新登录');
+      request.clearToken();
+      window.location.href = '/admin/login';
+      return;
+    }
+    ElMessage.error(e?.message || '保存失败');
   } finally {
     submitLoading.value = false;
   }
