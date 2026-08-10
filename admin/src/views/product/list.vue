@@ -370,17 +370,22 @@
           </el-tab-pane>
 
           <el-tab-pane label="商品详情" name="detail">
-            <el-form-item label="详情编辑">
-              <el-radio-group v-model="detailEditor" style="margin-bottom: 15px;">
-                <el-radio label="rich">富文本模式</el-radio>
-                <el-radio label="simple">简洁模式</el-radio>
-              </el-radio-group>
-              <el-input
-                v-model="productForm.detail_html"
-                type="textarea"
-                :rows="12"
-                :placeholder="detailEditor === 'rich' ? '请输入商品详情（支持HTML）' : '请输入商品详情描述'"
-              />
+            <el-form-item label="商品详情">
+              <div style="border: 1px solid #ccc; width: 100%;">
+                <Toolbar
+                  style="border-bottom: 1px solid #ccc"
+                  :editor="editorRef"
+                  :defaultConfig="toolbarConfig"
+                  :mode="'default'"
+                />
+                <Editor
+                  style="height: 400px; overflow-y: hidden;"
+                  v-model="productForm.detail_html"
+                  :defaultConfig="editorConfig"
+                  :mode="'default'"
+                  @onCreated="handleEditorCreated"
+                />
+              </div>
             </el-form-item>
           </el-tab-pane>
         </el-tabs>
@@ -396,23 +401,69 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, computed, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Plus, Warning, ArrowDown } from '@element-plus/icons-vue';
 import request from '@/utils/request.js';
+import '@wangeditor/editor/dist/css/style.css';
+import { Editor, Toolbar } from '@wangeditor/editor-for-vue';
 
 const loading = ref(false);
 const tableData = ref([]);
 const categoryTree = ref([]);
 const dialogVisible = ref(false);
+
+// 监听弹窗关闭
+watch(dialogVisible, (val) => {
+  if (!val) {
+    cleanupEditor();
+  }
+});
 const isEdit = ref(false);
 const submitLoading = ref(false);
 const detailDrawer = ref(false);
 const currentProduct = ref(null);
 const activeTab = ref('basic');
-const detailEditor = ref('rich');
 const tagLabels = ref([]);
 const formRef = ref(null);
+
+// 富文本编辑器
+const editorRef = ref(null);
+const toolbarConfig = {};
+const editorConfig = { 
+  placeholder: '请输入商品详情...',
+  MENU_CONF: {
+    uploadImage: {
+      server: '/api/upload/image',
+      fieldName: 'file',
+      maxFileSize: 10 * 1024 * 1024,
+      allowedFileTypes: ['image/*'],
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('admin_token')}`
+      },
+      customInsert(res, insertFn) {
+        if (res.code === 0) {
+          const url = window.location.origin + res.data.url;
+          insertFn(url, '', '');
+        } else {
+          ElMessage.error('图片上传失败');
+        }
+      }
+    }
+  }
+};
+
+const handleEditorCreated = (editor) => {
+  editorRef.value = editor;
+};
+
+// 监听弹窗关闭，销毁编辑器
+const cleanupEditor = () => {
+  if (editorRef.value) {
+    editorRef.value.destroy();
+    editorRef.value = null;
+  }
+};
 
 // 批量选择相关
 const selectedRows = ref([]);
