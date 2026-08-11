@@ -1,0 +1,8 @@
+FROM node:18-alpine
+WORKDIR /app
+COPY devops/package.json ./
+RUN npm install --omit=dev
+COPY devops/src/index.js ./src/index.js
+COPY devops/public ./public
+EXPOSE 9090
+CMD ["node", "./src/index.js"]

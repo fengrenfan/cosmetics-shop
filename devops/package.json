@@ -1,0 +1,18 @@
+{
+  "name": "cosmetics-devops",
+  "version": "1.0.0",
+  "description": "Docker管理控制台",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "dockerode": "^4.0.0",
+    "cors": "^2.8.5",
+    "jsonwebtoken": "^9.0.2",
+    "ws": "^8.14.2",
+    "qrcode": "^1.5.3"
+  }
+}

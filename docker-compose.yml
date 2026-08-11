@@ -31,10 +31,29 @@ services:
       dockerfile: admin/Dockerfile
     container_name: cosmetics-admin
     ports:
-      - "5174:80"
-    networks:
-      - cosmetics-net
+      - "8080:8080"
+    network_mode: host
 
-networks:
-  cosmetics-net:
-    name: mall_cosmetics-net
+  miniapp:
+    build:
+      context: .
+      dockerfile: miniapp/Dockerfile
+    container_name: cosmetics-miniapp
+    ports:
+      - "8081:8081"
+    network_mode: host
+
+  devops:
+    build:
+      context: .
+      dockerfile: Dockerfile.devops
+    container_name: cosmetics-devops
+    ports:
+      - "9090:9090"
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/ubuntu/app:/host/app
+    environment:
+      - JWT_SECRET=CosmeticsShop2024Secret
+      - PROJECT_DIR=/home/ubuntu/app

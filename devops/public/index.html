@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Docker 管理控制台</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.4.4/dist/index.css">
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.4.15/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/element-plus@2.4.4/dist/index.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.6.2/dist/axios.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 24px; }
+    .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+    .action-bar { background: white; border-radius: 8px; padding: 16px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 20px; }
+    .service-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); transition: transform 0.2s; }
+    .service-card:hover { transform: translateY(-2px); }
+    .service-card .header { background: none; padding: 0; margin-bottom: 16px; }
+    .service-card .header .name { font-size: 18px; font-weight: 600; color: #1a1a1a; }
+    .service-card .header .port { font-size: 14px; color: #666; }
+    .status-badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .status-running { background: #e6f7e6; color: #52c41a; }
+    .status-stopped { background: #fff2e8; color: #fa8c16; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; }
+    .status-running .status-dot { background: #52c41a; }
+    .status-stopped .status-dot { background: #fa8c16; }
+    .service-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+    .preview-section { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    .preview-frame { width: 100%; height: 400px; border: 1px solid #e8e8e8; border-radius: 8px; }
+    .log-section { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    .log-content { background: #1e1e1e; color: #d4d4d4; padding: 16px; border-radius: 8px; max-height: 300px; overflow-y: auto; font-family: 'Consolas', monospace; font-size: 13px; white-space: pre-wrap; }
+    .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="header">
+      <h1>🐳 Docker 管理控制台</h1>
+      <div>
+        <el-button @click="fetchContainers" :loading="loading">刷新状态</el-button>
+        <el-button @click="logout">退出登录</el-button>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- 登录表单 -->
+      <div v-if="!token" style="max-width: 400px; margin: 100px auto;">
+        <el-card>
+          <template #header><h3>登录</h3></template>
+          <el-form @submit.prevent="login">
+            <el-form-item>
+              <el-input v-model="loginForm.username" placeholder="用户名" />
+            </el-form-item>
+            <el-form-item>
+              <el-input v-model="loginForm.password" type="password" placeholder="密码" />
+            </el-form-item>
+            <el-button type="primary" @click="login" :loading="loginLoading" style="width: 100%">登录</el-button>
+          </el-form>
+        </el-card>
+      </div>
+
+      <!-- 主界面 -->
+      <template v-else>
+        <!-- 快捷操作栏 -->
+        <div class="action-bar">
+          <el-space>
+            <el-button type="primary" @click="updateAll" :loading="updating">全部更新</el-button>
+            <el-button @click="gitPull" :loading="pulling">拉取代码</el-button>
+            <el-button @click="showLogDialog = true">查看日志</el-button>
+            <el-button @click="fetchSystemInfo">系统信息</el-button>
+            <el-button @click="showPreview = !showPreview">H5预览</el-button>
+          </el-space>
+        </div>
+
+        <!-- 服务状态卡片 -->
+        <div class="services-grid">
+          <div v-for="svc in services" :key="svc.name" class="service-card">
+            <div class="header">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div class="name">{{ svc.name }}</div>
+                  <div class="port">:{{ svc.port }}</div>
+                </div>
+                <span :class="['status-badge', svc.running ? 'status-running' : 'status-stopped']">
+                  <span class="status-dot"></span>
+                  {{ svc.running ? '运行中' : '已停止' }}
+                </span>
+              </div>
+            </div>
+            <div style="color: #666; font-size: 13px; margin-bottom: 12px;">{{ svc.desc }}</div>
+            <div class="service-actions">
+              <el-button size="small" type="primary" @click="updateService(svc.key)" :loading="svc.updating">更新</el-button>
+              <el-button size="small" @click="restartContainer(svc.containerId)" :loading="svc.restarting">重启</el-button>
+              <el-button size="small" :type="svc.running ? 'warning' : 'success'" @click="toggleContainer(svc)" :loading="svc.toggling">
+                {{ svc.running ? '停止' : '启动' }}
+              </el-button>
+              <el-button size="small" @click="viewLogs(svc.containerId, svc.name)">日志</el-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- H5预览 -->
+        <div v-if="showPreview" class="preview-section">
+          <h3 style="margin-bottom: 16px;">📱 H5 客户端预览</h3>
+          <iframe :src="previewUrl" class="preview-frame"></iframe>
+          <div style="margin-top: 12px;">
+            <el-button @click="showQrCode">生成二维码</el-button>
+            <el-button @click="window.open(previewUrl)">新窗口打开</el-button>
+          </div>
+        </div>
+
+        <!-- 系统信息 -->
+        <el-dialog v-model="showSystemInfo" title="系统信息" width="500px">
+          <el-descriptions :column="1" border v-if="systemInfo">
+            <el-descriptions-item label="容器总数">{{ systemInfo.containers }}</el-descriptions-item>
+            <el-descriptions-item label="运行中">{{ systemInfo.containersRunning }}</el-descriptions-item>
+            <el-descriptions-item label="已停止">{{ systemInfo.containersStopped }}</el-descriptions-item>
+            <el-descriptions-item label="镜像数">{{ systemInfo.images }}</el-descriptions-item>
+            <el-descriptions-item label="操作系统">{{ systemInfo.os }}</el-descriptions-item>
+            <el-descriptions-item label="内核版本">{{ systemInfo.kernel }}</el-descriptions-item>
+            <el-descriptions-item label="Docker版本">{{ systemInfo.dockerVersion }}</el-descriptions-item>
+          </el-descriptions>
+        </el-dialog>
+
+        <!-- 日志对话框 -->
+        <el-dialog v-model="showLogDialog" :title="logTitle" width="800px">
+          <div class="log-content">{{ logs || '暂无日志' }}</div>
+        </el-dialog>
+
+        <!-- 二维码对话框 -->
+        <el-dialog v-model="showQrCodeDialog" title="H5预览二维码" width="300px">
+          <div style="text-align: center;">
+            <img v-if="qrCodeUrl" :src="qrCodeUrl" style="max-width: 200px;" />
+            <p style="margin-top: 12px; color: #666;">手机扫码访问H5页面</p>
+          </div>
+        </el-dialog>
+      </template>
+    </div>
+
+    <!-- 加载遮罩 -->
+    <div v-if="loading" class="loading-overlay">
+      <el-icon class="is-loading" :size="40"><Loading /></el-icon>
+    </div>
+  </div>
+
+  <script>
+    const { createApp, ref, reactive, onMounted, computed } = Vue;
+    const { ElMessage, ElMessageBox } = ElementPlus;
+
+    const app = createApp({
+      setup() {
+        const token = ref(localStorage.getItem('devops_token') || '');
+        const loading = ref(false);
+        const loginLoading = ref(false);
+        const updating = ref(false);
+        const pulling = ref(false);
+        const showPreview = ref(false);
+        const showSystemInfo = ref(false);
+        const showLogDialog = ref(false);
+        const showQrCodeDialog = ref(false);
+        const systemInfo = ref(null);
+        const logs = ref('');
+        const logTitle = ref('容器日志');
+        const qrCodeUrl = ref('');
+        const previewUrl = 'http://124.222.204.236:8081/miniapp/';
+
+        const loginForm = reactive({ username: 'admin', password: 'admin123' });
+
+        const services = reactive([
+          { name: '后端 API', key: 'server', port: 3001, desc: 'NestJS 后端服务', containerId: '', running: false, updating: false, restarting: false, toggling: false },
+          { name: '管理后台', key: 'admin', port: 8080, desc: 'Vue 3 管理后台 (PC端)', containerId: '', running: false, updating: false, restarting: false, toggling: false },
+          { name: 'H5 客户端', key: 'miniapp', port: 8081, desc: 'uni-app H5 客户端 (移动端)', containerId: '', running: false, updating: false, restarting: false, toggling: false },
+          { name: 'Mock 服务', key: 'mock-server', port: 3000, desc: 'Mock 数据服务', containerId: '', running: false, updating: false, restarting: false, toggling: false }
+        ]);
+
+        const api = axios.create({
+          baseURL: '/devops/api/docker',
+          headers: { Authorization: `Bearer ${token.value}` }
+        });
+
+        async function login() {
+          loginLoading.value = true;
+          try {
+            const res = await axios.post('/api/auth/admin-login', loginForm);
+            if (res.data.code === 0) {
+              token.value = res.data.data.token;
+              localStorage.setItem('devops_token', token.value);
+              api.defaults.headers.Authorization = `Bearer ${token.value}`;
+              ElMessage.success('登录成功');
+              fetchContainers();
+            }
+          } catch (err) {
+            ElMessage.error('登录失败');
+          } finally {
+            loginLoading.value = false;
+          }
+        }
+
+        function logout() {
+          token.value = '';
+          localStorage.removeItem('devops_token');
+        }
+
+        async function fetchContainers() {
+          loading.value = true;
+          try {
+            const res = await api.get('/containers');
+            if (res.data.code === 0) {
+              const containers = res.data.data;
+              services.forEach(svc => {
+                const container = containers.find(c => c.name?.includes(svc.key));
+                if (container) {
+                  svc.containerId = container.id;
+                  svc.running = container.state === 'running';
+                }
+              });
+            }
+          } catch (err) {
+            if (err.response?.status === 401) logout();
+          } finally {
+            loading.value = false;
+          }
+        }
+
+        async function updateAll() {
+          await ElMessageBox.confirm('确定要更新所有服务吗？', '确认');
+          updating.value = true;
+          try {
+            const res = await api.post('/update/all');
+            ElMessage.success(res.data.message);
+            fetchContainers();
+          } catch (err) {
+            ElMessage.error(err.response?.data?.message || '更新失败');
+          } finally {
+            updating.value = false;
+          }
+        }
+
+        async function updateService(service) {
+          const svc = services.find(s => s.key === service);
+          svc.updating = true;
+          try {
+            const res = await api.post(`/update/${service}`);
+            ElMessage.success(res.data.message);
+            fetchContainers();
+          } catch (err) {
+            ElMessage.error(err.response?.data?.message || '更新失败');
+          } finally {
+            svc.updating = false;
+          }
+        }
+
+        async function gitPull() {
+          pulling.value = true;
+          try {
+            const res = await api.post('/git/pull');
+            ElMessage.success(res.data.message);
+          } catch (err) {
+            ElMessage.error(err.response?.data?.message || '拉取失败');
+          } finally {
+            pulling.value = false;
+          }
+        }
+
+        async function restartContainer(id) {
+          const svc = services.find(s => s.containerId === id);
+          svc.restarting = true;
+          try {
+            await api.post(`/containers/${id}/restart`);
+            ElMessage.success('重启成功');
+            fetchContainers();
+          } catch (err) {
+            ElMessage.error('重启失败');
+          } finally {
+            svc.restarting = false;
+          }
+        }
+
+        async function toggleContainer(svc) {
+          svc.toggling = true;
+          try {
+            const action = svc.running ? 'stop' : 'start';
+            await api.post(`/containers/${svc.containerId}/${action}`);
+            ElMessage.success(svc.running ? '已停止' : '已启动');
+            fetchContainers();
+          } catch (err) {
+            ElMessage.error('操作失败');
+          } finally {
+            svc.toggling = false;
+          }
+        }
+
+        async function viewLogs(id, name) {
+          logTitle.value = `${name} - 容器日志`;
+          try {
+            const res = await api.get(`/containers/${id}/logs`);
+            logs.value = res.data.data || '暂无日志';
+            showLogDialog.value = true;
+          } catch (err) {
+            ElMessage.error('获取日志失败');
+          }
+        }
+
+        async function fetchSystemInfo() {
+          try {
+            const res = await api.get('/system/info');
+            systemInfo.value = res.data.data;
+            showSystemInfo.value = true;
+          } catch (err) {
+            ElMessage.error('获取系统信息失败');
+          }
+        }
+
+        async function showQrCode() {
+          try {
+            const res = await api.get('/miniapp/qrcode');
+            qrCodeUrl.value = res.data.data.qrcode;
+            showQrCodeDialog.value = true;
+          } catch (err) {
+            ElMessage.error('生成二维码失败');
+          }
+        }
+
+        onMounted(() => {
+          if (token.value) {
+            api.defaults.headers.Authorization = `Bearer ${token.value}`;
+            fetchContainers();
+          }
+        });
+
+        return {
+          token, loading, loginLoading, updating, pulling,
+          showPreview, showSystemInfo, showLogDialog, showQrCodeDialog,
+          systemInfo, logs, logTitle, qrCodeUrl, previewUrl,
+          loginForm, services,
+          login, logout, fetchContainers, updateAll, updateService,
+          gitPull, restartContainer, toggleContainer, viewLogs,
+          fetchSystemInfo, showQrCode
+        };
+      }
+    });
+
+    app.use(ElementPlus);
+    app.mount('#app');
+  </script>
+</body>
+</html>
