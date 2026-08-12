@@ -843,7 +843,8 @@ async function handleSubmit() {
     } else {
       // 创建时移除 id
       delete cleanData.id;
-      await request.post('/product', cleanData);
+      console.log("Sending data:", JSON.stringify(cleanData, null, 2));
+      await request.post("/product", cleanData);
       ElMessage.success('创建成功');
     }
 
@@ -876,7 +877,8 @@ async function handleSaveDraft() {
     cleanData.original_price = Number(cleanData.original_price) || 0;
     cleanData.stock = Number(cleanData.stock) || 0;
     cleanData.status = 0; // 草稿默认下架
-    await request.post('/product', cleanData);
+    console.log("Sending data:", JSON.stringify(cleanData, null, 2));
+      await request.post("/product", cleanData);
     ElMessage.success('草稿保存成功');
     dialogVisible.value = false;
     loadData();

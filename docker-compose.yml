@@ -56,4 +56,4 @@ services:
       - /home/ubuntu/app:/host/app
     environment:
       - JWT_SECRET=CosmeticsShop2024Secret
-      - PROJECT_DIR=/home/ubuntu/app
+      - PROJECT_DIR=/host/app

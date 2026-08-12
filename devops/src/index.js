@@ -3,6 +3,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const Docker = require('dockerode');
 const { exec } = require('child_process');
+exec("git config --global --add safe.directory /host/app");
 const path = require('path');
 const fs = require('fs');
 

@@ -3,7 +3,7 @@ WORKDIR /app
 COPY server/package*.json ./
 RUN npm ci --legacy-peer-deps
 COPY server/ ./
-RUN npm run build
+RUN rm -rf dist && npx tsc
 
 FROM node:18-alpine
 WORKDIR /app

@@ -41,7 +41,7 @@ import { TaskModule } from './modules/task/task.module';
       password: process.env.DB_PASSWORD!,
       database: process.env.DB_NAME!,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: false,
+      synchronize: true,
       logging: false,
       connectTimeout: 60000,
     }),

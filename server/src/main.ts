@@ -30,12 +30,27 @@ async function bootstrap() {
     credentials: true,
   });
 
+  // 请求日志中间件（调试用）
+  app.use((req, res, next) => {
+    if (req.method === 'POST' || req.method === 'PUT') {
+      console.log(req.method + " " + req.url, JSON.stringify(req.body, null, 2));
+    }
+    next();
+  });
+
   // 全局验证管道
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
       whitelist: true,
-      forbidNonWhitelisted: false,
+      forbidNonWhitelisted: true,
+      exceptionFactory: (errors) => {
+        console.log('Validation Errors:', JSON.stringify(errors, null, 2));
+        const messages = errors.map(err => 
+          Object.values(err.constraints || {}).join(', ')
+        ).join('; ');
+        return new (require('@nestjs/common').BadRequestException)(messages);
+      },
     }),
   );
 
