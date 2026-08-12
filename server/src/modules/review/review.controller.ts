@@ -2,6 +2,7 @@ import { Controller, Post, Get, Put, Body, Param, Query, UseGuards, Request, Par
 import { ReviewService } from './review.service';
 import { CreateReviewDto, ReviewQueryDto, AdminReplyDto, AdminReviewQueryDto } from './review.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AdminGuard } from '../auth/admin.guard';
 
 @Controller('reviews')
 export class ReviewController {
@@ -65,6 +66,7 @@ export class ReviewController {
   /**
    * 管理后台 — 评价列表
    */
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @Get('admin')
   async adminList(@Query() query: AdminReviewQueryDto) {
     return this.reviewService.adminList(query);
@@ -73,6 +75,7 @@ export class ReviewController {
   /**
    * 管理后台 — 审核通过
    */
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @Put('admin/:id/approve')
   async approve(@Param('id', ParseIntPipe) id: number) {
     return this.reviewService.approve(id);
@@ -81,6 +84,7 @@ export class ReviewController {
   /**
    * 管理后台 — 审核拒绝
    */
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @Put('admin/:id/reject')
   async reject(@Param('id', ParseIntPipe) id: number) {
     return this.reviewService.reject(id);
@@ -89,6 +93,7 @@ export class ReviewController {
   /**
    * 管理后台 — 回复评价
    */
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @Post('admin/:id/reply')
   async reply(
     @Param('id', ParseIntPipe) id: number,

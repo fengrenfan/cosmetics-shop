@@ -1,10 +1,16 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '../user/user.entity';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor() {
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -16,6 +22,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!payload.id) {
       throw new UnauthorizedException('Token 无效');
     }
-    return { id: payload.id, openid: payload.openid, phone: payload.phone };
+    // 查询用户最新状态和角色
+    const user = await this.userRepo.findOne({
+      where: { id: payload.id },
+      select: ['id', 'role', 'status'],
+    });
+    if (!user || user.status !== 1) {
+      throw new UnauthorizedException('账号已禁用');
+    }
+    return { id: payload.id, role: user.role };
   }
 }

@@ -2,6 +2,7 @@ import { Controller, Post, Get, Put, Body, Param, Query, UseGuards, Request, Par
 import { AfterSaleService } from './after-sale.service';
 import { CreateAfterSaleDto, AdminAfterSaleQueryDto, AdminProcessDto } from './after-sale.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AdminGuard } from '../auth/admin.guard';
 
 @Controller('after-sales')
 export class AfterSaleController {
@@ -31,21 +32,25 @@ export class AfterSaleController {
     return this.afterSaleService.getDetail(req.user.id, id);
   }
 
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @Get('admin')
   async adminList(@Query() query: AdminAfterSaleQueryDto) {
     return this.afterSaleService.adminList(query);
   }
 
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @Put('admin/:id/approve')
   async approve(@Param('id', ParseIntPipe) id: number, @Body() dto: AdminProcessDto) {
     return this.afterSaleService.approve(id, dto.admin_remark);
   }
 
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @Put('admin/:id/reject')
   async reject(@Param('id', ParseIntPipe) id: number, @Body() dto: AdminProcessDto) {
     return this.afterSaleService.reject(id, dto.admin_remark);
   }
 
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @Put('admin/:id/refund')
   async confirmRefund(@Param('id', ParseIntPipe) id: number, @Body() dto: AdminProcessDto) {
     return this.afterSaleService.confirmRefund(id, dto.admin_remark);

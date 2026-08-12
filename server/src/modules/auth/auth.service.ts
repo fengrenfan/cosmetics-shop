@@ -63,6 +63,7 @@ export class AuthService {
           nickname: '管理员',
           phone: 'admin',
           password_hash: passwordHash,
+          role: 'admin',
         });
       }
 

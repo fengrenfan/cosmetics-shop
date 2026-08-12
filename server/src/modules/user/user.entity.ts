@@ -44,6 +44,9 @@ export class User {
   @Column({ nullable: true, name: 'parent_id' })
   parent_id: number;
 
+  @Column({ length: 20, default: 'user' })
+  role: string; // user | admin
+
   @CreateDateColumn()
   created_at: Date;
 
