@@ -28,6 +28,7 @@ import { PaymentModule } from './modules/payment/payment.module';
 import { CommunityModule } from './modules/community/community.module';
 import { MemberModule } from './modules/member/member.module';
 import { TaskModule } from './modules/task/task.module';
+import { ReviewModule } from './modules/review/review.module';
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { TaskModule } from './modules/task/task.module';
     CommunityModule,
     MemberModule,
     TaskModule,
+    ReviewModule,
   ],
   providers: [
     {

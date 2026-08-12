@@ -232,7 +232,7 @@ async function loadMore() {
 }
 
 function goSearch() {
-  uni.navigateTo({ url: '/pages/product/list' });
+  uni.navigateTo({ url: '/pages/product/search' });
 }
 
 function goCategory(category) {

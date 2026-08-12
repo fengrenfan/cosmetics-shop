@@ -47,6 +47,13 @@
       }
     },
     {
+      "path": "pages/product/search",
+      "style": {
+        "navigationBarTitleText": "搜索",
+        "navigationBarBackgroundColor": "#ffffff"
+      }
+    },
+    {
       "path": "pages/product/list",
       "style": {
         "navigationBarTitleText": "商品列表"

@@ -1,52 +1,50 @@
 services:
-  mock-server:
-    build:
-      context: .
-      dockerfile: mock-server/Dockerfile
-    container_name: cosmetics-mock-server
-    ports:
-      - "3000:3000"
-    network_mode: host
-
   server:
     build:
       context: .
       dockerfile: Dockerfile.server
     container_name: cosmetics-server
-    ports:
-      - "3001:3001"
     network_mode: host
     env_file:
       - .env
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   admin:
     build:
       context: .
       dockerfile: admin/Dockerfile
     container_name: cosmetics-admin
-    ports:
-      - "8080:8080"
     network_mode: host
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   miniapp:
     build:
       context: .
       dockerfile: miniapp/Dockerfile
     container_name: cosmetics-miniapp
-    ports:
-      - "8081:8081"
     network_mode: host
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   devops:
     build:
       context: .
       dockerfile: Dockerfile.devops
     container_name: cosmetics-devops
-    ports:
-      - "9090:9090"
     network_mode: host
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -55,3 +53,8 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - PROJECT_DIR=/host/app
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

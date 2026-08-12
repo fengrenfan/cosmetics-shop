@@ -67,4 +67,10 @@ export class Product {
 
   @OneToMany(() => ProductSku, (sku) => sku.product)
   skus: ProductSku[];
+
+  @Column({ type: 'decimal', precision: 2, scale: 1, default: 0, name: 'avg_rating' })
+  avg_rating: number;
+
+  @Column({ default: 0, name: 'review_count' })
+  review_count: number;
 }

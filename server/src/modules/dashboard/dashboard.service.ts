@@ -52,11 +52,31 @@ export class DashboardService {
     // 用户总数
     const userCount = await this.userRepository.count();
 
+    // 今日新增用户
+    const todayNewUsers = await this.userRepository.count({
+      where: { created_at: Between(today, tomorrow) },
+    });
+
+    // 库存预警 (库存 < 10)
+    const lowStockCount = await this.productRepository
+      .createQueryBuilder('p')
+      .where('p.status = :status', { status: 1 })
+      .andWhere('p.stock < :stock', { stock: 10 })
+      .getCount();
+
+    // 待发货订单
+    const pendingOrders = await this.orderRepository.count({
+      where: { status: 'paid' as any },
+    });
+
     return {
       today_orders: todayOrders,
       today_sales: parseFloat(todaySales?.total || 0),
       product_count: productCount,
       user_count: userCount,
+      today_new_users: todayNewUsers,
+      low_stock_count: lowStockCount,
+      pending_orders: pendingOrders,
     };
   }
 

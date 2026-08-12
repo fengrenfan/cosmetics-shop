@@ -55,7 +55,7 @@
             <p class="stat-label">商品总数</p>
             <p class="stat-value">{{ stats.product_count }}</p>
             <p class="stat-change">
-              库存预警 <span class="warning">5</span>
+              库存预警 <span class="warning">{{ stats.low_stock_count || 0 }}</span>
             </p>
           </div>
         </div>
@@ -69,7 +69,7 @@
             <p class="stat-label">用户总数</p>
             <p class="stat-value">{{ stats.user_count }}</p>
             <p class="stat-change">
-              今日新增 <span class="success">+23</span>
+              今日新增 <span class="success">+{{ stats.today_new_users || 0 }}</span>
             </p>
           </div>
         </div>
