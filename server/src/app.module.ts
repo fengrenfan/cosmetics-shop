@@ -29,6 +29,8 @@ import { CommunityModule } from './modules/community/community.module';
 import { MemberModule } from './modules/member/member.module';
 import { TaskModule } from './modules/task/task.module';
 import { ReviewModule } from './modules/review/review.module';
+import { AfterSaleModule } from './modules/after-sale/after-sale.module';
+import { NotificationModule } from './modules/notification/notification.module';
 
 @Module({
   imports: [
@@ -80,6 +82,8 @@ import { ReviewModule } from './modules/review/review.module';
     MemberModule,
     TaskModule,
     ReviewModule,
+    AfterSaleModule,
+    NotificationModule,
   ],
   providers: [
     {

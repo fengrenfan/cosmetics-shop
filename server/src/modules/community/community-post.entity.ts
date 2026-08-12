@@ -18,6 +18,9 @@ export class CommunityPost {
   @Column({ name: 'like_count', default: 0 })
   like_count: number;
 
+  @Column({ name: 'comment_count', default: 0 })
+  comment_count: number;
+
   @Column({ default: 1 })
   status: number;
 

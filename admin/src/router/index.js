@@ -48,6 +48,12 @@ const routes = [
             component: () => import('@/views/order/list.vue'),
             meta: { title: '订单列表' },
           },
+          {
+            path: 'after-sale',
+            name: 'AfterSale',
+            component: () => import('@/views/order/after-sale.vue'),
+            meta: { title: '售后管理' },
+          },
         ],
       },
       {

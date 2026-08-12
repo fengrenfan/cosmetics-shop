@@ -157,6 +157,24 @@
         "navigationBarBackgroundColor": "#ff6b95",
         "navigationBarTextStyle": "white"
       }
+    },
+    {
+      "path": "pages/after-sale/list",
+      "style": {
+        "navigationBarTitleText": "售后服务"
+      }
+    },
+    {
+      "path": "pages/after-sale/apply",
+      "style": {
+        "navigationBarTitleText": "申请售后"
+      }
+    },
+    {
+      "path": "pages/notification/index",
+      "style": {
+        "navigationBarTitleText": "消息通知"
+      }
     }
   ],
   "globalStyle": {

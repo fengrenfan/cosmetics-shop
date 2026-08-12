@@ -114,6 +114,14 @@
           <uni-icons type="locked-filled" size="22" color="#004880"></uni-icons>
           <text class="tool-name">隐私</text>
         </view>
+        <view class="tool-card" @click="goNotification">
+          <uni-icons type="bell-filled" size="22" color="#e6a23c"></uni-icons>
+          <text class="tool-name">消息</text>
+        </view>
+        <view class="tool-card" @click="goAfterSale">
+          <uni-icons type="refresh-filled" size="22" color="#f56c6c"></uni-icons>
+          <text class="tool-name">售后</text>
+        </view>
         <view class="tool-card" @click="goFavorite">
           <uni-icons type="heart-filled" size="22" color="#636e72"></uni-icons>
           <text class="tool-name">收藏</text>
@@ -240,6 +248,8 @@ function goAddress() {
   checkAuthAndNavigate('/pages/address/list');
 }
 
+function goNotification() { checkAuthAndNavigate('/pages/notification/index'); }
+function goAfterSale() { checkAuthAndNavigate('/pages/after-sale/list'); }
 function goFavorite() {
   checkAuthAndNavigate('/pages/favorite/index');
 }
