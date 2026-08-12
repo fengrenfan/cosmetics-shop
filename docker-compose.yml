@@ -11,19 +11,14 @@ services:
   server:
     build:
       context: .
-      dockerfile: server/Dockerfile
+      dockerfile: Dockerfile.server
     container_name: cosmetics-server
     ports:
       - "3001:3001"
     network_mode: host
-    environment:
-      - DB_HOST=127.0.0.1
-      - DB_PORT=3306
-      - DB_USER=cosmetics
-      - DB_PASSWORD=Cosmetics_123
-      - DB_NAME=cosmetics_shop
-      - JWT_SECRET=CosmeticsShop2024Secret
-      - PAY_MODE=mock
+    env_file:
+      - .env
+    restart: unless-stopped
 
   admin:
     build:
@@ -33,6 +28,7 @@ services:
     ports:
       - "8080:8080"
     network_mode: host
+    restart: unless-stopped
 
   miniapp:
     build:
@@ -42,6 +38,7 @@ services:
     ports:
       - "8081:8081"
     network_mode: host
+    restart: unless-stopped
 
   devops:
     build:
@@ -55,5 +52,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - /home/ubuntu/app:/host/app
     environment:
-      - JWT_SECRET=CosmeticsShop2024Secret
+      - JWT_SECRET=${JWT_SECRET}
       - PROJECT_DIR=/host/app
+    restart: unless-stopped

@@ -41,3 +41,15 @@ temp/
 
 # Claude
 .claude/
+
+# 环境变量文件
+.env
+.env.local
+.env.production
+
+# 日志文件
+*.log
+
+# 临时文件
+*.bak
+*.tmp

@@ -1,0 +1,16 @@
+# 多阶段构建 - 构建阶段
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY server/package*.json ./
+RUN npm ci --only=production
+COPY server/ .
+RUN npm run build
+
+# 多阶段构建 - 运行阶段
+FROM node:18-alpine
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./
+EXPOSE 3001
+CMD ["node", "dist/main.js"]
