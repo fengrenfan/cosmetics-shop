@@ -613,8 +613,8 @@ async function loadReviews() {
   if (reviews.value.length > 0) return;
   reviewsLoading.value = true;
   try {
-    const res = await request.get('/product/reviews', { product_id: productId.value });
-    reviews.value = (res || []).map(r => ({
+    const res = await request.get('/reviews/product/' + productId.value, { page: 1, limit: 20 });
+    reviews.value = (res?.list || []).map(r => ({
       ...r,
       images: r.images ? (typeof r.images === 'string' ? r.images.split(',') : r.images) : []
     }));
