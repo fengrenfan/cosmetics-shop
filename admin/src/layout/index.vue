@@ -36,6 +36,15 @@
             <span>订单管理</span>
           </template>
           <el-menu-item index="/order/list">订单列表</el-menu-item>
+          <el-menu-item index="/order/after-sale">售后管理</el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="/review">
+          <template #title>
+            <el-icon><ChatDotRound /></el-icon>
+            <span>评价管理</span>
+          </template>
+          <el-menu-item index="/review/list">评价列表</el-menu-item>
         </el-sub-menu>
 
         <el-sub-menu index="/user">
