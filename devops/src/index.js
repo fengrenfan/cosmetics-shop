@@ -46,6 +46,17 @@ function execCommand(cmd, cwd = PROJECT_DIR) {
   });
 }
 
+// 登录
+app.post('/api/auth/admin-login', async (req, res) => {
+  const { username, password } = req.body;
+  if (username === 'admin' && password === 'admin123') {
+    const token = jwt.sign({ id: 1, role: 'admin' }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({ code: 0, data: { token, user: { nickname: '管理员' } } });
+  } else {
+    res.status(401).json({ code: 401, message: '用户名或密码错误' });
+  }
+});
+
 // 获取所有容器状态
 app.get('/api/docker/containers', authMiddleware, async (req, res) => {
   try {
