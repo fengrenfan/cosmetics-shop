@@ -57,6 +57,19 @@ const routes = [
         ],
       },
       {
+        path: 'review',
+        name: 'Review',
+        meta: { title: '评价管理', icon: 'ChatDotRound' },
+        children: [
+          {
+            path: 'list',
+            name: 'ReviewList',
+            component: () => import('@/views/review/list.vue'),
+            meta: { title: '评价列表' },
+          },
+        ],
+      },
+      {
         path: 'user',
         name: 'User',
         meta: { title: '用户管理', icon: 'User' },
