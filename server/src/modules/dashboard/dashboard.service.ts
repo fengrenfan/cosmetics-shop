@@ -147,8 +147,8 @@ export class DashboardService {
       .getRawMany();
 
     return orders.map(o => ({
-      id: o.id,
-      order_no: o.order_no,
+      id: o.o_id,
+      order_no: o.o_order_no,
       user: o.user_nickname || o.user_phone || null,
       amount: o.o_pay_amount,
       status: o.o_status,
