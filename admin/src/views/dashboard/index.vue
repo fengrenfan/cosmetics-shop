@@ -213,6 +213,7 @@
         </div>
       </el-col>
     </el-row>
+  </div>
 </template>
 
 <script setup>
@@ -221,7 +222,7 @@ import request from '@/utils/request.js';
 import * as echarts from 'echarts';
 import {
   ShoppingCart, Money, Goods, User, Plus, List, Top,
-  Ticket, Picture, Menu
+  Ticket, Picture, Menu, RefreshRight, ChatDotRound
 } from '@element-plus/icons-vue';
 
 const currentDate = new Date().toLocaleDateString('zh-CN', {
