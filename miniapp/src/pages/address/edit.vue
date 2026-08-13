@@ -79,7 +79,8 @@ export default {
         city: '',
         district: '',
         detail_address: '',
-        is_default: false
+        is_default: false,
+        postal_code: ''
       }
     };
   },
@@ -108,39 +109,79 @@ export default {
     // 粘贴地址解析（自动填充省市区）- 改进版
     parseImportAddress() {
       if (!this.importText.trim()) return;
-      const text = this.importText.trim();
+      // 1. 清理零宽字符和特殊空白
+      let text = this.importText
+        .replace(/[​‌‍﻿ ]/g, '')
+        .replace(/[	]+/g, ' ')
+        .trim();
 
-      // 1. 提取手机号（11位以1开头的数字）并从文本中移除
-      const phoneMatch = text.match(/1\d{10}/);
-      if (phoneMatch) {
-        this.formData.phone = phoneMatch[0];
+      // 2. 提取手机号（支持完整11位 和 脱敏格式 138****1234）
+      const phoneFullMatch = text.match(/(?<![\d])1[3-9]\d{9}(?![\d])/);
+      const phoneMaskedMatch = text.match(/(?<![\d])1[3-9]\d[\*\•\·]{4,8}\d{4}(?![\d])/);
+      if (phoneFullMatch) {
+        this.formData.phone = phoneFullMatch[0];
+      } else if (phoneMaskedMatch) {
+        // 脱敏手机号：保留前3后4，中间清空让用户补全
+        const raw = phoneMaskedMatch[0].replace(/[\*\•\·]/g, '');
+        this.formData.phone = raw.length === 7 ? raw.slice(0,3) + raw.slice(3) : '';
+        // 提示用户补全
+        uni.showToast({ title: '手机号已脱敏，请补全中间4位', icon: 'none', duration: 3000 });
       }
-      // 移除手机号后的文本（用于后续解析）
-      let textWithoutPhone = text.replace(/1\d{10}/g, '').trim();
+      let cleanText = text.replace(/(?<![\d])1[3-9]\d[\*\•\·\d]{7,8}\d(?![\d])/g, '').trim();
 
-      // 2. 识别收货人姓名（先于省份解析，因为"XX收"可能出现在任意位置）
+      // 3. 识别收货人姓名 — 多策略
       let name = '';
-      // 策略1：查找"XX收"格式（可能在开头或末尾）
-      const receiverMatch = textWithoutPhone.match(/([一-龥]{2,10})\s*收/);
-      if (receiverMatch) {
-        name = receiverMatch[1];
-        textWithoutPhone = textWithoutPhone.replace(/[一-龥]{2,10}\s*收/, '').trim();
+      // 策略1：标签格式 "收货人‌：张三" 或 "收货人:张三" 或 "收货人 张三"
+      const labelMatch = cleanText.match(/收货人[\s:：‌]*(\S+)/);
+      if (labelMatch) {
+        const candidate = labelMatch[1].replace(/[^一-龥a-zA-Z]/g, '');
+        if (candidate.length >= 2 && candidate.length <= 10) {
+          name = candidate;
+        }
       }
-      // 策略2：查找开头的独立姓名（2-4个汉字，后面跟空格+地址关键词）
+      // 策略2：标签格式 "姓名：张三"
       if (!name) {
-        const nameAtStart = textWithoutPhone.match(/^([一-龥]{2,4})\s+(1\d{10}|[一-龥]{2,10}(街|路|道|号|栋|楼|单元|室|村|巷))/);
-        if (nameAtStart) {
-          name = nameAtStart[1];
-          textWithoutPhone = textWithoutPhone.replace(/^[一-龥]{2,4}\s+/, '').trim();
+        const nameLabel = cleanText.match(/姓名[\s:：‌]*(\S+)/);
+        if (nameLabel) {
+          const candidate = nameLabel[1].replace(/[^一-龥a-zA-Z]/g, '');
+          if (candidate.length >= 2 && candidate.length <= 10) name = candidate;
         }
       }
-      // 策略3：查找手机号后面的姓名（格式：手机号 姓名）
-      if (!name && this.formData.phone) {
-        const phoneAfterName = text.match(/1\d{10}\s*([一-龥]{2,10})$/);
-        if (phoneAfterName) {
-          name = phoneAfterName[1];
+      // 策略3："XX收"格式
+      if (!name) {
+        const receiverMatch = cleanText.match(/([一-龥]{2,10})\s*收/);
+        if (receiverMatch) {
+          name = receiverMatch[1];
         }
       }
+      // 策略4：开头2-4个汉字 + 空格 + 地址关键词
+      if (!name) {
+        const nameAtStart = cleanText.match(/^([一-龥]{2,4})\s+([一-龥]{2,10}(省|市|区|县|街|路|道|号|栋|楼))/);
+        if (nameAtStart) name = nameAtStart[1];
+      }
+
+      // 清理已识别的姓名标签
+      if (name) {
+        cleanText = cleanText.replace(/收货人[\s:：‌]*[一-龥a-zA-Z]+/, '').trim();
+        cleanText = cleanText.replace(/姓名[\s:：‌]*[一-龥a-zA-Z]+/, '').trim();
+        cleanText = cleanText.replace(/[一-龥]{2,10}\s*收/, '').trim();
+      }
+      this.formData.name = name;
+
+      // 4. 提取邮编
+      const postalMatch = cleanText.match(/(?<![\d])(\d{6})(?![\d])/);
+      if (postalMatch) {
+        this.formData.postal_code = postalMatch[1];
+        cleanText = cleanText.replace(postalMatch[0], '').trim();
+      }
+
+      // 5. 清理标签前缀
+      cleanText = cleanText
+        .replace(/所在地区[\s:：‌]*/g, '')
+        .replace(/详细地址[\s:：‌]*/g, '')
+        .replace(/手机号码?[\s:：‌]*/g, '')
+        .replace(/邮政编码?[\s:：‌]*/g, '')
+        .trim();
 
       // 3. 构建省份简称映射
       const fullToShort = {
