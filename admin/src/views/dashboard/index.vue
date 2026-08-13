@@ -17,6 +17,67 @@
     </div>
 
     <!-- 统计卡片 -->
+    <!-- 快捷操作 - 全宽 -->
+    <el-row :gutter="20" style="margin-bottom: 20px;">
+      <el-col :span="24">
+        <div class="action-card">
+          <div class="card-header">
+            <h3>快捷操作</h3>
+          </div>
+          <div class="quick-actions quick-actions-wide">
+            <div class="action-item" @click="$router.push('/product/list')">
+              <div class="action-icon" style="background: #e8f4ff;">
+                <el-icon style="color: #409eff;"><Goods /></el-icon>
+              </div>
+              <span>商品管理</span>
+            </div>
+            <div class="action-item" @click="$router.push('/order/list')">
+              <div class="action-icon" style="background: #fef0e8;">
+                <el-icon style="color: #e6a23c;"><List /></el-icon>
+              </div>
+              <span>订单管理</span>
+            </div>
+            <div class="action-item" @click="$router.push('/order/after-sale')">
+              <div class="action-icon" style="background: #fff0f0;">
+                <el-icon style="color: #f56c6c;"><RefreshRight /></el-icon>
+              </div>
+              <span>售后管理</span>
+            </div>
+            <div class="action-item" @click="$router.push('/user/list')">
+              <div class="action-icon" style="background: #e8f8f0;">
+                <el-icon style="color: #67c23a;"><User /></el-icon>
+              </div>
+              <span>用户管理</span>
+            </div>
+            <div class="action-item" @click="$router.push('/marketing/coupon')">
+              <div class="action-icon" style="background: #fef0f5;">
+                <el-icon style="color: #f56c6c;"><Ticket /></el-icon>
+              </div>
+              <span>优惠券</span>
+            </div>
+            <div class="action-item" @click="$router.push('/marketing/banner')">
+              <div class="action-icon" style="background: #f5f0ff;">
+                <el-icon style="color: #a655ff;"><Picture /></el-icon>
+              </div>
+              <span>Banner</span>
+            </div>
+            <div class="action-item" @click="$router.push('/product/category')">
+              <div class="action-icon" style="background: #fff8e8;">
+                <el-icon style="color: #b8860b;"><Menu /></el-icon>
+              </div>
+              <span>分类管理</span>
+            </div>
+            <div class="action-item" @click="$router.push('/review/list')">
+              <div class="action-icon" style="background: #e8f0ff;">
+                <el-icon style="color: #409eff;"><ChatDotRound /></el-icon>
+              </div>
+              <span>评价管理</span>
+            </div>
+          </div>
+        </div>
+      </el-col>
+    </el-row>
+
     <el-row :gutter="20" class="stat-cards">
       <el-col :xs="12" :sm="12" :md="6">
         <div class="stat-card stat-orders">
@@ -103,67 +164,6 @@
                 <p class="ranking-sales">销量 {{ item.sales }}</p>
               </div>
               <span class="ranking-amount">¥{{ item.amount }}</span>
-            </div>
-          </div>
-        </div>
-      </el-col>
-    </el-row>
-
-    <!-- 快捷操作 - 全宽 -->
-    <el-row :gutter="20" style="margin-bottom: 20px;">
-      <el-col :span="24">
-        <div class="action-card">
-          <div class="card-header">
-            <h3>快捷操作</h3>
-          </div>
-          <div class="quick-actions quick-actions-wide">
-            <div class="action-item" @click="$router.push('/product/list')">
-              <div class="action-icon" style="background: #e8f4ff;">
-                <el-icon style="color: #409eff;"><Goods /></el-icon>
-              </div>
-              <span>商品管理</span>
-            </div>
-            <div class="action-item" @click="$router.push('/order/list')">
-              <div class="action-icon" style="background: #fef0e8;">
-                <el-icon style="color: #e6a23c;"><List /></el-icon>
-              </div>
-              <span>订单管理</span>
-            </div>
-            <div class="action-item" @click="$router.push('/order/after-sale')">
-              <div class="action-icon" style="background: #fff0f0;">
-                <el-icon style="color: #f56c6c;"><RefreshRight /></el-icon>
-              </div>
-              <span>售后管理</span>
-            </div>
-            <div class="action-item" @click="$router.push('/user/list')">
-              <div class="action-icon" style="background: #e8f8f0;">
-                <el-icon style="color: #67c23a;"><User /></el-icon>
-              </div>
-              <span>用户管理</span>
-            </div>
-            <div class="action-item" @click="$router.push('/marketing/coupon')">
-              <div class="action-icon" style="background: #fef0f5;">
-                <el-icon style="color: #f56c6c;"><Ticket /></el-icon>
-              </div>
-              <span>优惠券</span>
-            </div>
-            <div class="action-item" @click="$router.push('/marketing/banner')">
-              <div class="action-icon" style="background: #f5f0ff;">
-                <el-icon style="color: #a655ff;"><Picture /></el-icon>
-              </div>
-              <span>Banner</span>
-            </div>
-            <div class="action-item" @click="$router.push('/product/category')">
-              <div class="action-icon" style="background: #fff8e8;">
-                <el-icon style="color: #b8860b;"><Menu /></el-icon>
-              </div>
-              <span>分类管理</span>
-            </div>
-            <div class="action-item" @click="$router.push('/review/list')">
-              <div class="action-icon" style="background: #e8f0ff;">
-                <el-icon style="color: #409eff;"><ChatDotRound /></el-icon>
-              </div>
-              <span>评价管理</span>
             </div>
           </div>
         </div>
