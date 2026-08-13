@@ -112,6 +112,26 @@
       </view>
     </view>
 
+
+    <!-- 猜你喜欢 -->
+    <view class="section" v-if="guessProducts.length > 0">
+      <view class="section-header">
+        <view class="section-accent-bar"></view>
+        <text class="section-title">猜你喜欢</text>
+      </view>
+      <view class="product-grid">
+        <view class="product-item" v-for="item in guessProducts" :key="item.id" @click="goGuessDetail(item)">
+          <view class="product-img-wrap">
+            <image class="product-image" :src="item.cover_image" mode="aspectFill" />
+          </view>
+          <view class="product-card-body">
+            <text class="product-title">{{ item.title }}</text>
+            <text class="product-price">¥{{ item.price }}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
     <!-- 底部占位 -->
     <view class="bottom-placeholder"></view>
 
@@ -219,6 +239,7 @@ const quantity = ref(1);
 const maxQuantity = ref(1);
 const detailTab = ref('detail');
 const reviews = ref([]);
+const guessProducts = ref([]);
 const reviewsLoading = ref(false);
 const isFavorite = ref(false);
 const cartCount = ref(0);
@@ -572,6 +593,18 @@ async function addBrowseHistory() {
   } catch (e) {
     // 忽略浏览历史记录失败
   }
+}
+
+async function loadGuess() {
+  try {
+    const productId = product.value.id;
+    const res = await uni.request({ url: '/api/recommend/similar/' + productId, data: { limit: 6 } });
+    guessProducts.value = res.data?.data || [];
+  } catch (e) {}
+}
+
+function goGuessDetail(item) {
+  uni.redirectTo({ url: '/pages/product/detail?id=' + item.id });
 }
 
 async function loadReviews() {
@@ -1198,4 +1231,17 @@ function formatTime(time) {
     color: #fff;
   }
 }
+
+/* 猜你喜欢 */
+.section { margin-top: 16rpx; background: #fff; padding: 24rpx; }
+.section-header { display: flex; align-items: center; margin-bottom: 20rpx; }
+.section-accent-bar { width: 6rpx; height: 28rpx; background: #bb0004; border-radius: 3rpx; margin-right: 12rpx; }
+.section-title { font-size: 28rpx; font-weight: 600; color: #333; }
+.product-grid { display: flex; flex-wrap: wrap; gap: 16rpx; }
+.product-item { width: calc(50% - 8rpx); background: #f9f9f9; border-radius: 12rpx; overflow: hidden; }
+.product-img-wrap { width: 100%; height: 240rpx; }
+.product-img-wrap image { width: 100%; height: 100%; }
+.product-card-body { padding: 12rpx 16rpx; }
+.product-title { font-size: 24rpx; color: #333; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.product-price { font-size: 28rpx; font-weight: 600; color: #bb0004; margin-top: 8rpx; display: block; }
 </style>

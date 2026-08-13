@@ -31,6 +31,7 @@ import { TaskModule } from './modules/task/task.module';
 import { ReviewModule } from './modules/review/review.module';
 import { AfterSaleModule } from './modules/after-sale/after-sale.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { RecommendModule } from './modules/recommend/recommend.module';
 
 @Module({
   imports: [
@@ -84,6 +85,7 @@ import { NotificationModule } from './modules/notification/notification.module';
     ReviewModule,
     AfterSaleModule,
     NotificationModule,
+    RecommendModule,
   ],
   providers: [
     {

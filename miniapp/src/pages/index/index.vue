@@ -187,7 +187,7 @@ async function loadHomeData() {
       request.get('/category/tree'),
       request.get('/product/featured'),
       request.get('/product-recommend/hot'),
-      request.get('/product/recommend'),
+      (uni.getStorageSync('token') ? request.get('/recommend/personalized', { limit: 10 }) : request.get('/recommend/hot', { limit: 10 })),
       request.get('/quick-entry/list'),
     ]);
 
@@ -218,7 +218,7 @@ async function loadMore() {
   page.value++;
 
   try {
-    const res = await request.get('/product/recommend', { page: page.value, pageSize });
+    const res = await request.get('/recommend/hot', { page: page.value, limit: pageSize });
     if (res?.list?.length > 0) {
       recommendProducts.value = [...recommendProducts.value, ...res.list.map(p => request.normalizeProduct(p))];
     } else {
