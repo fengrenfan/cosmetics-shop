@@ -53,6 +53,7 @@
         <!-- 操作按钮 -->
         <view class="order-actions" @click.stop>
           <view class="action-btn secondary" @click="goDetail(order)">查看详情</view>
+          <view class="action-btn secondary" @click="goAfterSale(order)">申请售后</view>
           <view class="action-btn primary" v-if="order.status === 'pending'" @click="goPay(order)">去支付</view>
           <view class="action-btn secondary" v-if="order.status === 'shipped'" @click="confirmReceive(order)">确认收货</view>
           <view class="action-btn danger" v-if="order.status === 'pending'" @click="cancelOrder(order)">取消订单</view>
@@ -172,6 +173,7 @@ function loadMore() {
   loadData(true);
 }
 
+function goAfterSale(order) { uni.navigateTo({ url: '/pages/after-sale/apply?orderId=' + order.id + '&amount=' + order.pay_amount }); }
 function goDetail(order) {
   uni.navigateTo({ url: `/pages/order/detail?id=${order.id}` });
 }

@@ -175,6 +175,18 @@
       "style": {
         "navigationBarTitleText": "消息通知"
       }
+    },
+    {
+      "path": "pages/after-sale/detail",
+      "style": {
+        "navigationBarTitleText": "售后详情"
+      }
+    },
+    {
+      "path": "pages/review/submit",
+      "style": {
+        "navigationBarTitleText": "发表评价"
+      }
     }
   ],
   "globalStyle": {

@@ -104,10 +104,12 @@
 
     <!-- 底部操作栏 -->
     <view class="bottom-bar" v-if="showActions">
-      <view class="action-btn secondary" @click="goHome" v-if="order.status === 'completed'">返回首页</view>
+      <view class="action-btn secondary" @click="goHome" v-if="order.status === 'completed' || order.status === 'refunded' || order.status === 'cancelled'">返回首页</view>
+      <view class="action-btn secondary" @click="goReview" v-if="order.status === 'completed'">去评价</view>
+      <view class="action-btn secondary" @click="goAfterSale" v-if="['paid','shipped','completed'].includes(order.status)">申请售后</view>
       <view class="action-btn danger" @click="cancelOrder" v-if="order.status === 'pending'">取消订单</view>
       <view class="action-btn primary" @click="goPay" v-if="order.status === 'pending'">去支付</view>
-      <view class="action-btn secondary" @click="confirmReceive" v-if="order.status === 'shipped'">确认收货</view>
+      <view class="action-btn primary" @click="confirmReceive" v-if="order.status === 'shipped'">确认收货</view>
     </view>
   </view>
 </template>
@@ -144,7 +146,7 @@ async function loadOrderDetail() {
 }
 
 const showActions = computed(() => {
-  return ['pending', 'shipped', 'completed'].includes(order.value.status);
+  return ['pending', 'shipped', 'completed', 'refunded', 'cancelled'].includes(order.value.status);
 });
 
 function getStatusIcon(status) {
@@ -320,6 +322,14 @@ async function cancelOrder() {
       }
     }
   });
+}
+
+function goReview() {
+  uni.navigateTo({ url: '/pages/review/submit?orderId=' + order.value.id });
+}
+
+function goAfterSale() {
+  uni.navigateTo({ url: '/pages/after-sale/apply?orderId=' + order.value.id + '&amount=' + order.value.pay_amount + '&orderNo=' + order.value.order_no });
 }
 
 async function confirmReceive() {
