@@ -345,7 +345,7 @@ async function confirmReceive() {
 .page {
   min-height: 100vh;
   background: #f5f5f5;
-  padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(120rpx + env(safe-area-inset-bottom));
 }
 
 .status-section {
@@ -622,7 +622,7 @@ async function confirmReceive() {
 }
 
 .bottom-placeholder {
-  height: 120rpx;
+  height: 100rpx;
 }
 
 .bottom-bar {
@@ -632,7 +632,7 @@ async function confirmReceive() {
   bottom: 0;
   height: 100rpx;
   padding: 0 30rpx;
-  padding-bottom: calc(100rpx + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
   background: #fff;
   display: flex;
   align-items: center;
