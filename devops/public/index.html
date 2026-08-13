@@ -264,18 +264,17 @@
 
     /* 卡片操作 */
     .card-actions {
-      padding: 12px 16px;
+      padding: 10px 12px;
       background: rgba(0, 0, 0, 0.2);
       border-top: 1px solid var(--border-color);
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 6px;
-      flex-wrap: wrap;
     }
-    .card-actions .el-button { 
-      flex: 1;
-      min-width: 0;
+    .card-actions .el-button {
       font-size: 11px;
-      padding: 6px 8px;
+      padding: 5px 6px;
+      width: 100%;
     }
 
     /* 预览区域 */
