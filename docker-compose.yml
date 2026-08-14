@@ -9,7 +9,7 @@ services:
       - .env
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001/api/categories"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001/api/category/tree"]
       interval: 30s
       timeout: 10s
       retries: 3
