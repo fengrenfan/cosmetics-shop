@@ -85,6 +85,11 @@
           <el-menu-item index="/system/dict">字典管理</el-menu-item>
         </el-sub-menu>
       </el-menu>
+
+      <!-- 备案号 -->
+      <div class="icp-footer">
+        <a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow">粤ICP备2026116378号-1</a>
+      </div>
     </el-aside>
 
     <el-container>
@@ -196,5 +201,23 @@ const handleCommand = (command) => {
 .main {
   background: #f5f7fa;
   padding: 20px;
+}
+
+.icp-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 10px;
+  text-align: center;
+  background: #263445;
+  a {
+    color: #999;
+    font-size: 11px;
+    text-decoration: none;
+    &:hover {
+      color: #bfcbd9;
+    }
+  }
 }
 </style>

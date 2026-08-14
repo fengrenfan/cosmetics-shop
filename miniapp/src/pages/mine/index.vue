@@ -141,6 +141,11 @@
       </view>
     </view>
 
+    <!-- 备案号 -->
+    <view class="icp-footer">
+      <text class="icp-text" @click="openIcpLink">粤ICP备2026116378号-1</text>
+    </view>
+
     <view class="bottom-safe"></view>
   </view>
 </template>
@@ -292,6 +297,17 @@ function goHelp() {
     content: '客服电话：400-888-8888',
     showCancel: true,
   });
+}
+
+function openIcpLink() {
+  // #ifdef H5
+  window.open('https://beian.miit.gov.cn/', '_blank');
+  // #endif
+  // #ifndef H5
+  uni.navigateTo({
+    url: '/pages/webview/index?url=https://beian.miit.gov.cn/',
+  });
+  // #endif
 }
 
 function callService() {
@@ -646,6 +662,19 @@ $radius-full: 9999rpx;
     text-transform: uppercase;
     letter-spacing: 0.03em;
     text-align: center;
+  }
+}
+
+// ── 备案号 ──
+.icp-footer {
+  display: flex;
+  justify-content: center;
+  padding: 30rpx 0 10rpx;
+
+  .icp-text {
+    font-size: 22rpx;
+    color: #999;
+    text-decoration: underline;
   }
 }
 
