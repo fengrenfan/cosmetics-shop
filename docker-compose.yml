@@ -72,6 +72,7 @@ services:
       - /home/ubuntu/app:/host/app
     environment:
       - JWT_SECRET=${JWT_SECRET}
+      - DOMAIN=${DOMAIN:-https://xiaodigua.shop}
       - PROJECT_DIR=/host/app
     restart: unless-stopped
     healthcheck:

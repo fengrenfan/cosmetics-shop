@@ -10,7 +10,9 @@ const BASE_URL = process.env.NODE_ENV === 'production'
   : '/api';
 // #endif
 // #ifndef MP-WEIXIN
-const BASE_URL = '/api';
+const BASE_URL = process.env.NODE_ENV === 'production'
+  ? 'https://xiaodigua.shop/api'
+  : '/api';
 // #endif
 const IMG_BASE = process.env.NODE_ENV === 'production'
   ? 'https://xiaodigua.shop'

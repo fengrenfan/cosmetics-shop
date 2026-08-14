@@ -218,7 +218,8 @@ app.get('/api/docker/system/info', authMiddleware, async (req, res) => {
 app.get('/api/docker/miniapp/qrcode', authMiddleware, async (req, res) => {
   try {
     const QRCode = require('qrcode');
-    const url = 'http://124.222.204.236:8081/miniapp/';
+    const baseUrl = process.env.DOMAIN || 'https://xiaodigua.shop';
+    const url = `${baseUrl}/miniapp/`;
     const qr = await QRCode.toDataURL(url);
     res.json({ code: 0, data: { url, qrcode: qr } });
   } catch (err) {
