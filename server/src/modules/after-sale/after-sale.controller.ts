@@ -34,7 +34,7 @@ export class AfterSaleController {
 
   @UseGuards(JwtAuthGuard, AdminGuard)
   @Get('admin')
-  async adminList(@Query() query: AdminAfterSaleQueryDto) {
+  async adminList(@Query() query: Record<string, any>) {
     return this.afterSaleService.adminList(query);
   }
 

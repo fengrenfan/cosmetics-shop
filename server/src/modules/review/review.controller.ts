@@ -68,7 +68,7 @@ export class ReviewController {
    */
   @UseGuards(JwtAuthGuard, AdminGuard)
   @Get('admin')
-  async adminList(@Query() query: AdminReviewQueryDto) {
+  async adminList(@Query() query: Record<string, any>) {
     return this.reviewService.adminList(query);
   }
 
