@@ -267,15 +267,15 @@
       padding: 10px 12px;
       background: rgba(0, 0, 0, 0.2);
       border-top: 1px solid var(--border-color);
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      display: flex;
       gap: 6px;
     }
     .card-actions .el-button {
+      flex: 1;
       font-size: 11px;
-      padding: 5px 0;
-      width: 100%;
+      padding: 5px 2px;
       min-width: 0;
+      white-space: nowrap;
     }
 
     /* 预览区域 */
