@@ -62,8 +62,10 @@ export class AuthService {
       throw new UnauthorizedException('账号或密码错误');
     }
 
+    // 自动修正角色（兼容旧数据）
     if (user.role !== 'admin') {
-      throw new ForbiddenException('无管理员权限');
+      await this.userService.updateRole(user.id, 'admin');
+      user.role = 'admin';
     }
 
     if (user.status === 0) {

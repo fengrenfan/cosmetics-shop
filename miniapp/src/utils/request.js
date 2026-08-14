@@ -3,16 +3,14 @@
  * 基于 uni.request
  */
 
-// 服务器API地址（小程序需完整URL，H5走Vite代理）
+// 服务器API地址（小程序需完整URL，H5走代理）
 // #ifdef MP-WEIXIN
 const BASE_URL = process.env.NODE_ENV === 'production' 
   ? 'https://xiaodigua.shop/api'
   : '/api';
 // #endif
 // #ifndef MP-WEIXIN
-const BASE_URL = process.env.NODE_ENV === 'production'
-  ? 'https://xiaodigua.shop/api'
-  : '/api';
+const BASE_URL = '/api';
 // #endif
 const IMG_BASE = process.env.NODE_ENV === 'production'
   ? 'https://xiaodigua.shop'

@@ -58,6 +58,13 @@ export class UserService {
     await this.userRepository.update(userId, { last_login_at: new Date() });
   }
 
+  /**
+   * 更新用户角色
+   */
+  async updateRole(userId: number, role: string): Promise<void> {
+    await this.userRepository.update(userId, { role });
+  }
+
   async getProfile(userId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) return null;
