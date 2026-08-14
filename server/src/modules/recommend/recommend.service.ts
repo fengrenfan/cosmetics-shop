@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Product } from '../product/product.entity';
+import { ProductSku } from '../product/product-sku.entity';
 import { BrowseHistory } from '../browse-history/browse-history.entity';
 import { Favorite } from '../favorite/favorite.entity';
 import { OrderItem } from '../order/order-item.entity';
@@ -12,6 +13,8 @@ export class RecommendService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepo: Repository<Product>,
+    @InjectRepository(ProductSku)
+    private readonly skuRepo: Repository<ProductSku>,
     @InjectRepository(BrowseHistory)
     private readonly browseRepo: Repository<BrowseHistory>,
     @InjectRepository(Favorite)
@@ -225,11 +228,9 @@ export class RecommendService {
 
     // 加载 SKU 信息
     const ids = products.map(p => p.id);
-    const skus = await this.productRepo.manager
-      .getRepository('ProductSku')
-      .createQueryBuilder('sku')
-      .where('sku.product_id IN (:...ids)', { ids })
-      .getMany();
+    const skus = await this.skuRepo.find({
+      where: { product_id: In(ids), status: 1 },
+    });
 
     const skusByProduct = new Map<number, any[]>();
     for (const sku of skus) {
