@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, IsString, IsArray, Min } from 'class-validator';
+import { IsOptional, IsString, IsArray, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateAfterSaleDto {
@@ -9,7 +9,6 @@ export class CreateAfterSaleDto {
   type: string; // refund | return
 
   @IsNumber()
-  @Min(0.01)
   refund_amount: number;
 
   @IsString()
@@ -30,19 +29,15 @@ export class CreateAfterSaleDto {
 
 export class AdminAfterSaleQueryDto {
   @IsOptional()
-  @IsString()
   status?: string;
 
   @IsOptional()
-  @IsString()
   keyword?: string;
 
   @IsOptional()
-  @Type(() => Number)
   page?: number;
 
   @IsOptional()
-  @Type(() => Number)
   limit?: number;
 }
 

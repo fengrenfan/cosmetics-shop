@@ -50,22 +50,17 @@ export class AdminReplyDto {
 
 export class AdminReviewQueryDto {
   @IsOptional()
-  @IsNumber()
-  status?: number;
+  status?: string;
 
   @IsOptional()
-  @IsNumber()
   product_id?: number;
 
   @IsOptional()
-  @IsString()
   keyword?: string;
 
   @IsOptional()
-  @IsNumber()
   page?: number;
 
   @IsOptional()
-  @IsNumber()
   limit?: number;
 }

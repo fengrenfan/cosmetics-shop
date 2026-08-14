@@ -123,7 +123,9 @@ export class AfterSaleService {
    * 管理后台 — 售后列表
    */
   async adminList(query: AdminAfterSaleQueryDto) {
-    const { status, keyword, page = 1, limit = 20 } = query;
+    const page = Number(query.page) || 1;
+    const limit = Number(query.limit) || 20;
+    const { status, keyword } = query;
 
     const qb = this.afterSaleRepo.createQueryBuilder('a')
       .leftJoinAndSelect('a.user', 'u')

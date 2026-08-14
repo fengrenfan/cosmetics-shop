@@ -149,7 +149,9 @@ export class ReviewService {
    * 管理后台 — 评价列表
    */
   async adminList(query: AdminReviewQueryDto) {
-    const { status, product_id, keyword, page = 1, limit = 20 } = query;
+    const page = Number(query.page) || 1;
+    const limit = Number(query.limit) || 20;
+    const { status, product_id, keyword } = query;
 
     const qb = this.reviewRepo.createQueryBuilder('r')
       .leftJoinAndSelect('r.user', 'u')
