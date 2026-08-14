@@ -81,6 +81,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import request from '@/utils/request.js';
 
 const query = ref({ status: undefined, keyword: '', page: 1, limit: 20 });
 const tableData = ref([]);
@@ -98,10 +99,9 @@ async function fetchList() {
     params.set('page', query.value.page);
     params.set('limit', query.value.limit);
 
-    const res = await fetch(`/api/reviews/admin?${params}`);
-    const data = await res.json();
-    tableData.value = data.data?.list || [];
-    total.value = data.data?.total || 0;
+    const res = await request.get('/reviews/admin', { params: Object.fromEntries(params) });
+    tableData.value = res?.list || [];
+    total.value = res?.total || 0;
   } finally {
     loading.value = false;
   }
@@ -113,14 +113,14 @@ function resetQuery() {
 }
 
 async function handleApprove(row) {
-  await fetch(`/api/reviews/admin/${row.id}/approve`, { method: 'PUT' });
+  await request.put(`/reviews/admin/${row.id}/approve`);
   ElMessage.success('已通过');
   fetchList();
 }
 
 async function handleReject(row) {
   await ElMessageBox.confirm('确定拒绝该评价？', '拒绝评价');
-  await fetch(`/api/reviews/admin/${row.id}/reject`, { method: 'PUT' });
+  await request.put(`/reviews/admin/${row.id}/reject`);
   ElMessage.success('已拒绝');
   fetchList();
 }
@@ -131,11 +131,7 @@ async function handleReply(row) {
     inputValue: row.admin_reply || '',
   }).catch(() => ({ value: undefined }));
   if (value === undefined) return;
-  await fetch(`/api/reviews/admin/${row.id}/reply`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ admin_reply: value }),
-  });
+  await request.post(`/reviews/admin/${row.id}/reply`, { admin_reply: value });
   ElMessage.success('已回复');
   fetchList();
 }

@@ -52,7 +52,7 @@ export class ProductRecommendService {
         where: { product_id: product.id, status: 1 },
       });
       if (product.images) {
-        try { product.images = JSON.parse(product.images as string); } catch { product.images = []; }
+        try { product.images = JSON.parse(product.images as string); } catch (e) { console.warn('[ProductRecommendService] Failed to parse product images:', e.message); product.images = []; }
       }
     }
 

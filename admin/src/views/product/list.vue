@@ -681,7 +681,7 @@ async function handleBatchCommand(command) {
     ElMessageBox.confirm(`确定要删除选中的 ${selectedRows.value.length} 个商品吗？`, '批量删除', {
       type: 'warning'
     }).then(async () => {
-      // await request.post('/product/batch-delete', { ids: selectedRows.value.map(r => r.id) });
+      await request.post('/product/batch-delete', { ids: selectedRows.value.map(r => r.id) });
       ElMessage.success('批量删除成功');
       loadData();
     }).catch(() => {});

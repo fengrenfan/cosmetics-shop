@@ -502,17 +502,8 @@ async function addToCart() {
     closeSkuModal();
     loadCartCount();
     
-    // 更新本地购物车状态
-    cartStore.addItem({
-      id: data.id,
-      product_id: productId.value,
-      sku_id: currentSkuId.value,
-      title: product.value.title,
-      cover_image: product.value.cover_image,
-      price: currentSku.value?.price || product.value.price,
-      quantity: quantity.value,
-      stock: maxQuantity.value
-    });
+    // 同步购物车状态（不重复添加，仅刷新列表）
+    cartStore.fetchList();
   } catch (e) {
     console.error('添加购物车失败', e);
   }

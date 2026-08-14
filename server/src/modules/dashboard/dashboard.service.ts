@@ -84,27 +84,45 @@ export class DashboardService {
    * 获取销售趋势（近 N 天）
    */
   async getSalesTrend(days: number = 7) {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - (days - 1));
+    startDate.setHours(0, 0, 0, 0);
+
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + 1);
+    endDate.setHours(0, 0, 0, 0);
+
+    const rows = await this.orderRepository
+      .createQueryBuilder('o')
+      .select("DATE(o.created_at)", 'date')
+      .addSelect('COUNT(o.id)', 'orders')
+      .addSelect('COALESCE(SUM(o.pay_amount), 0)', 'sales')
+      .where('o.created_at >= :startDate', { startDate })
+      .andWhere('o.created_at < :endDate', { endDate })
+      .andWhere('o.status != :status', { status: 'cancelled' })
+      .groupBy("DATE(o.created_at)")
+      .orderBy("DATE(o.created_at)", 'ASC')
+      .getRawMany();
+
+    const dataMap = new Map<string, { orders: number; sales: number }>();
+    for (const row of rows) {
+      const dateStr = typeof row.date === 'string' ? row.date.slice(0, 10) : '';
+      dataMap.set(dateStr, {
+        orders: parseInt(row.orders) || 0,
+        sales: parseFloat(row.sales) || 0,
+      });
+    }
+
     const result = [];
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
-      date.setHours(0, 0, 0, 0);
-      const next = new Date(date);
-      next.setDate(next.getDate() + 1);
-
-      const row = await this.orderRepository
-        .createQueryBuilder('o')
-        .select('COUNT(o.id)', 'orders')
-        .addSelect('COALESCE(SUM(o.pay_amount), 0)', 'sales')
-        .where('o.created_at >= :start', { start: date })
-        .andWhere('o.created_at < :end', { end: next })
-        .andWhere('o.status != :status', { status: 'cancelled' })
-        .getRawOne();
-
+      const dateStr = date.toISOString().slice(0, 10);
+      const data = dataMap.get(dateStr);
       result.push({
-        date: date.toISOString().slice(0, 10),
-        orders: parseInt(row.orders) || 0,
-        sales: parseFloat(row.sales) || 0,
+        date: dateStr,
+        orders: data?.orders || 0,
+        sales: data?.sales || 0,
       });
     }
     return result;

@@ -114,7 +114,7 @@ const countdown = ref(0);
 let countdownTimer = null;
 
 // 开发模式标志（可根据环境变量动态控制）
-const isDevMode = ref(true);
+const isDevMode = ref(!!(process.env.NODE_ENV === 'development' || process.env.UNI_PLATFORM === 'h5'));
 
 const phoneForm = ref({
   phone: '',

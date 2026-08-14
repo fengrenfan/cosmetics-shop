@@ -68,6 +68,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import request from '@/utils/request.js';
 
 const query = ref({ status: '', keyword: '', page: 1, limit: 20 });
 const tableData = ref([]);
@@ -79,10 +80,9 @@ onMounted(() => fetchList());
 async function fetchList() {
   loading.value = true;
   try {
-    const res = await fetch(`/api/after-sales/admin?${new URLSearchParams(query.value)}`);
-    const data = await res.json();
-    tableData.value = data.data?.list || [];
-    total.value = data.data?.total || 0;
+    const res = await request.get('/after-sales/admin', { params: { ...query.value } });
+    tableData.value = res?.list || [];
+    total.value = res?.total || 0;
   } finally {
     loading.value = false;
   }
@@ -96,10 +96,7 @@ function resetQuery() {
 async function handleApprove(row) {
   const { value } = await ElMessageBox.prompt('审批备注（选填）', '审批通过', { inputType: 'textarea' }).catch(() => ({ value: undefined }));
   if (value === undefined) return;
-  await fetch(`/api/after-sales/admin/${row.id}/approve`, {
-    method: 'PUT', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ admin_remark: value }),
-  });
+  await request.put(`/after-sales/admin/${row.id}/approve`, { admin_remark: value });
   ElMessage.success('已通过');
   fetchList();
 }
@@ -107,20 +104,14 @@ async function handleApprove(row) {
 async function handleReject(row) {
   const { value } = await ElMessageBox.prompt('拒绝原因', '审批拒绝', { inputType: 'textarea' }).catch(() => ({ value: undefined }));
   if (value === undefined) return;
-  await fetch(`/api/after-sales/admin/${row.id}/reject`, {
-    method: 'PUT', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ admin_remark: value }),
-  });
+  await request.put(`/after-sales/admin/${row.id}/reject`, { admin_remark: value });
   ElMessage.success('已拒绝');
   fetchList();
 }
 
 async function handleRefund(row) {
   await ElMessageBox.confirm(`确认退款 ¥${row.refund_amount}？`, '确认退款');
-  await fetch(`/api/after-sales/admin/${row.id}/refund`, {
-    method: 'PUT', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ admin_remark: '已退款' }),
-  });
+  await request.put(`/after-sales/admin/${row.id}/refund`, { admin_remark: '已退款' });
   ElMessage.success('退款成功');
   fetchList();
 }

@@ -5,5 +5,7 @@ COPY devops/package.json ./
 RUN npm install --omit=dev
 COPY devops/src/index.js ./src/index.js
 COPY devops/public ./public
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
 EXPOSE 9090
 CMD ["node", "./src/index.js"]

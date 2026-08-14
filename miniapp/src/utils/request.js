@@ -5,12 +5,33 @@
 
 // 服务器API地址（小程序需完整URL，H5走Vite代理）
 // #ifdef MP-WEIXIN
-const BASE_URL = 'https://xiaodigua.shop/api';
+const BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://xiaodigua.shop/api'
+  : '/api';
 // #endif
 // #ifndef MP-WEIXIN
 const BASE_URL = '/api';
 // #endif
-const IMG_BASE = 'https://xiaodigua.shop';
+const IMG_BASE = process.env.NODE_ENV === 'production'
+  ? 'https://xiaodigua.shop'
+  : '';
+
+let loadingCount = 0;
+
+function showLoadingOnce() {
+  if (loadingCount === 0) {
+    uni.showLoading({ title: '加载中...', mask: true });
+  }
+  loadingCount++;
+}
+
+function hideLoadingOnce() {
+  loadingCount--;
+  if (loadingCount <= 0) {
+    loadingCount = 0;
+    uni.hideLoading();
+  }
+}
 
 class Request {
   constructor() {
@@ -56,7 +77,7 @@ class Request {
     }
 
     return new Promise((resolve, reject) => {
-      uni.showLoading({ title: '加载中...', mask: true });
+      showLoadingOnce();
 
       uni.request({
         url: this.baseUrl + url,
@@ -64,7 +85,7 @@ class Request {
         data,
         header,
         success: (res) => {
-          uni.hideLoading();
+          hideLoadingOnce();
 
           if (res.statusCode === 200 || res.statusCode === 201) {
             const body = res.data;
@@ -87,7 +108,7 @@ class Request {
           }
         },
         fail: (err) => {
-          uni.hideLoading();
+          hideLoadingOnce();
           uni.showToast({ title: '网络错误', icon: 'none' });
           reject(err);
         },

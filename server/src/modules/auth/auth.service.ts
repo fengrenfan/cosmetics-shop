@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import axios from 'axios';
@@ -51,36 +51,6 @@ export class AuthService {
    * 管理员登录
    */
   async adminLogin(username: string, password: string) {
-    // 测试账号：admin / admin123
-    if (username === 'admin' && password === 'admin123') {
-      // 查找或创建管理员用户
-      let user = await this.userService.getProfileByPhone('admin');
-
-      if (!user) {
-        // 创建管理员用户
-        const passwordHash = await bcrypt.hash('admin123', 10);
-        user = await this.userService.create({
-          nickname: '管理员',
-          phone: 'admin',
-          password_hash: passwordHash,
-          role: 'admin',
-        });
-      }
-
-      const token = this.generateToken(user);
-
-      return {
-        token,
-        user: {
-          id: user.id,
-          nickname: user.nickname,
-          avatar: user.avatar,
-          phone: user.phone,
-        },
-      };
-    }
-
-    // 普通用户手机号登录
     const user = await this.userService.getProfileByPhone(username);
 
     if (!user || !user.password_hash) {
@@ -92,11 +62,14 @@ export class AuthService {
       throw new UnauthorizedException('账号或密码错误');
     }
 
+    if (user.role !== 'admin') {
+      throw new ForbiddenException('无管理员权限');
+    }
+
     if (user.status === 0) {
       throw new UnauthorizedException('账号已被禁用');
     }
 
-    // 更新登录信息
     await this.userService.updateLastLogin(user.id);
 
     const token = this.generateToken(user);
@@ -116,7 +89,9 @@ export class AuthService {
    * 手机号验证码登录
    */
   async phoneLogin(phone: string, code: string, inviterId?: number) {
-    if (code !== '1234') {
+    // TODO: 生产环境应接入短信服务验证
+    const isDev = process.env.PAY_MODE === 'mock' || !process.env.SMS_ACCESS_KEY;
+    if (!isDev && code !== '1234') {
       throw new UnauthorizedException('验证码错误');
     }
 

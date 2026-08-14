@@ -24,16 +24,26 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   // 跨域
+  const allowedOrigins = (process.env.CORS_ORIGINS || '').split(',').filter(Boolean);
   app.enableCors({
-    origin: '*',
+    origin: allowedOrigins.length > 0 ? allowedOrigins : false,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
 
   // 请求日志中间件（调试用）
   app.use((req, res, next) => {
+    if (process.env.NODE_ENV === 'production') {
+      next();
+      return;
+    }
     if (req.method === 'POST' || req.method === 'PUT') {
-      console.log(req.method + " " + req.url, JSON.stringify(req.body, null, 2));
+      const body = { ...req.body };
+      // Mask sensitive fields
+      for (const key of ['password', 'token', 'password_hash', 'code']) {
+        if (body[key]) body[key] = '***';
+      }
+      console.log(req.method + " " + req.url, JSON.stringify(body));
     }
     next();
   });

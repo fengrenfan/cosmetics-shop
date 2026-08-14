@@ -2,6 +2,8 @@ import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateCol
 import { OrderItem } from './order-item.entity';
 
 @Entity('order')
+@Index('idx_user_id', ['user_id'])
+@Index('idx_status', ['status'])
 @Index('idx_pay_status', ['pay_status'])
 @Index('idx_out_trade_no', ['out_trade_no'])
 export class Order {

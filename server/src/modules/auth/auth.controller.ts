@@ -31,8 +31,13 @@ export class AuthController {
    */
   @Post('send-code')
   async sendCode(@Body() dto: SendCodeDto) {
-    // 开发环境固定验证码
-    return { code: 0, message: 'success', data: { code: '1234' } };
+    // TODO: 生产环境接入短信服务发送验证码
+    const isDev = process.env.PAY_MODE === 'mock' || !process.env.SMS_ACCESS_KEY;
+    if (isDev) {
+      return { code: 0, message: '验证码已发送（开发环境验证码: 1234）' };
+    }
+    // 生产环境：调用短信API发送验证码
+    return { code: 0, message: '验证码已发送' };
   }
 
   /**

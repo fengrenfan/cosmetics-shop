@@ -518,7 +518,8 @@ export class TaskService implements OnModuleInit {
       const QRCode = require('qrcode');
       const payload = JSON.stringify({ type: 'invite', scene });
       return await QRCode.toDataURL(payload, { width: 280, margin: 2 });
-    } catch {
+    } catch (e) {
+      console.warn('[TaskService] Failed to generate QR code:', e.message);
       return '';
     }
   }

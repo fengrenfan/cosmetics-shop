@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
 
 @Entity('coupon')
 export class Coupon {
@@ -52,6 +52,7 @@ export class Coupon {
 }
 
 @Entity('user_coupon')
+@Index('idx_user_coupon_user_id', ['user_id'])
 export class UserCoupon {
   @PrimaryGeneratedColumn()
   id: number;

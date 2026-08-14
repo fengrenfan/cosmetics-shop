@@ -1,8 +1,12 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { ProductSku } from './product-sku.entity';
 import { Category } from '../category/category.entity';
 
 @Entity('product')
+@Index('idx_product_status', ['status'])
+@Index('idx_product_category_id', ['category_id'])
+@Index('idx_product_is_recommend', ['is_recommend'])
+@Index('idx_product_is_hot', ['is_hot'])
 export class Product {
   @PrimaryGeneratedColumn()
   id: number;

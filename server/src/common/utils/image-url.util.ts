@@ -32,8 +32,8 @@ export function sanitizeProductImages<T extends { id?: number; cover_image?: str
           resolveProductImageUrl(img, product.id != null ? product.id * 10 + i : undefined),
         ) as any;
       }
-    } catch {
-      /* ignore */
+    } catch (e) {
+      console.warn('[ImageUrlUtil] Failed to parse product images:', e.message);
     }
   }
   return product;

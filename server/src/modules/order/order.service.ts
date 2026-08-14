@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { Order } from './order.entity';
 import { OrderItem } from './order-item.entity';
@@ -38,6 +38,7 @@ export class OrderService {
     private readonly cartService: CartService,
     private readonly pointsService: PointsService,
     private readonly couponService: CouponService,
+    private readonly dataSource: DataSource,
   ) {}
 
   /**
@@ -46,160 +47,162 @@ export class OrderService {
   async create(dto: CreateOrderDto) {
     const { user_id, address_id, items, remark, coupon_id, points_amount, points_money, pay_channel, pay_scene } = dto;
 
-    // 获取收货地址快照
-    const address = await this.addressService.getById(address_id, user_id);
-    if (!address) {
-      throw new NotFoundException('收货地址不存在');
-    }
-
-    // 计算商品总价
-    let totalAmount = 0;
-    const orderItems: any[] = [];
-
-    for (const item of items) {
-      const product = await this.productService.getDetail(item.product_id);
-      if (!product) {
-        throw new NotFoundException(`商品[${item.product_id}]不存在`);
+    return this.dataSource.transaction(async (manager) => {
+      // 获取收货地址快照
+      const address = await this.addressService.getById(address_id, user_id);
+      if (!address) {
+        throw new NotFoundException('收货地址不存在');
       }
 
-      if (product.status === 0) {
-        throw new BadRequestException(`商品[${product.title}]已下架`);
-      }
+      // 计算商品总价
+      let totalAmount = 0;
+      const orderItems: any[] = [];
 
-      let price = product.price;
-      let skuName = '';
-
-      if (item.sku_id) {
-        const sku = product.skus?.find((s: any) => s.id === item.sku_id);
-        if (!sku) {
-          throw new BadRequestException('SKU不存在');
+      for (const item of items) {
+        const product = await this.productService.getDetail(item.product_id);
+        if (!product) {
+          throw new NotFoundException(`商品[${item.product_id}]不存在`);
         }
-        price = sku.price;
-        skuName = sku.sku_name;
+
+        if (product.status === 0) {
+          throw new BadRequestException(`商品[${product.title}]已下架`);
+        }
+
+        let price = product.price;
+        let skuName = '';
+
+        if (item.sku_id) {
+          const sku = product.skus?.find((s: any) => s.id === item.sku_id);
+          if (!sku) {
+            throw new BadRequestException('SKU不存在');
+          }
+          price = sku.price;
+          skuName = sku.sku_name;
+        }
+
+        if (product.stock < item.quantity) {
+          throw new BadRequestException(`商品[${product.title}]库存不足`);
+        }
+
+        const subtotal = price * item.quantity;
+        totalAmount += subtotal;
+
+        orderItems.push({
+          product_id: item.product_id,
+          sku_id: item.sku_id || null,
+          product_title: product.title,
+          sku_name: skuName,
+          cover_image: product.cover_image,
+          price,
+          quantity: item.quantity,
+          subtotal,
+        });
+
+        // 扣减库存
+        await this.productService.decrementStock(item.product_id, item.sku_id, item.quantity);
       }
 
-      if (product.stock < item.quantity) {
-        throw new BadRequestException(`商品[${product.title}]库存不足`);
+      // 计算运费（满99免运费）
+      const freightAmount = totalAmount >= 99 ? 0 : 10;
+
+      // 如果使用了优惠券，验证并计算优惠
+      let discountAmount = 0;
+      let userCouponId = null;
+
+      if (coupon_id) {
+        const validation = await this.couponService.validateForOrder(
+          user_id,
+          coupon_id,
+          totalAmount,
+        );
+
+        if (!validation.valid) {
+          throw new BadRequestException(validation.error);
+        }
+
+        const discount = await this.couponService.applyToOrder(coupon_id, totalAmount);
+        discountAmount = discount.discountAmount;
+
+        // 获取用户优惠券 ID
+        const userCoupon = await this.userCouponRepository.findOne({
+          where: { user_id, coupon_id, status: USER_COUPON_STATUS.UNUSED },
+        });
+        userCouponId = userCoupon?.id;
       }
 
-      const subtotal = price * item.quantity;
-      totalAmount += subtotal;
+      // 计算实付金额
+      const pointsMoney = points_money || 0;
+      const payAmount = totalAmount + freightAmount - discountAmount - pointsMoney;
 
-      orderItems.push({
-        product_id: item.product_id,
-        sku_id: item.sku_id || null,
-        product_title: product.title,
-        sku_name: skuName,
-        cover_image: product.cover_image,
-        price,
-        quantity: item.quantity,
-        subtotal,
-      });
+      // 生成订单号
+      const orderNo = this.generateOrderNo();
 
-      // 扣减库存
-      await this.productService.decrementStock(item.product_id, item.sku_id, item.quantity);
-    }
-
-    // 计算运费（满99免运费）
-    const freightAmount = totalAmount >= 99 ? 0 : 10;
-
-    // 如果使用了优惠券，验证并计算优惠
-    let discountAmount = 0;
-    let userCouponId = null;
-
-    if (coupon_id) {
-      const validation = await this.couponService.validateForOrder(
+      // 创建订单
+      const order = this.orderRepository.create({
+        order_no: orderNo,
         user_id,
-        coupon_id,
-        totalAmount,
-      );
+        total_amount: totalAmount,
+        freight_amount: freightAmount,
+        coupon_amount: discountAmount,
+        coupon_id: coupon_id || null,
+        pay_amount: payAmount,
+        status: 'pending',
+        pay_status: ORDER_PAY_STATUS.UNPAID,
+        pay_channel: pay_channel || null,
+        pay_scene: pay_scene || null,
+        address_snapshot: JSON.stringify({
+          name: address.name,
+          phone: address.phone,
+          province: address.province,
+          city: address.city,
+          district: address.district,
+          detail_address: address.detail_address,
+        }),
+        remark,
+      });
 
-      if (!validation.valid) {
-        throw new BadRequestException(validation.error);
+      const savedOrder = await this.orderRepository.save(order);
+
+      // 标记优惠券已使用
+      if (userCouponId) {
+        await this.couponService.markAsUsed(userCouponId, savedOrder.id);
       }
 
-      const discount = await this.couponService.applyToOrder(coupon_id, totalAmount);
-      discountAmount = discount.discountAmount;
+      // 处理积分抵扣
+      if (points_amount && points_amount > 0) {
+        try {
+          await this.pointsService.deductPoints(user_id, points_amount, savedOrder.id);
+          savedOrder.points_amount = points_amount;
+          savedOrder.points_money = pointsMoney;
+          await this.orderRepository.save(savedOrder);
+        } catch (e) {
+          throw new BadRequestException('积分扣减失败：' + e.message);
+        }
+      }
 
-      // 获取用户优惠券 ID
-      const userCoupon = await this.userCouponRepository.findOne({
-        where: { user_id, coupon_id, status: USER_COUPON_STATUS.UNUSED },
-      });
-      userCouponId = userCoupon?.id;
-    }
+      // 创建订单明细
+      for (const item of orderItems) {
+        const orderItem = this.orderItemRepository.create({
+          ...item,
+          order_id: savedOrder.id,
+        });
+        await this.orderItemRepository.save(orderItem);
+      }
 
-    // 计算实付金额
-    const pointsMoney = points_money || 0;
-    const payAmount = totalAmount + freightAmount - discountAmount - pointsMoney;
+      // 删除购物车中已购买的商品
+      for (const item of items) {
+        if (item.cart_id) {
+          await this.cartService.remove(item.cart_id);
+        }
+      }
 
-    // 生成订单号
-    const orderNo = this.generateOrderNo();
-
-    // 创建订单
-    const order = this.orderRepository.create({
-      order_no: orderNo,
-      user_id,
-      total_amount: totalAmount,
-      freight_amount: freightAmount,
-      coupon_amount: discountAmount,
-      coupon_id: coupon_id || null,
-      pay_amount: payAmount,
-      status: 'pending',
-      pay_status: ORDER_PAY_STATUS.UNPAID,
-      pay_channel: pay_channel || null,
-      pay_scene: pay_scene || null,
-      address_snapshot: JSON.stringify({
-        name: address.name,
-        phone: address.phone,
-        province: address.province,
-        city: address.city,
-        district: address.district,
-        detail_address: address.detail_address,
-      }),
-      remark,
+      return {
+        id: savedOrder.id,
+        order_no: orderNo,
+        pay_amount: payAmount,
+        pay_status: savedOrder.pay_status,
+      };
     });
-
-    const savedOrder = await this.orderRepository.save(order);
-
-    // 标记优惠券已使用
-    if (userCouponId) {
-      await this.couponService.markAsUsed(userCouponId, savedOrder.id);
-    }
-
-    // 处理积分抵扣
-    if (points_amount && points_amount > 0) {
-      try {
-        await this.pointsService.deductPoints(user_id, points_amount, savedOrder.id);
-        savedOrder.points_amount = points_amount;
-        savedOrder.points_money = pointsMoney;
-        await this.orderRepository.save(savedOrder);
-      } catch (e) {
-        throw new BadRequestException('积分扣减失败：' + e.message);
-      }
-    }
-
-    // 创建订单明细
-    for (const item of orderItems) {
-      const orderItem = this.orderItemRepository.create({
-        ...item,
-        order_id: savedOrder.id,
-      });
-      await this.orderItemRepository.save(orderItem);
-    }
-
-    // 删除购物车中已购买的商品
-    for (const item of items) {
-      if (item.cart_id) {
-        await this.cartService.remove(item.cart_id);
-      }
-    }
-
-    return {
-      id: savedOrder.id,
-      order_no: orderNo,
-      pay_amount: payAmount,
-      pay_status: savedOrder.pay_status,
-    };
   }
 
   async getById(id: number) {
@@ -302,11 +305,9 @@ export class OrderService {
       .take(pageSize)
       .getMany();
 
-    // 获取订单明细
-    for (const order of list) {
-      order.items = await this.orderItemRepository.find({
-        where: { order_id: order.id },
-      });
+    // 获取订单明细 - 批量查询避免 N+1
+    if (list.length > 0) {
+      await this.attachItems(list);
     }
     this.parseSnapshots(list);
 
@@ -358,11 +359,11 @@ export class OrderService {
 
     await this.orderRepository.save(order);
 
-    // 恢复库存
+    // 恢复库存 - 批量查询
     const items = await this.orderItemRepository.find({ where: { order_id: id } });
-    for (const item of items) {
-      await this.productService.incrementStock(item.product_id, item.sku_id, item.quantity);
-    }
+    await Promise.all(
+      items.map(item => this.productService.incrementStock(item.product_id, item.sku_id, item.quantity))
+    );
 
     // 返还积分（如果使用了积分抵扣）
     if (order.points_amount && order.points_amount > 0) {
@@ -545,11 +546,11 @@ export class OrderService {
 
     await this.markRefunded(order.id);
 
-    // 恢复库存
+    // 恢复库存 - 批量查询
     const items = await this.orderItemRepository.find({ where: { order_id: id } });
-    for (const item of items) {
-      await this.productService.incrementStock(item.product_id, item.sku_id, item.quantity);
-    }
+    await Promise.all(
+      items.map(item => this.productService.incrementStock(item.product_id, item.sku_id, item.quantity))
+    );
 
     // 返还积分（如果使用了积分抵扣）
     if (order.points_amount && order.points_amount > 0) {
@@ -605,7 +606,7 @@ export class OrderService {
     if (typeof order.address_snapshot === 'string') {
       try {
         order.address_snapshot = JSON.parse(order.address_snapshot);
-      } catch { /* ignore parse error */ }
+      } catch (e) { console.warn('[OrderService] Failed to parse address snapshot:', e.message); }
     }
   }
 

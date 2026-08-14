@@ -13,8 +13,13 @@ const docker = new Docker({ socketPath: '/var/run/docker.sock' });
 const JWT_SECRET = process.env.JWT_SECRET || 'CosmeticsShop2024Secret';
 const PROJECT_DIR = process.env.PROJECT_DIR || '/host/app';
 const PORT = 9090;
+const DEVOPS_USERNAME = process.env.DEVOPS_USERNAME || 'admin';
+const DEVOPS_PASSWORD = process.env.DEVOPS_PASSWORD || 'admin123';
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : false,
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
@@ -49,7 +54,7 @@ function execCommand(cmd, cwd = PROJECT_DIR) {
 // 登录
 app.post('/api/auth/admin-login', async (req, res) => {
   const { username, password } = req.body;
-  if (username === 'admin' && password === 'admin123') {
+  if (username === DEVOPS_USERNAME && password === DEVOPS_PASSWORD) {
     const token = jwt.sign({ id: 1, role: 'admin' }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ code: 0, data: { token, user: { nickname: '管理员' } } });
   } else {

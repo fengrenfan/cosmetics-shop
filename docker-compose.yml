@@ -8,6 +8,11 @@ services:
     env_file:
       - .env
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001/api"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     logging:
       driver: json-file
       options:
@@ -20,7 +25,15 @@ services:
       dockerfile: admin/Dockerfile
     container_name: cosmetics-admin
     network_mode: host
+    depends_on:
+      server:
+        condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     logging:
       driver: json-file
       options:
@@ -33,7 +46,15 @@ services:
       dockerfile: miniapp/Dockerfile
     container_name: cosmetics-miniapp
     network_mode: host
+    depends_on:
+      server:
+        condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     logging:
       driver: json-file
       options:
@@ -53,6 +74,11 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - PROJECT_DIR=/host/app
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     logging:
       driver: json-file
       options:

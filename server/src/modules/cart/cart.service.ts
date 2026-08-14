@@ -242,7 +242,7 @@ export class CartService {
     // 解析 images
     for (const product of products) {
       if (product.images) {
-        try { product.images = JSON.parse(product.images as string); } catch { product.images = []; }
+        try { product.images = JSON.parse(product.images as string); } catch (e) { console.warn('[CartService] Failed to parse product images:', e.message); product.images = []; }
       }
     }
 
@@ -262,7 +262,7 @@ export class CartService {
 
     for (const product of products) {
       if (product.images) {
-        try { product.images = JSON.parse(product.images as string); } catch { product.images = []; }
+        try { product.images = JSON.parse(product.images as string); } catch (e) { console.warn('[CartService] Failed to parse product images:', e.message); product.images = []; }
       }
     }
 

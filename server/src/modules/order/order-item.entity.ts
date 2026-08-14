@@ -1,8 +1,9 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { Order } from './order.entity';
 import { Product } from '../product/product.entity';
 
 @Entity('order_item')
+@Index('idx_order_item_order_id', ['order_id'])
 export class OrderItem {
   @PrimaryGeneratedColumn()
   id: number;

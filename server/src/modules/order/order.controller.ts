@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, Request, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AdminGuard } from '../auth/admin.guard';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './order.dto';
 
@@ -89,7 +90,7 @@ export class OrderController {
    * 管理端订单列表
    * GET /api/order/admin/list
    */
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @Get('admin/list')
   async getAdminList(@Query() query: any) {
     return this.orderService.getAdminList(query);
@@ -99,7 +100,7 @@ export class OrderController {
    * 导出订单 CSV
    * GET /api/order/admin/export
    */
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @Get('admin/export')
   async exportOrders(@Query() query: Record<string, string>, @Res() res: Response) {
     const list = await this.orderService.exportOrders(query);
@@ -144,7 +145,7 @@ export class OrderController {
    * 管理端订单发货
    * PUT /api/order/admin/:id/ship
    */
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @Put('admin/:id/ship')
   async ship(@Param('id') id: string, @Body() dto: { express_company: string; express_no: string }) {
     return this.orderService.ship(+id, dto);
@@ -154,7 +155,7 @@ export class OrderController {
    * 管理端退款
    * PUT /api/order/admin/:id/refund
    */
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @Put('admin/:id/refund')
   async refund(@Param('id') id: string) {
     return this.orderService.refund(+id);
@@ -164,7 +165,7 @@ export class OrderController {
    * 查询物流轨迹
    * GET /api/order/admin/:id/tracking
    */
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @Get('admin/:id/tracking')
   async getTracking(@Param('id') id: string) {
     return this.orderService.getTracking(+id);
