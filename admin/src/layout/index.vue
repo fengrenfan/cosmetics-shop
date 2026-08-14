@@ -154,10 +154,14 @@ const handleCommand = (command) => {
 .aside {
   background: #304156;
   transition: width 0.3s;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .logo {
   height: 60px;
+  min-height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -170,6 +174,8 @@ const handleCommand = (command) => {
 
 .el-menu {
   border-right: none;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .header {
@@ -204,13 +210,12 @@ const handleCommand = (command) => {
 }
 
 .icp-footer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 10px;
-  text-align: center;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: #263445;
+  border-top: 1px solid #3a4a5c;
   a {
     color: #999;
     font-size: 11px;
