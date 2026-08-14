@@ -11,10 +11,12 @@ import { CartModule } from '../cart/cart.module';
 import { PointsModule } from '../points/points.module';
 import { CouponModule } from '../coupon/coupon.module';
 import { UserCoupon } from '../coupon/coupon.entity';
+import { User } from '../user/user.entity';
+import { AdminGuard } from '../auth/admin.guard';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Order, OrderItem, UserCoupon]),
+    TypeOrmModule.forFeature([Order, OrderItem, UserCoupon, User]),
     ProductModule,
     AddressModule,
     CartModule,
@@ -22,7 +24,7 @@ import { UserCoupon } from '../coupon/coupon.entity';
     CouponModule,
   ],
   controllers: [OrderController],
-  providers: [OrderService, OrderTask],
+  providers: [OrderService, OrderTask, AdminGuard],
   exports: [OrderService],
 })
 export class OrderModule {}
