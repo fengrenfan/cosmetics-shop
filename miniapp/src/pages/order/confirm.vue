@@ -200,7 +200,7 @@ const canSubmit = computed(() => {
 onMounted(() => {
   if (!checkLogin()) {
     uni.showToast({ title: '请先登录', icon: 'none' });
-    uni.navigateTo({ url: '/pages/login/index' });
+    uni.redirectTo({ url: '/pages/login/index' });
     return;
   }
   loadData();

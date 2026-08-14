@@ -108,7 +108,7 @@ const checkinLoading = ref(false);
 
 onShow(() => {
   if (!checkLogin()) {
-    uni.navigateTo({ url: '/pages/login/index' });
+    uni.redirectTo({ url: '/pages/login/index' });
     return;
   }
   loadCenter();

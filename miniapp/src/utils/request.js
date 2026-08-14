@@ -96,7 +96,7 @@ class Request {
             } else if (body.code === 401 || body.statusCode === 401) {
               this.clearToken();
               uni.showToast({ title: '请先登录', icon: 'none' });
-              uni.navigateTo({ url: '/pages/login/index' });
+              uni.redirectTo({ url: '/pages/login/index' });
               reject(body);
             } else {
               uni.showToast({ title: body.message || '请求失败', icon: 'none' });

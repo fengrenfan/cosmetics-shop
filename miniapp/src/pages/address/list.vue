@@ -403,7 +403,7 @@ async function loadAddressList() {
     console.error('加载地址失败', e);
     if (e?.code === 401) {
       uni.showToast({ title: '请先登录', icon: 'none' });
-      uni.navigateTo({ url: '/pages/login/index' });
+      uni.redirectTo({ url: '/pages/login/index' });
     }
   } finally {
     loading.value = false;

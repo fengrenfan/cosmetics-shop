@@ -199,7 +199,7 @@ async function loadMemberLevel() {
 
 function goMemberCenter() {
   if (!checkLogin()) {
-    uni.navigateTo({ url: '/pages/login/index' });
+    uni.redirectTo({ url: '/pages/login/index' });
     return;
   }
   uni.navigateTo({ url: '/pages/member/center' });
@@ -207,7 +207,7 @@ function goMemberCenter() {
 
 function goTaskCenter() {
   if (!checkLogin()) {
-    uni.navigateTo({ url: '/pages/login/index' });
+    uni.redirectTo({ url: '/pages/login/index' });
     return;
   }
   uni.navigateTo({ url: '/pages/task/index' });
@@ -237,13 +237,13 @@ async function loadOrderCount() {
 
 function handleUserClick() {
   if (!checkLogin()) {
-    uni.navigateTo({ url: '/pages/login/index' });
+    uni.redirectTo({ url: '/pages/login/index' });
   }
 }
 
 function goOrderList(status) {
   if (!checkLogin()) {
-    uni.navigateTo({ url: '/pages/login/index' });
+    uni.redirectTo({ url: '/pages/login/index' });
     return;
   }
   uni.navigateTo({ url: `/pages/order/list?status=${status || ''}` });
@@ -321,7 +321,7 @@ function callService() {
 
 function checkAuthAndNavigate(url) {
   if (!checkLogin()) {
-    uni.navigateTo({ url: '/pages/login/index' });
+    uni.redirectTo({ url: '/pages/login/index' });
     return;
   }
   uni.navigateTo({ url });

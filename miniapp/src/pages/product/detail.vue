@@ -482,7 +482,7 @@ function handleSkuConfirm() {
 async function addToCart() {
   const token = uni.getStorageSync('token');
   if (!token) {
-    uni.navigateTo({ url: '/pages/login/index' });
+    uni.redirectTo({ url: '/pages/login/index' });
     return;
   }
   // 检查是否选择了 SKU
@@ -536,7 +536,7 @@ function buyNow() {
 async function toggleFavorite() {
   const token = uni.getStorageSync('token');
   if (!token) {
-    uni.navigateTo({ url: '/pages/login/index' });
+    uni.redirectTo({ url: '/pages/login/index' });
     return;
   }
   try {

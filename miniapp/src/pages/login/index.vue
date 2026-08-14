@@ -1,5 +1,10 @@
 <template>
   <view class="page">
+    <!-- 返回按钮 -->
+    <view class="back-btn" @click="goBack">
+      <uni-icons type="back" size="20" color="#333"></uni-icons>
+    </view>
+
     <!-- 背景 -->
     <view class="bg-section">
       <view class="logo-area">
@@ -107,6 +112,16 @@ import { clearInviterId, getInviterId } from '@/utils/inviter.js';
 const loading = ref(false);
 const agreed = ref(true);
 const showPhoneLogin = ref(false);
+
+function goBack() {
+  // 如果有页面可以返回，就返回上一页；否则跳转到首页
+  const pages = getCurrentPages();
+  if (pages.length > 1) {
+    uni.navigateBack();
+  } else {
+    uni.switchTab({ url: '/pages/index/index' });
+  }
+}
 const showAgreementModal = ref(false);
 const agreementTitle = ref('');
 const agreementContent = ref('');
@@ -323,6 +338,21 @@ onUnmounted(() => {
 .page {
   min-height: 100vh;
   background: linear-gradient(180deg, #fff5f8 0%, #fff 100%);
+}
+
+.back-btn {
+  position: fixed;
+  top: 80rpx;
+  left: 30rpx;
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  z-index: 100;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.1);
 }
 
 .bg-section {

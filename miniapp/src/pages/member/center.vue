@@ -127,7 +127,7 @@ const currentPeriod = computed(() => periods.value[periodIndex.value] || null);
 
 onMounted(() => {
   if (!checkLogin()) {
-    uni.navigateTo({ url: '/pages/login/index' });
+    uni.redirectTo({ url: '/pages/login/index' });
     return;
   }
   loadAll();
