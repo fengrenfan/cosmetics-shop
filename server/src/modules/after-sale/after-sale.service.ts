@@ -127,7 +127,7 @@ export class AfterSaleService {
 
     const qb = this.afterSaleRepo.createQueryBuilder('a')
       .leftJoinAndSelect('a.user', 'u')
-      .leftJoinAndSelect('a.order', 'o');
+      .leftJoin('a.order', 'o');
 
     if (status) {
       qb.andWhere('a.status = :status', { status });

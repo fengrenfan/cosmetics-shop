@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, IsString, IsArray, Min } from 'class-validator';
+import { IsNumber, IsOptional, IsString, IsArray, Min, Type } from 'class-validator';
 
 export class CreateAfterSaleDto {
   @IsNumber()
@@ -37,11 +37,11 @@ export class AdminAfterSaleQueryDto {
   keyword?: string;
 
   @IsOptional()
-  @IsNumber()
+  @Type(() => Number)
   page?: number;
 
   @IsOptional()
-  @IsNumber()
+  @Type(() => Number)
   limit?: number;
 }
 
