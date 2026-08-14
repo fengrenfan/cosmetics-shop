@@ -35,9 +35,11 @@ export class AdminAfterSaleQueryDto {
   keyword?: string;
 
   @IsOptional()
+  @Type(() => Number)
   page?: number;
 
   @IsOptional()
+  @Type(() => Number)
   limit?: number;
 }
 

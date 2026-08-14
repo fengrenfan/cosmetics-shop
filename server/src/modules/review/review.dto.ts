@@ -1,4 +1,5 @@
 import { IsNumber, IsOptional, IsString, IsArray, Min, Max } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateReviewDto {
   @IsNumber()
@@ -27,19 +28,19 @@ export class CreateReviewDto {
 
 export class ReviewQueryDto {
   @IsOptional()
-  @IsNumber()
+  @Type(() => Number)
   product_id?: number;
 
   @IsOptional()
-  @IsNumber()
+  @Type(() => Number)
   page?: number;
 
   @IsOptional()
-  @IsNumber()
+  @Type(() => Number)
   limit?: number;
 
   @IsOptional()
-  @IsNumber()
+  @Type(() => Number)
   rating?: number;
 }
 
@@ -53,14 +54,17 @@ export class AdminReviewQueryDto {
   status?: string;
 
   @IsOptional()
+  @Type(() => Number)
   product_id?: number;
 
   @IsOptional()
   keyword?: string;
 
   @IsOptional()
+  @Type(() => Number)
   page?: number;
 
   @IsOptional()
+  @Type(() => Number)
   limit?: number;
 }
