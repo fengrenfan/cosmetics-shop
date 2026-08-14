@@ -1,4 +1,5 @@
-import { IsNumber, IsOptional, IsString, IsArray, Min, Type } from 'class-validator';
+import { IsNumber, IsOptional, IsString, IsArray, Min } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateAfterSaleDto {
   @IsNumber()
