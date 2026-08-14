@@ -267,15 +267,23 @@
       padding: 10px 12px;
       background: rgba(0, 0, 0, 0.2);
       border-top: 1px solid var(--border-color);
+    }
+    .btn-group {
       display: flex;
       gap: 6px;
     }
-    .card-actions .el-button {
-      flex: 1;
+    .btn-group .el-button {
+      flex: 1 1 0%;
       font-size: 11px;
-      padding: 5px 2px;
-      min-width: 0;
+      padding: 5px 0 !important;
+      min-width: 0 !important;
+      max-width: none !important;
       white-space: nowrap;
+      text-align: center;
+      box-sizing: border-box;
+    }
+    .btn-group .el-button + .el-button {
+      margin-left: 0 !important;
     }
 
     /* 预览区域 */
@@ -553,18 +561,12 @@
               </div>
             </div>
             <div class="card-actions">
-              <el-button size="small" type="primary" @click="updateService(svc.key)" :loading="svc.updating">
-                UPDATE
-              </el-button>
-              <el-button size="small" @click="confirmRestart(svc)" style="border-color: var(--neon-yellow); color: var(--neon-yellow);">
-                RESTART
-              </el-button>
-              <el-button size="small" :type="svc.running ? 'warning' : 'success'" @click="confirmToggle(svc)">
-                {{ svc.running ? 'STOP' : 'START' }}
-              </el-button>
-              <el-button size="small" @click="viewLogs(svc.containerId, svc.name)" style="border-color: var(--neon-purple); color: var(--neon-purple);">
-                LOGS
-              </el-button>
+              <div class="btn-group">
+                <el-button size="small" type="primary" @click="updateService(svc.key)" :loading="svc.updating">UPDATE</el-button>
+                <el-button size="small" @click="confirmRestart(svc)" style="border-color: var(--neon-yellow); color: var(--neon-yellow);">RESTART</el-button>
+                <el-button size="small" :type="svc.running ? 'warning' : 'success'" @click="confirmToggle(svc)">{{ svc.running ? 'STOP' : 'START' }}</el-button>
+                <el-button size="small" @click="viewLogs(svc.containerId, svc.name)" style="border-color: var(--neon-purple); color: var(--neon-purple);">LOGS</el-button>
+              </div>
             </div>
           </div>
         </div>
