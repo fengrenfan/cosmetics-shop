@@ -26,16 +26,19 @@ export class AfterSaleController {
     return this.afterSaleService.getRefundableOrders(req.user.id);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  async getDetail(@Request() req, @Param('id', ParseIntPipe) id: number) {
-    return this.afterSaleService.getDetail(req.user.id, id);
-  }
-
+  // 注意：动态路由 ':id' 必须放在静态路由 ('admin' 等) 之后声明，
+  // 否则 /api/after-sales/admin 会被 ':id' 捕获，导致 ParseIntPipe 抛出
+  // "Validation failed (numeric string is expected)"
   @UseGuards(JwtAuthGuard, AdminGuard)
   @Get('admin')
   async adminList(@Query() query: Record<string, any>) {
     return this.afterSaleService.adminList(query);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  async getDetail(@Request() req, @Param('id', ParseIntPipe) id: number) {
+    return this.afterSaleService.getDetail(req.user.id, id);
   }
 
   @UseGuards(JwtAuthGuard, AdminGuard)
