@@ -70,7 +70,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /usr/bin/docker:/usr/bin/docker
-      - /usr/libexec/docker:/usr/libexec/docker
+      - /usr/libexec/docker/cli-plugins:/usr/libexec/docker/cli-plugins
       - /home/ubuntu/app:/host/app
     environment:
       - JWT_SECRET=${JWT_SECRET}
