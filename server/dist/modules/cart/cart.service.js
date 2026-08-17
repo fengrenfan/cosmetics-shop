@@ -195,7 +195,8 @@ let CartService = class CartService {
                 try {
                     product.images = JSON.parse(product.images);
                 }
-                catch {
+                catch (e) {
+                    console.warn('[CartService] Failed to parse product images:', e.message);
                     product.images = [];
                 }
             }
@@ -214,7 +215,8 @@ let CartService = class CartService {
                 try {
                     product.images = JSON.parse(product.images);
                 }
-                catch {
+                catch (e) {
+                    console.warn('[CartService] Failed to parse product images:', e.message);
                     product.images = [];
                 }
             }

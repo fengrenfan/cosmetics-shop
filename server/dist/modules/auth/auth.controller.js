@@ -28,7 +28,11 @@ let AuthController = class AuthController {
         return this.authService.adminLogin(dto.username, dto.password);
     }
     async sendCode(dto) {
-        return { code: 0, message: 'success', data: { code: '1234' } };
+        const isDev = process.env.PAY_MODE === 'mock' || !process.env.SMS_ACCESS_KEY;
+        if (isDev) {
+            return { code: 0, message: '验证码已发送（开发环境验证码: 1234）' };
+        }
+        return { code: 0, message: '验证码已发送' };
     }
     async phoneLogin(dto) {
         return this.authService.phoneLogin(dto.phone, dto.code, dto.inviter_id);

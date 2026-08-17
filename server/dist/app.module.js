@@ -36,6 +36,10 @@ const payment_module_1 = require("./modules/payment/payment.module");
 const community_module_1 = require("./modules/community/community.module");
 const member_module_1 = require("./modules/member/member.module");
 const task_module_1 = require("./modules/task/task.module");
+const review_module_1 = require("./modules/review/review.module");
+const after_sale_module_1 = require("./modules/after-sale/after-sale.module");
+const notification_module_1 = require("./modules/notification/notification.module");
+const recommend_module_1 = require("./modules/recommend/recommend.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -51,7 +55,7 @@ exports.AppModule = AppModule = __decorate([
                 password: process.env.DB_PASSWORD,
                 database: process.env.DB_NAME,
                 entities: [__dirname + '/**/*.entity{.ts,.js}'],
-                synchronize: false,
+                synchronize: true,
                 logging: false,
                 connectTimeout: 60000,
             }),
@@ -82,6 +86,10 @@ exports.AppModule = AppModule = __decorate([
             community_module_1.CommunityModule,
             member_module_1.MemberModule,
             task_module_1.TaskModule,
+            review_module_1.ReviewModule,
+            after_sale_module_1.AfterSaleModule,
+            notification_module_1.NotificationModule,
+            recommend_module_1.RecommendModule,
         ],
         providers: [
             {

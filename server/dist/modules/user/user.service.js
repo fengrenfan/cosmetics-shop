@@ -48,6 +48,9 @@ let UserService = class UserService {
     async updateLastLogin(userId) {
         await this.userRepository.update(userId, { last_login_at: new Date() });
     }
+    async updateRole(userId, role) {
+        await this.userRepository.update(userId, { role });
+    }
     async getProfile(userId) {
         const user = await this.userRepository.findOne({ where: { id: userId } });
         if (!user)

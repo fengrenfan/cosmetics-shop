@@ -13,6 +13,7 @@ export declare class User {
     points: number;
     member_level_id: number;
     parent_id: number;
+    role: string;
     created_at: Date;
     updated_at: Date;
 }

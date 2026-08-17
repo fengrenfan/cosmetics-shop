@@ -101,7 +101,19 @@ __decorate([
     (0, typeorm_1.OneToMany)(() => product_sku_entity_1.ProductSku, (sku) => sku.product),
     __metadata("design:type", Array)
 ], Product.prototype, "skus", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 2, scale: 1, default: 0, name: 'avg_rating' }),
+    __metadata("design:type", Number)
+], Product.prototype, "avg_rating", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: 0, name: 'review_count' }),
+    __metadata("design:type", Number)
+], Product.prototype, "review_count", void 0);
 exports.Product = Product = __decorate([
-    (0, typeorm_1.Entity)('product')
+    (0, typeorm_1.Entity)('product'),
+    (0, typeorm_1.Index)('idx_product_status', ['status']),
+    (0, typeorm_1.Index)('idx_product_category_id', ['category_id']),
+    (0, typeorm_1.Index)('idx_product_is_recommend', ['is_recommend']),
+    (0, typeorm_1.Index)('idx_product_is_hot', ['is_hot'])
 ], Product);
 //# sourceMappingURL=product.entity.js.map

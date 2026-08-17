@@ -59,6 +59,7 @@ __decorate([
     __metadata("design:type", product_sku_entity_1.ProductSku)
 ], Cart.prototype, "sku", void 0);
 exports.Cart = Cart = __decorate([
-    (0, typeorm_1.Entity)('cart')
+    (0, typeorm_1.Entity)('cart'),
+    (0, typeorm_1.Index)('idx_cart_user_id', ['user_id'])
 ], Cart);
 //# sourceMappingURL=cart.entity.js.map

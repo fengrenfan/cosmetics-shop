@@ -71,6 +71,7 @@ __decorate([
     __metadata("design:type", product_entity_1.Product)
 ], OrderItem.prototype, "product", void 0);
 exports.OrderItem = OrderItem = __decorate([
-    (0, typeorm_1.Entity)('order_item')
+    (0, typeorm_1.Entity)('order_item'),
+    (0, typeorm_1.Index)('idx_order_item_order_id', ['order_id'])
 ], OrderItem);
 //# sourceMappingURL=order-item.entity.js.map

@@ -7,6 +7,9 @@ export declare class DashboardController {
         today_sales: number;
         product_count: number;
         user_count: number;
+        today_new_users: number;
+        low_stock_count: number;
+        pending_orders: number;
     }>;
     getSalesTrend(days?: string): Promise<any[]>;
     getProductRanking(limit?: string): Promise<{

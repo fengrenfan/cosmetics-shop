@@ -47,33 +47,63 @@ let DashboardService = class DashboardService {
             where: { status: 1 },
         });
         const userCount = await this.userRepository.count();
+        const todayNewUsers = await this.userRepository.count({
+            where: { created_at: (0, typeorm_2.Between)(today, tomorrow) },
+        });
+        const lowStockCount = await this.productRepository
+            .createQueryBuilder('p')
+            .where('p.status = :status', { status: 1 })
+            .andWhere('p.stock < :stock', { stock: 10 })
+            .getCount();
+        const pendingOrders = await this.orderRepository.count({
+            where: { status: 'paid' },
+        });
         return {
             today_orders: todayOrders,
             today_sales: parseFloat(todaySales?.total || 0),
             product_count: productCount,
             user_count: userCount,
+            today_new_users: todayNewUsers,
+            low_stock_count: lowStockCount,
+            pending_orders: pendingOrders,
         };
     }
     async getSalesTrend(days = 7) {
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - (days - 1));
+        startDate.setHours(0, 0, 0, 0);
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() + 1);
+        endDate.setHours(0, 0, 0, 0);
+        const rows = await this.orderRepository
+            .createQueryBuilder('o')
+            .select("DATE(o.created_at)", 'date')
+            .addSelect('COUNT(o.id)', 'orders')
+            .addSelect('COALESCE(SUM(o.pay_amount), 0)', 'sales')
+            .where('o.created_at >= :startDate', { startDate })
+            .andWhere('o.created_at < :endDate', { endDate })
+            .andWhere('o.status != :status', { status: 'cancelled' })
+            .groupBy("DATE(o.created_at)")
+            .orderBy("DATE(o.created_at)", 'ASC')
+            .getRawMany();
+        const dataMap = new Map();
+        for (const row of rows) {
+            const dateStr = typeof row.date === 'string' ? row.date.slice(0, 10) : '';
+            dataMap.set(dateStr, {
+                orders: parseInt(row.orders) || 0,
+                sales: parseFloat(row.sales) || 0,
+            });
+        }
         const result = [];
         for (let i = days - 1; i >= 0; i--) {
             const date = new Date();
             date.setDate(date.getDate() - i);
-            date.setHours(0, 0, 0, 0);
-            const next = new Date(date);
-            next.setDate(next.getDate() + 1);
-            const row = await this.orderRepository
-                .createQueryBuilder('o')
-                .select('COUNT(o.id)', 'orders')
-                .addSelect('COALESCE(SUM(o.pay_amount), 0)', 'sales')
-                .where('o.created_at >= :start', { start: date })
-                .andWhere('o.created_at < :end', { end: next })
-                .andWhere('o.status != :status', { status: 'cancelled' })
-                .getRawOne();
+            const dateStr = date.toISOString().slice(0, 10);
+            const data = dataMap.get(dateStr);
             result.push({
-                date: date.toISOString().slice(0, 10),
-                orders: parseInt(row.orders) || 0,
-                sales: parseFloat(row.sales) || 0,
+                date: dateStr,
+                orders: data?.orders || 0,
+                sales: data?.sales || 0,
             });
         }
         return result;
@@ -106,8 +136,8 @@ let DashboardService = class DashboardService {
             .limit(limit)
             .getRawMany();
         return orders.map(o => ({
-            id: o.id,
-            order_no: o.order_no,
+            id: o.o_id,
+            order_no: o.o_order_no,
             user: o.user_nickname || o.user_phone || null,
             amount: o.o_pay_amount,
             status: o.o_status,

@@ -22,4 +22,6 @@ export declare class Product {
     updated_at: Date;
     category: Category;
     skus: ProductSku[];
+    avg_rating: number;
+    review_count: number;
 }

@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Order } from './order.entity';
 import { OrderItem } from './order-item.entity';
 import { ProductService } from '../product/product.service';
@@ -26,7 +26,8 @@ export declare class OrderService {
     private readonly cartService;
     private readonly pointsService;
     private readonly couponService;
-    constructor(orderRepository: Repository<Order>, orderItemRepository: Repository<OrderItem>, userCouponRepository: Repository<UserCoupon>, productService: ProductService, addressService: AddressService, cartService: CartService, pointsService: PointsService, couponService: CouponService);
+    private readonly dataSource;
+    constructor(orderRepository: Repository<Order>, orderItemRepository: Repository<OrderItem>, userCouponRepository: Repository<UserCoupon>, productService: ProductService, addressService: AddressService, cartService: CartService, pointsService: PointsService, couponService: CouponService, dataSource: DataSource);
     create(dto: CreateOrderDto): Promise<{
         id: number;
         order_no: string;

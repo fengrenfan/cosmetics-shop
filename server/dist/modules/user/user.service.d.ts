@@ -13,6 +13,7 @@ export declare class UserService {
     getProfileByOpenid(openid: string): Promise<User | null>;
     getProfileByPhone(phone: string): Promise<User | null>;
     updateLastLogin(userId: number): Promise<void>;
+    updateRole(userId: number, role: string): Promise<void>;
     getProfile(userId: number): Promise<{
         id: number;
         nickname: string;

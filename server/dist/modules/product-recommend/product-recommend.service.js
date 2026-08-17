@@ -53,7 +53,8 @@ let ProductRecommendService = class ProductRecommendService {
                 try {
                     product.images = JSON.parse(product.images);
                 }
-                catch {
+                catch (e) {
+                    console.warn('[ProductRecommendService] Failed to parse product images:', e.message);
                     product.images = [];
                 }
             }

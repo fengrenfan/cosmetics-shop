@@ -122,6 +122,7 @@ __decorate([
     __metadata("design:type", Coupon)
 ], UserCoupon.prototype, "coupon", void 0);
 exports.UserCoupon = UserCoupon = __decorate([
-    (0, typeorm_1.Entity)('user_coupon')
+    (0, typeorm_1.Entity)('user_coupon'),
+    (0, typeorm_1.Index)('idx_user_coupon_user_id', ['user_id'])
 ], UserCoupon);
 //# sourceMappingURL=coupon.entity.js.map

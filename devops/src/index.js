@@ -157,36 +157,34 @@ app.get('/api/docker/git/status', authMiddleware, async (req, res) => {
       }
     });
   } catch (err) {
-    res.status(500).json({ code: 500, message: err.message });
+    res.status(500).json({ code: 500, message: err.stderr || err.error?.message || 'Git 命令执行失败' });
+  }
+});
+
+// 更新所有服务（必须在 /:service 之前注册，否则 /all 会被 :service 匹配）
+app.post('/api/docker/update/all', authMiddleware, async (req, res) => {
+  try {
+    await execCommand('docker compose build');
+    await execCommand('docker compose up -d');
+    res.json({ code: 0, message: '全部更新成功' });
+  } catch (err) {
+    res.status(500).json({ code: 500, message: err.stderr || err.message });
   }
 });
 
 // 更新指定服务
 app.post('/api/docker/update/:service', authMiddleware, async (req, res) => {
   const { service } = req.params;
-  const validServices = ['server', 'admin', 'miniapp', 'mock-server'];
+  const validServices = ['server', 'admin', 'miniapp', 'mock-server', 'devops'];
   
   if (!validServices.includes(service)) {
     return res.status(400).json({ code: 400, message: '无效的服务名称' });
   }
 
   try {
-    // 构建镜像
     await execCommand(`docker compose build ${service}`);
-    // 重启容器
     await execCommand(`docker compose up -d ${service}`);
     res.json({ code: 0, message: `${service} 更新成功` });
-  } catch (err) {
-    res.status(500).json({ code: 500, message: err.stderr || err.message });
-  }
-});
-
-// 更新所有服务
-app.post('/api/docker/update/all', authMiddleware, async (req, res) => {
-  try {
-    await execCommand('docker compose build');
-    await execCommand('docker compose up -d');
-    res.json({ code: 0, message: '全部更新成功' });
   } catch (err) {
     res.status(500).json({ code: 500, message: err.stderr || err.message });
   }

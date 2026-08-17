@@ -25,9 +25,6 @@ export declare class AuthController {
     sendCode(dto: SendCodeDto): Promise<{
         code: number;
         message: string;
-        data: {
-            code: string;
-        };
     }>;
     phoneLogin(dto: PhoneLoginDto): Promise<{
         token: string;

@@ -14,6 +14,9 @@ export declare class DashboardService {
         today_sales: number;
         product_count: number;
         user_count: number;
+        today_new_users: number;
+        low_stock_count: number;
+        pending_orders: number;
     }>;
     getSalesTrend(days?: number): Promise<any[]>;
     getProductRanking(limit?: number): Promise<{

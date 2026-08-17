@@ -76,8 +76,32 @@ let ProductService = class ProductService {
             .skip((page - 1) * pageSize)
             .take(pageSize)
             .getMany();
-        for (const product of list) {
-            await this.enrichProduct(product);
+        if (list.length > 0) {
+            const productIds = list.map(p => p.id);
+            const allSkus = await this.skuRepository
+                .createQueryBuilder('sku')
+                .where('sku.product_id IN (:...ids)', { ids: productIds })
+                .andWhere('sku.status = :status', { status: 1 })
+                .getMany();
+            const skusMap = new Map();
+            for (const sku of allSkus) {
+                const arr = skusMap.get(sku.product_id) || [];
+                arr.push(sku);
+                skusMap.set(sku.product_id, arr);
+            }
+            for (const product of list) {
+                product.skus = skusMap.get(product.id) || [];
+                if (product.images) {
+                    try {
+                        product.images = JSON.parse(product.images);
+                    }
+                    catch (e) {
+                        console.warn('[ProductService] Failed to parse product images:', e.message);
+                        product.images = [];
+                    }
+                }
+                (0, image_url_util_1.sanitizeProductImages)(product);
+            }
         }
         return {
             list,
@@ -101,8 +125,32 @@ let ProductService = class ProductService {
             .skip((page - 1) * pageSize)
             .take(pageSize)
             .getMany();
-        for (const product of list) {
-            await this.enrichProduct(product);
+        if (list.length > 0) {
+            const productIds = list.map(p => p.id);
+            const allSkus = await this.skuRepository
+                .createQueryBuilder('sku')
+                .where('sku.product_id IN (:...ids)', { ids: productIds })
+                .andWhere('sku.status = :status', { status: 1 })
+                .getMany();
+            const skusMap = new Map();
+            for (const sku of allSkus) {
+                const arr = skusMap.get(sku.product_id) || [];
+                arr.push(sku);
+                skusMap.set(sku.product_id, arr);
+            }
+            for (const product of list) {
+                product.skus = skusMap.get(product.id) || [];
+                if (product.images) {
+                    try {
+                        product.images = JSON.parse(product.images);
+                    }
+                    catch (e) {
+                        console.warn('[ProductService] Failed to parse product images:', e.message);
+                        product.images = [];
+                    }
+                }
+                (0, image_url_util_1.sanitizeProductImages)(product);
+            }
         }
         return {
             list,
@@ -126,8 +174,32 @@ let ProductService = class ProductService {
             order: { sales_count: 'DESC' },
             take: limit,
         });
-        for (const product of products) {
-            await this.enrichProduct(product);
+        if (products.length > 0) {
+            const productIds = products.map(p => p.id);
+            const allSkus = await this.skuRepository
+                .createQueryBuilder('sku')
+                .where('sku.product_id IN (:...ids)', { ids: productIds })
+                .andWhere('sku.status = :status', { status: 1 })
+                .getMany();
+            const skusMap = new Map();
+            for (const sku of allSkus) {
+                const arr = skusMap.get(sku.product_id) || [];
+                arr.push(sku);
+                skusMap.set(sku.product_id, arr);
+            }
+            for (const product of products) {
+                product.skus = skusMap.get(product.id) || [];
+                if (product.images) {
+                    try {
+                        product.images = JSON.parse(product.images);
+                    }
+                    catch (e) {
+                        console.warn('[ProductService] Failed to parse product images:', e.message);
+                        product.images = [];
+                    }
+                }
+                (0, image_url_util_1.sanitizeProductImages)(product);
+            }
         }
         return products;
     }
@@ -150,7 +222,8 @@ let ProductService = class ProductService {
             try {
                 product.images = JSON.parse(product.images);
             }
-            catch {
+            catch (e) {
+                console.warn('[ProductService] Failed to parse product images:', e.message);
                 product.images = [];
             }
         }
@@ -217,10 +290,28 @@ let ProductService = class ProductService {
     }
     async decrementStock(productId, skuId, quantity) {
         if (skuId) {
-            await this.skuRepository.decrement({ id: skuId }, 'stock', quantity);
+            const result = await this.skuRepository
+                .createQueryBuilder()
+                .update(product_sku_entity_1.ProductSku)
+                .set({ stock: () => 'stock - :quantity' })
+                .where('id = :skuId AND stock >= :quantity', { skuId, quantity })
+                .setParameter('quantity', quantity)
+                .execute();
+            if (result.affected === 0) {
+                throw new common_1.BadRequestException('库存不足');
+            }
         }
         else {
-            await this.productRepository.decrement({ id: productId }, 'stock', quantity);
+            const result = await this.productRepository
+                .createQueryBuilder()
+                .update(product_entity_1.Product)
+                .set({ stock: () => 'stock - :quantity' })
+                .where('id = :productId AND stock >= :quantity', { productId, quantity })
+                .setParameter('quantity', quantity)
+                .execute();
+            if (result.affected === 0) {
+                throw new common_1.BadRequestException('库存不足');
+            }
         }
     }
     async incrementStock(productId, skuId, quantity) {

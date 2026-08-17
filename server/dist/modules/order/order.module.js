@@ -20,13 +20,15 @@ const cart_module_1 = require("../cart/cart.module");
 const points_module_1 = require("../points/points.module");
 const coupon_module_1 = require("../coupon/coupon.module");
 const coupon_entity_1 = require("../coupon/coupon.entity");
+const user_entity_1 = require("../user/user.entity");
+const admin_guard_1 = require("../auth/admin.guard");
 let OrderModule = class OrderModule {
 };
 exports.OrderModule = OrderModule;
 exports.OrderModule = OrderModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([order_entity_1.Order, order_item_entity_1.OrderItem, coupon_entity_1.UserCoupon]),
+            typeorm_1.TypeOrmModule.forFeature([order_entity_1.Order, order_item_entity_1.OrderItem, coupon_entity_1.UserCoupon, user_entity_1.User]),
             product_module_1.ProductModule,
             address_module_1.AddressModule,
             cart_module_1.CartModule,
@@ -34,7 +36,7 @@ exports.OrderModule = OrderModule = __decorate([
             coupon_module_1.CouponModule,
         ],
         controllers: [order_controller_1.OrderController],
-        providers: [order_service_1.OrderService, order_task_1.OrderTask],
+        providers: [order_service_1.OrderService, order_task_1.OrderTask, admin_guard_1.AdminGuard],
         exports: [order_service_1.OrderService],
     })
 ], OrderModule);

@@ -40,7 +40,7 @@ exports.ORDER_PAY_STATUS = {
     REFUNDED: 'refunded',
 };
 let OrderService = OrderService_1 = class OrderService {
-    constructor(orderRepository, orderItemRepository, userCouponRepository, productService, addressService, cartService, pointsService, couponService) {
+    constructor(orderRepository, orderItemRepository, userCouponRepository, productService, addressService, cartService, pointsService, couponService, dataSource) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.userCouponRepository = userCouponRepository;
@@ -49,6 +49,7 @@ let OrderService = OrderService_1 = class OrderService {
         this.cartService = cartService;
         this.pointsService = pointsService;
         this.couponService = couponService;
+        this.dataSource = dataSource;
         this.lastTimestamp = 0;
         this.sequence = 0;
         this.expressCodeMap = {
@@ -65,120 +66,122 @@ let OrderService = OrderService_1 = class OrderService {
     }
     async create(dto) {
         const { user_id, address_id, items, remark, coupon_id, points_amount, points_money, pay_channel, pay_scene } = dto;
-        const address = await this.addressService.getById(address_id, user_id);
-        if (!address) {
-            throw new common_1.NotFoundException('收货地址不存在');
-        }
-        let totalAmount = 0;
-        const orderItems = [];
-        for (const item of items) {
-            const product = await this.productService.getDetail(item.product_id);
-            if (!product) {
-                throw new common_1.NotFoundException(`商品[${item.product_id}]不存在`);
+        return this.dataSource.transaction(async (manager) => {
+            const address = await this.addressService.getById(address_id, user_id);
+            if (!address) {
+                throw new common_1.NotFoundException('收货地址不存在');
             }
-            if (product.status === 0) {
-                throw new common_1.BadRequestException(`商品[${product.title}]已下架`);
-            }
-            let price = product.price;
-            let skuName = '';
-            if (item.sku_id) {
-                const sku = product.skus?.find((s) => s.id === item.sku_id);
-                if (!sku) {
-                    throw new common_1.BadRequestException('SKU不存在');
+            let totalAmount = 0;
+            const orderItems = [];
+            for (const item of items) {
+                const product = await this.productService.getDetail(item.product_id);
+                if (!product) {
+                    throw new common_1.NotFoundException(`商品[${item.product_id}]不存在`);
                 }
-                price = sku.price;
-                skuName = sku.sku_name;
+                if (product.status === 0) {
+                    throw new common_1.BadRequestException(`商品[${product.title}]已下架`);
+                }
+                let price = product.price;
+                let skuName = '';
+                if (item.sku_id) {
+                    const sku = product.skus?.find((s) => s.id === item.sku_id);
+                    if (!sku) {
+                        throw new common_1.BadRequestException('SKU不存在');
+                    }
+                    price = sku.price;
+                    skuName = sku.sku_name;
+                }
+                if (product.stock < item.quantity) {
+                    throw new common_1.BadRequestException(`商品[${product.title}]库存不足`);
+                }
+                const subtotal = price * item.quantity;
+                totalAmount += subtotal;
+                orderItems.push({
+                    product_id: item.product_id,
+                    sku_id: item.sku_id || null,
+                    product_title: product.title,
+                    sku_name: skuName,
+                    cover_image: product.cover_image,
+                    price,
+                    quantity: item.quantity,
+                    subtotal,
+                });
+                await this.productService.decrementStock(item.product_id, item.sku_id, item.quantity);
             }
-            if (product.stock < item.quantity) {
-                throw new common_1.BadRequestException(`商品[${product.title}]库存不足`);
+            const freightAmount = totalAmount >= 99 ? 0 : 10;
+            let discountAmount = 0;
+            let userCouponId = null;
+            if (coupon_id) {
+                const validation = await this.couponService.validateForOrder(user_id, coupon_id, totalAmount);
+                if (!validation.valid) {
+                    throw new common_1.BadRequestException(validation.error);
+                }
+                const discount = await this.couponService.applyToOrder(coupon_id, totalAmount);
+                discountAmount = discount.discountAmount;
+                const userCoupon = await this.userCouponRepository.findOne({
+                    where: { user_id, coupon_id, status: coupon_constants_1.USER_COUPON_STATUS.UNUSED },
+                });
+                userCouponId = userCoupon?.id;
             }
-            const subtotal = price * item.quantity;
-            totalAmount += subtotal;
-            orderItems.push({
-                product_id: item.product_id,
-                sku_id: item.sku_id || null,
-                product_title: product.title,
-                sku_name: skuName,
-                cover_image: product.cover_image,
-                price,
-                quantity: item.quantity,
-                subtotal,
+            const pointsMoney = points_money || 0;
+            const payAmount = totalAmount + freightAmount - discountAmount - pointsMoney;
+            const orderNo = this.generateOrderNo();
+            const order = this.orderRepository.create({
+                order_no: orderNo,
+                user_id,
+                total_amount: totalAmount,
+                freight_amount: freightAmount,
+                coupon_amount: discountAmount,
+                coupon_id: coupon_id || null,
+                pay_amount: payAmount,
+                status: 'pending',
+                pay_status: exports.ORDER_PAY_STATUS.UNPAID,
+                pay_channel: pay_channel || null,
+                pay_scene: pay_scene || null,
+                address_snapshot: JSON.stringify({
+                    name: address.name,
+                    phone: address.phone,
+                    province: address.province,
+                    city: address.city,
+                    district: address.district,
+                    detail_address: address.detail_address,
+                }),
+                remark,
             });
-            await this.productService.decrementStock(item.product_id, item.sku_id, item.quantity);
-        }
-        const freightAmount = totalAmount >= 99 ? 0 : 10;
-        let discountAmount = 0;
-        let userCouponId = null;
-        if (coupon_id) {
-            const validation = await this.couponService.validateForOrder(user_id, coupon_id, totalAmount);
-            if (!validation.valid) {
-                throw new common_1.BadRequestException(validation.error);
+            const savedOrder = await this.orderRepository.save(order);
+            if (userCouponId) {
+                await this.couponService.markAsUsed(userCouponId, savedOrder.id);
             }
-            const discount = await this.couponService.applyToOrder(coupon_id, totalAmount);
-            discountAmount = discount.discountAmount;
-            const userCoupon = await this.userCouponRepository.findOne({
-                where: { user_id, coupon_id, status: coupon_constants_1.USER_COUPON_STATUS.UNUSED },
-            });
-            userCouponId = userCoupon?.id;
-        }
-        const pointsMoney = points_money || 0;
-        const payAmount = totalAmount + freightAmount - discountAmount - pointsMoney;
-        const orderNo = this.generateOrderNo();
-        const order = this.orderRepository.create({
-            order_no: orderNo,
-            user_id,
-            total_amount: totalAmount,
-            freight_amount: freightAmount,
-            coupon_amount: discountAmount,
-            coupon_id: coupon_id || null,
-            pay_amount: payAmount,
-            status: 'pending',
-            pay_status: exports.ORDER_PAY_STATUS.UNPAID,
-            pay_channel: pay_channel || null,
-            pay_scene: pay_scene || null,
-            address_snapshot: JSON.stringify({
-                name: address.name,
-                phone: address.phone,
-                province: address.province,
-                city: address.city,
-                district: address.district,
-                detail_address: address.detail_address,
-            }),
-            remark,
+            if (points_amount && points_amount > 0) {
+                try {
+                    await this.pointsService.deductPoints(user_id, points_amount, savedOrder.id);
+                    savedOrder.points_amount = points_amount;
+                    savedOrder.points_money = pointsMoney;
+                    await this.orderRepository.save(savedOrder);
+                }
+                catch (e) {
+                    throw new common_1.BadRequestException('积分扣减失败：' + e.message);
+                }
+            }
+            for (const item of orderItems) {
+                const orderItem = this.orderItemRepository.create({
+                    ...item,
+                    order_id: savedOrder.id,
+                });
+                await this.orderItemRepository.save(orderItem);
+            }
+            for (const item of items) {
+                if (item.cart_id) {
+                    await this.cartService.remove(item.cart_id);
+                }
+            }
+            return {
+                id: savedOrder.id,
+                order_no: orderNo,
+                pay_amount: payAmount,
+                pay_status: savedOrder.pay_status,
+            };
         });
-        const savedOrder = await this.orderRepository.save(order);
-        if (userCouponId) {
-            await this.couponService.markAsUsed(userCouponId, savedOrder.id);
-        }
-        if (points_amount && points_amount > 0) {
-            try {
-                await this.pointsService.deductPoints(user_id, points_amount, savedOrder.id);
-                savedOrder.points_amount = points_amount;
-                savedOrder.points_money = pointsMoney;
-                await this.orderRepository.save(savedOrder);
-            }
-            catch (e) {
-                throw new common_1.BadRequestException('积分扣减失败：' + e.message);
-            }
-        }
-        for (const item of orderItems) {
-            const orderItem = this.orderItemRepository.create({
-                ...item,
-                order_id: savedOrder.id,
-            });
-            await this.orderItemRepository.save(orderItem);
-        }
-        for (const item of items) {
-            if (item.cart_id) {
-                await this.cartService.remove(item.cart_id);
-            }
-        }
-        return {
-            id: savedOrder.id,
-            order_no: orderNo,
-            pay_amount: payAmount,
-            pay_status: savedOrder.pay_status,
-        };
     }
     async getById(id) {
         const order = await this.orderRepository.findOne({ where: { id } });
@@ -265,10 +268,8 @@ let OrderService = OrderService_1 = class OrderService {
             .skip((page - 1) * pageSize)
             .take(pageSize)
             .getMany();
-        for (const order of list) {
-            order.items = await this.orderItemRepository.find({
-                where: { order_id: order.id },
-            });
+        if (list.length > 0) {
+            await this.attachItems(list);
         }
         this.parseSnapshots(list);
         return {
@@ -306,9 +307,7 @@ let OrderService = OrderService_1 = class OrderService {
         order.pay_status = exports.ORDER_PAY_STATUS.CLOSED;
         await this.orderRepository.save(order);
         const items = await this.orderItemRepository.find({ where: { order_id: id } });
-        for (const item of items) {
-            await this.productService.incrementStock(item.product_id, item.sku_id, item.quantity);
-        }
+        await Promise.all(items.map(item => this.productService.incrementStock(item.product_id, item.sku_id, item.quantity)));
         if (order.points_amount && order.points_amount > 0) {
             await this.pointsService.addPoints(order.user_id, order.points_amount, order.id, `订单取消返还积分`);
         }
@@ -429,9 +428,7 @@ let OrderService = OrderService_1 = class OrderService {
         }
         await this.markRefunded(order.id);
         const items = await this.orderItemRepository.find({ where: { order_id: id } });
-        for (const item of items) {
-            await this.productService.incrementStock(item.product_id, item.sku_id, item.quantity);
-        }
+        await Promise.all(items.map(item => this.productService.incrementStock(item.product_id, item.sku_id, item.quantity)));
         if (order.points_amount && order.points_amount > 0) {
             await this.pointsService.addPoints(order.user_id, order.points_amount, order.id, `订单退款返还积分`);
         }
@@ -460,7 +457,9 @@ let OrderService = OrderService_1 = class OrderService {
             try {
                 order.address_snapshot = JSON.parse(order.address_snapshot);
             }
-            catch { }
+            catch (e) {
+                console.warn('[OrderService] Failed to parse address snapshot:', e.message);
+            }
         }
     }
     parseSnapshots(orders) {
@@ -563,6 +562,7 @@ exports.OrderService = OrderService = OrderService_1 = __decorate([
         address_service_1.AddressService,
         cart_service_1.CartService,
         points_service_1.PointsService,
-        coupon_service_1.CouponService])
+        coupon_service_1.CouponService,
+        typeorm_2.DataSource])
 ], OrderService);
 //# sourceMappingURL=order.service.js.map

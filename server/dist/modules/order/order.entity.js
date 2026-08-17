@@ -153,6 +153,8 @@ __decorate([
 ], Order.prototype, "items", void 0);
 exports.Order = Order = __decorate([
     (0, typeorm_1.Entity)('order'),
+    (0, typeorm_1.Index)('idx_user_id', ['user_id']),
+    (0, typeorm_1.Index)('idx_status', ['status']),
     (0, typeorm_1.Index)('idx_pay_status', ['pay_status']),
     (0, typeorm_1.Index)('idx_out_trade_no', ['out_trade_no'])
 ], Order);

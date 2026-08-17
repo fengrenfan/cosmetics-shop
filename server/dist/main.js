@@ -16,15 +16,36 @@ async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.useStaticAssets((0, path_1.join)(process.cwd(), 'uploads'), { prefix: '/uploads' });
     app.setGlobalPrefix('api');
+    const allowedOrigins = (process.env.CORS_ORIGINS || '').split(',').filter(Boolean);
     app.enableCors({
-        origin: '*',
+        origin: allowedOrigins.length > 0 ? allowedOrigins : false,
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
         credentials: true,
+    });
+    app.use((req, res, next) => {
+        if (process.env.NODE_ENV === 'production') {
+            next();
+            return;
+        }
+        if (req.method === 'POST' || req.method === 'PUT') {
+            const body = { ...req.body };
+            for (const key of ['password', 'token', 'password_hash', 'code']) {
+                if (body[key])
+                    body[key] = '***';
+            }
+            console.log(req.method + " " + req.url, JSON.stringify(body));
+        }
+        next();
     });
     app.useGlobalPipes(new common_1.ValidationPipe({
         transform: true,
         whitelist: true,
         forbidNonWhitelisted: true,
+        exceptionFactory: (errors) => {
+            console.log('Validation Errors:', JSON.stringify(errors, null, 2));
+            const messages = errors.map(err => Object.values(err.constraints || {}).join(', ')).join('; ');
+            return new (require('@nestjs/common').BadRequestException)(messages);
+        },
     }));
     const port = process.env.PORT || 3000;
     await app.listen(port);
