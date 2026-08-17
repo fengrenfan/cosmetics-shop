@@ -1,5 +1,5 @@
 FROM node:18-alpine
-RUN apk add --no-cache git docker-cli docker-cli-compose
+RUN apk add --no-cache git
 WORKDIR /app
 COPY devops/package.json ./
 RUN npm install --omit=dev
