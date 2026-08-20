@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import axios from 'axios';
+import * as crypto from 'crypto';
 import { CreatePaymentGatewayPayloadParams, ParsedNotifyResult, PaymentGatewayAdapter } from './payment.gateway.types';
 
 @Injectable()
@@ -43,6 +44,9 @@ export class PaymentGatewayReal implements PaymentGatewayAdapter {
   }
 
   parseNotify(payChannel: string, payload: any): ParsedNotifyResult {
+    // 验签：伪造 / 篡改的回调在此被拒绝（fail-closed）
+    this.verifySign(payChannel, payload);
+
     const outTradeNo = payload?.out_trade_no || payload?.outTradeNo || payload?.data?.out_trade_no;
     const paidAt = payload?.paid_at || payload?.success_time || payload?.gmt_payment || payload?.paidAt;
     const thirdTradeNo = payload?.third_trade_no || payload?.transaction_id || payload?.trade_no;
@@ -63,6 +67,47 @@ export class PaymentGatewayReal implements PaymentGatewayAdapter {
       paid_at: paidAt,
       reason: payload?.reason || payload?.err_msg || payload?.sub_msg,
     };
+  }
+
+  /**
+   * 校验回调签名（fail-closed：未配密钥或签名不符一律拒绝）
+   *
+   * 默认采用通用方案：非空标量参数按 key 字典序拼接为 k1=v1&k2=v2，
+   * 末尾追加 &key=<密钥> 后做 MD5、转大写，与回调中的 sign 字段比对。
+   * 密钥取自环境变量 PAY_<渠道>_NOTIFY_SECRET，回退到 PAY_NOTIFY_SECRET。
+   * 接入真实支付网关时，请按其文档调整参与签名的字段与算法（见 buildSign）。
+   */
+  private verifySign(payChannel: string, payload: any): void {
+    const secret =
+      process.env[`PAY_${payChannel.toUpperCase()}_NOTIFY_SECRET`] ||
+      process.env.PAY_NOTIFY_SECRET;
+    if (!secret) {
+      throw new BadRequestException('支付回调验签失败：未配置回调密钥');
+    }
+
+    const receivedSign = payload?.sign || payload?.signature;
+    if (!receivedSign) {
+      throw new BadRequestException('支付回调验签失败：缺少签名');
+    }
+
+    const expected = Buffer.from(this.buildSign(payload, secret));
+    const received = Buffer.from(String(receivedSign).toUpperCase());
+    if (received.length !== expected.length || !crypto.timingSafeEqual(received, expected)) {
+      throw new BadRequestException('支付回调验签失败：签名不匹配');
+    }
+  }
+
+  private buildSign(payload: any, secret: string): string {
+    const parts: string[] = [];
+    for (const key of Object.keys(payload).sort()) {
+      if (key === 'sign' || key === 'signature' || key === 'signType') continue;
+      const value = payload[key];
+      if (value === undefined || value === null || value === '') continue;
+      if (typeof value === 'object') continue; // 嵌套字段不参与，按实际网关调整
+      parts.push(`${key}=${value}`);
+    }
+    const raw = `${parts.join('&')}&key=${secret}`;
+    return crypto.createHash('md5').update(raw, 'utf8').digest('hex').toUpperCase();
   }
 
   private getCreateUrl(payChannel: string, payScene: string) {
